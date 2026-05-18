@@ -1,0 +1,571 @@
+````md id="g7x4pf"
+# CoopFund Nexus — Workflow Logic
+
+## Purpose
+
+This document defines:
+- core operational workflows
+- role-based system behavior
+- approval logic
+- QR validation logic
+- merchant settlement flow
+- status transitions
+- MVP operational rules
+
+The workflow is designed to:
+- remain realistic
+- support meaningful blockchain integration
+- prioritize smooth demo presentation
+- maintain implementation simplicity
+
+---
+
+# 1. CORE WORKFLOW OVERVIEW
+
+The system follows this main operational flow:
+
+```text
+Admin creates assistance program
+↓
+Member submits assistance request
+↓
+Admin reviews request
+↓
+Admin approves request
+↓
+System generates QR/reference
+↓
+Member presents QR to merchant
+↓
+Merchant scans/verifies QR
+↓
+Programmable validation rules execute
+↓
+Claim succeeds or fails
+↓
+Morph blockchain records proof
+↓
+Dashboard updates
+↓
+Settlement recorded
+````
+
+---
+
+# 2. ROLE-BASED WORKFLOW LOGIC
+
+# 2.1 Admin Workflow
+
+Admin responsibilities:
+
+* manage assistance programs
+* approve/reject requests
+* manage merchants
+* monitor claims
+* monitor settlements
+* monitor blockchain logs
+
+---
+
+## Admin Operational Flow
+
+```text
+Login
+↓
+Open Dashboard
+↓
+Review Assistance Requests
+↓
+Approve or Reject Request
+↓
+QR Generated
+↓
+Monitor Claims
+↓
+Monitor Settlements
+↓
+View Blockchain Logs
+```
+
+---
+
+# 2.2 Member Workflow
+
+Member responsibilities:
+
+* request assistance
+* track request status
+* receive QR/reference
+* present QR to merchant
+
+---
+
+## Member Operational Flow
+
+```text
+Login
+↓
+Submit Assistance Request
+↓
+Wait for Approval
+↓
+Receive QR/Reference
+↓
+Visit Merchant
+↓
+Present QR
+↓
+Claim Processed
+```
+
+---
+
+# 2.3 Merchant Workflow
+
+Merchant responsibilities:
+
+* scan QR
+* validate claims
+* confirm claim usage
+* submit settlement records
+
+---
+
+## Merchant Operational Flow
+
+```text
+Login
+↓
+Open Merchant Portal
+↓
+Scan QR
+↓
+System Validates Claim
+↓
+Approve Claim
+↓
+Claim Recorded
+↓
+Settlement Recorded
+```
+
+---
+
+# 2.4 Auditor Workflow
+
+Auditor responsibilities:
+
+* monitor blockchain logs
+* review settlements
+* verify transaction transparency
+
+---
+
+## Auditor Operational Flow
+
+```text
+Login
+↓
+Open Verification Dashboard
+↓
+Review Blockchain Logs
+↓
+Review Settlement Records
+↓
+Verify Transaction Hashes
+```
+
+---
+
+# 3. ASSISTANCE PROGRAM WORKFLOW
+
+# 3.1 Create Assistance Program
+
+Admin can:
+
+* define assistance name
+* define merchant category
+* define maximum amount
+* define expiration rules
+
+---
+
+## Example
+
+```text
+Education Assistance
+→ usable only at school supply merchants
+→ max ₱2,500
+→ expires after 30 days
+```
+
+---
+
+# 4. ASSISTANCE REQUEST WORKFLOW
+
+# 4.1 Request Submission
+
+Member submits:
+
+* assistance type
+* requested amount
+* optional reason/notes
+
+System creates:
+
+```text
+Pending Request
+```
+
+---
+
+# 4.2 Request Review
+
+Admin reviews:
+
+* request validity
+* requested amount
+* assistance category
+
+Admin actions:
+
+* Approve
+* Reject
+
+---
+
+# 4.3 Approval Logic
+
+If approved:
+system:
+
+* assigns approved amount
+* generates reference code
+* generates QR code
+* creates approval record
+
+Status becomes:
+
+```text
+Approved
+```
+
+---
+
+# 4.4 Rejection Logic
+
+If rejected:
+status becomes:
+
+```text
+Rejected
+```
+
+Optional:
+
+* rejection reason
+
+---
+
+# 5. QR VALIDATION WORKFLOW
+
+# 5.1 QR Generation
+
+QR contains:
+
+* request reference
+* member reference
+* program reference
+* claim status
+
+Purpose:
+
+* merchant verification
+
+---
+
+# 5.2 Merchant QR Scan
+
+Merchant scans QR.
+
+System retrieves:
+
+* request data
+* program rules
+* claim history
+* expiration status
+
+---
+
+# 5.3 Validation Rules
+
+System validates:
+
+## Merchant Category Match
+
+Example:
+
+```text
+Education Assistance
+→ only school supply merchants allowed
+```
+
+---
+
+## Expiration Validation
+
+Claim fails if:
+
+```text
+current_date > expiration_date
+```
+
+---
+
+## Duplicate Claim Prevention
+
+Claim fails if:
+
+```text
+claim already processed
+```
+
+---
+
+## Status Validation
+
+Claim only allowed if:
+
+```text
+request_status = Approved
+```
+
+---
+
+## Amount Validation
+
+Claim cannot exceed:
+
+```text
+approved_amount
+```
+
+---
+
+# 5.4 Successful Validation
+
+If validation succeeds:
+
+* claim recorded
+* blockchain transaction triggered
+* transaction hash stored
+* settlement record created
+
+Request status becomes:
+
+```text
+Claimed
+```
+
+---
+
+# 5.5 Failed Validation
+
+If validation fails:
+claim rejected.
+
+Possible reasons:
+
+* expired assistance
+* duplicate claim
+* invalid merchant category
+* invalid QR
+* already settled
+
+No blockchain transaction executed.
+
+---
+
+# 6. CLAIM WORKFLOW
+
+# 6.1 Claim Creation
+
+After successful validation:
+system creates:
+
+```text
+Claim Record
+```
+
+Includes:
+
+* merchant
+* amount
+* timestamp
+* verification status
+
+---
+
+# 6.2 Claim Verification
+
+Merchant confirms:
+
+```text
+claim successfully processed
+```
+
+Claim status becomes:
+
+```text
+Verified
+```
+
+---
+
+# 7. SETTLEMENT WORKFLOW
+
+# 7.1 Settlement Creation
+
+After successful claim:
+system creates:
+
+```text
+Pending Settlement
+```
+
+---
+
+# 7.2 Settlement Monitoring
+
+Admin can:
+
+* monitor pending settlements
+* verify merchant transactions
+* confirm settlement completion
+
+---
+
+# 7.3 Settlement Completion
+
+After settlement processing:
+status becomes:
+
+```text
+Settled
+```
+
+Blockchain settlement proof recorded.
+
+---
+
+# 8. BLOCKCHAIN WORKFLOW TRIGGERS
+
+# 8.1 Approval Trigger
+
+When admin approves request:
+system executes:
+
+```text
+recordApproval()
+```
+
+---
+
+# 8.2 Claim Trigger
+
+When merchant successfully validates claim:
+system executes:
+
+```text
+recordClaim()
+```
+
+---
+
+# 8.3 Settlement Trigger
+
+When settlement completes:
+system executes:
+
+```text
+recordSettlement()
+```
+
+---
+
+# 9. DASHBOARD UPDATE WORKFLOW
+
+Dashboard updates after:
+
+* approval
+* claim
+* settlement
+* blockchain confirmation
+
+Displayed metrics:
+
+* total assistance released
+* total claims
+* total settlements
+* blockchain activity
+
+---
+
+# 10. MVP WORKFLOW PRINCIPLES
+
+The workflow must remain:
+
+* smooth
+* realistic
+* easy to explain
+* visually satisfying
+* blockchain-meaningful
+
+Priority:
+
+* polished operational flow
+* believable payment infrastructure
+* demo-friendly transitions
+
+---
+
+# 11. IMPORTANT MVP LIMITATIONS
+
+The MVP intentionally avoids:
+
+* advanced banking logic
+* partial payment computation
+* multi-wallet architecture
+* token systems
+* complex financial calculations
+
+Reason:
+
+* maintain feasibility
+* prioritize polished execution
+* reduce technical risk
+
+---
+
+# 12. FINAL WORKFLOW STRATEGY
+
+The workflow should feel:
+
+* deployable
+* institution-ready
+* operationally believable
+* blockchain-supported
+* easy to understand
+
+The system should demonstrate:
+
+# modern cooperative financial infrastructure
+
+through:
+
+* programmable validation
+* merchant verification
+* blockchain-backed transparency
+
+```
+```

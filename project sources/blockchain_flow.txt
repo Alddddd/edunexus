@@ -1,0 +1,414 @@
+````md
+# CoopFund Nexus — Blockchain Flow
+
+## Purpose
+
+This document defines:
+- how Morph blockchain is used
+- what data goes on-chain
+- what data stays in MySQL
+- smart contract triggers
+- blockchain transaction flow
+- verification and logging strategy
+
+The goal is to make blockchain integration:
+- meaningful
+- simple
+- demo-ready
+- technically believable
+- aligned with the Build In! Payments hackathon
+
+---
+
+# 1. BLOCKCHAIN ROLE
+
+Morph blockchain acts as the system’s:
+
+# tamper-resistant verification layer
+
+It is used for:
+- approval proof
+- claim proof
+- settlement proof
+- audit trail
+- transaction verification
+
+Morph is NOT used as:
+- the main database
+- a wallet system for normal users
+- a token economy
+- a DeFi platform
+
+---
+
+# 2. MAIN ARCHITECTURE
+
+```text
+Laravel Web App
+↓
+MySQL Database
+↓
+ethers.js / Blockchain Connector
+↓
+Solidity Smart Contract
+↓
+Morph Blockchain
+↓
+Transaction Hash Stored Back in Laravel
+````
+
+---
+
+# 3. WHAT STAYS IN MYSQL
+
+MySQL stores normal operational records:
+
+```text
+users
+members
+merchants
+assistance programs
+assistance requests
+claims
+settlements
+dashboard data
+QR data
+role permissions
+```
+
+Reason:
+
+* faster queries
+* easier dashboard reporting
+* privacy protection
+* simpler implementation
+
+---
+
+# 4. WHAT GOES ON MORPH BLOCKCHAIN
+
+Morph stores proof records only:
+
+```text
+approval proof
+claim proof
+settlement proof
+timestamp
+transaction hash
+hashed reference ID
+amount
+status
+```
+
+Important:
+Do NOT store sensitive personal data on-chain.
+
+Do NOT store:
+
+```text
+full names
+emails
+addresses
+passwords
+private documents
+medical data
+personal financial history
+```
+
+---
+
+# 5. SMART CONTRACT SCOPE
+
+The smart contract must remain simple.
+
+Main functions:
+
+```solidity
+recordApproval()
+recordClaim()
+recordSettlement()
+verifyTransaction()
+```
+
+The contract is only responsible for recording proof events.
+
+It should NOT handle:
+
+* token balances
+* staking
+* lending
+* DeFi logic
+* full accounting
+* complex user management
+
+---
+
+# 6. SMART CONTRACT EVENT TYPES
+
+The smart contract should emit events such as:
+
+```solidity
+ApprovalRecorded
+ClaimRecorded
+SettlementRecorded
+```
+
+These events help the system show:
+
+* proof of action
+* blockchain timestamp
+* transaction hash
+* verification status
+
+---
+
+# 7. APPROVAL BLOCKCHAIN FLOW
+
+Triggered when:
+
+# Admin approves an assistance request.
+
+Flow:
+
+```text
+Admin approves request
+↓
+Laravel saves approval in MySQL
+↓
+System calls recordApproval()
+↓
+Morph blockchain records approval proof
+↓
+Transaction hash returned
+↓
+Laravel stores hash in blockchain_logs
+↓
+Dashboard shows blockchain verification
+```
+
+Data recorded on-chain:
+
+```text
+hashed_request_reference
+approved_amount
+program_type
+timestamp
+status = Approved
+```
+
+---
+
+# 8. CLAIM BLOCKCHAIN FLOW
+
+Triggered when:
+
+# Merchant successfully verifies and confirms a QR claim.
+
+Flow:
+
+```text
+Merchant scans QR
+↓
+Laravel validates programmable rules
+↓
+Claim is confirmed
+↓
+Laravel saves claim in MySQL
+↓
+System calls recordClaim()
+↓
+Morph blockchain records claim proof
+↓
+Transaction hash returned
+↓
+Laravel stores hash in blockchain_logs
+↓
+Blockchain receipt displayed
+```
+
+Data recorded on-chain:
+
+```text
+hashed_claim_reference
+merchant_reference
+claim_amount
+timestamp
+status = Claimed
+```
+
+---
+
+# 9. SETTLEMENT BLOCKCHAIN FLOW
+
+Triggered when:
+
+# Admin marks merchant settlement as settled.
+
+Flow:
+
+```text
+Admin reviews merchant settlement
+↓
+Admin marks settlement as Settled
+↓
+Laravel saves settlement status in MySQL
+↓
+System calls recordSettlement()
+↓
+Morph blockchain records settlement proof
+↓
+Transaction hash returned
+↓
+Laravel stores hash in blockchain_logs
+↓
+Auditor can verify settlement proof
+```
+
+Data recorded on-chain:
+
+```text
+hashed_settlement_reference
+merchant_reference
+settlement_amount
+timestamp
+status = Settled
+```
+
+---
+
+# 10. BLOCKCHAIN LOGS TABLE PURPOSE
+
+The `blockchain_logs` table stores:
+
+```text
+transaction_type
+reference_id
+transaction_hash
+blockchain_status
+recorded_at
+```
+
+Transaction types:
+
+```text
+Approval
+Claim
+Settlement
+```
+
+Blockchain statuses:
+
+```text
+Pending
+Confirmed
+Failed
+```
+
+Purpose:
+
+* connect Laravel records to Morph transactions
+* display verification history
+* support audit dashboard
+* support demo proof
+
+---
+
+# 11. USER EXPERIENCE PRINCIPLE
+
+Blockchain must be visible only as proof, not as complexity.
+
+Normal users should see:
+
+```text
+Verified on Morph Blockchain
+Transaction Hash: 0x...
+Timestamp: ...
+Status: Confirmed
+```
+
+They should NOT need to understand:
+
+```text
+gas fees
+wallet signing
+smart contract internals
+block explorers
+private keys
+```
+
+---
+
+# 12. BLOCKCHAIN FAILURE HANDLING
+
+If blockchain transaction fails:
+
+System should:
+
+* keep Laravel record
+* mark blockchain status as Failed
+* allow retry
+* show clear admin warning
+
+Example:
+
+```text
+Claim saved locally, but blockchain proof failed. Please retry verification.
+```
+
+This prevents demo/system collapse.
+
+---
+
+# 13. MVP BLOCKCHAIN SUCCESS CONDITIONS
+
+Blockchain integration is successful if:
+
+* recordApproval() works
+* recordClaim() works
+* recordSettlement() works
+* transaction hashes are returned
+* blockchain logs are saved in Laravel
+* dashboard displays verification proof
+* demo can show Morph blockchain confirmation
+
+---
+
+# 14. DEMO BLOCKCHAIN MOMENT
+
+The strongest blockchain demo moment is:
+
+```text
+Merchant confirms claim
+↓
+System validates rules
+↓
+Morph transaction runs
+↓
+Transaction hash appears
+↓
+Dashboard updates to Verified
+```
+
+This should be treated as one of the main wow moments.
+
+---
+
+# 15. FINAL BLOCKCHAIN STRATEGY
+
+Morph blockchain should make CoopFund Nexus feel:
+
+* transparent
+* tamper-resistant
+* payment-focused
+* audit-ready
+* technically meaningful
+
+The blockchain layer should remain:
+
+* simple
+* focused
+* invisible to normal users
+* visible to judges through receipts and logs
+
+```
+```

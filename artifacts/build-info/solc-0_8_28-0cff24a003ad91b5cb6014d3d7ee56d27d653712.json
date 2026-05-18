@@ -1,0 +1,42 @@
+{
+  "_format": "hh3-sol-build-info-1",
+  "id": "solc-0_8_28-0cff24a003ad91b5cb6014d3d7ee56d27d653712",
+  "solcVersion": "0.8.28",
+  "solcLongVersion": "0.8.28+commit.7893614a",
+  "compilerType": "solc",
+  "userSourceNameMap": {
+    "contracts/EduNexUsProof.sol": "project/contracts/EduNexUsProof.sol"
+  },
+  "input": {
+    "language": "Solidity",
+    "settings": {
+      "evmVersion": "cancun",
+      "outputSelection": {
+        "*": {
+          "": [
+            "ast"
+          ],
+          "*": [
+            "abi",
+            "evm.bytecode.linkReferences",
+            "evm.bytecode.object",
+            "evm.bytecode.opcodes",
+            "evm.bytecode.sourceMap",
+            "evm.deployedBytecode.immutableReferences",
+            "evm.deployedBytecode.linkReferences",
+            "evm.deployedBytecode.object",
+            "evm.deployedBytecode.opcodes",
+            "evm.deployedBytecode.sourceMap",
+            "evm.methodIdentifiers"
+          ]
+        }
+      },
+      "remappings": []
+    },
+    "sources": {
+      "project/contracts/EduNexUsProof.sol": {
+        "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.28;\r\n\r\ncontract EduNexUsProof {\r\n    struct ClaimProof {\r\n        string referenceCode;\r\n        uint256 amount;\r\n        uint256 merchantId;\r\n        uint256 recordedAt;\r\n        address recordedBy;\r\n    }\r\n\r\n    mapping(string => ClaimProof) private claimProofs;\r\n\r\n    event ClaimProofRecorded(\r\n        string referenceCode,\r\n        uint256 amount,\r\n        uint256 merchantId,\r\n        uint256 recordedAt,\r\n        address recordedBy\r\n    );\r\n\r\n    function recordClaimProof(\r\n        string memory referenceCode,\r\n        uint256 amount,\r\n        uint256 merchantId\r\n    ) public {\r\n        require(bytes(referenceCode).length > 0, \"Reference code required\");\r\n        require(bytes(claimProofs[referenceCode].referenceCode).length == 0, \"Proof already recorded\");\r\n\r\n        claimProofs[referenceCode] = ClaimProof({\r\n            referenceCode: referenceCode,\r\n            amount: amount,\r\n            merchantId: merchantId,\r\n            recordedAt: block.timestamp,\r\n            recordedBy: msg.sender\r\n        });\r\n\r\n        emit ClaimProofRecorded(\r\n            referenceCode,\r\n            amount,\r\n            merchantId,\r\n            block.timestamp,\r\n            msg.sender\r\n        );\r\n    }\r\n\r\n    function getClaimProof(string memory referenceCode)\r\n        public\r\n        view\r\n        returns (ClaimProof memory)\r\n    {\r\n        return claimProofs[referenceCode];\r\n    }\r\n}"
+      }
+    }
+  }
+}
