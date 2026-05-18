@@ -1,4 +1,4 @@
-@extends('layouts.dashboard')
+﻿@extends('layouts.dashboard')
 
 @section('title', 'Claim Pass')
 
@@ -6,17 +6,17 @@
 
 @php
     $claimPassStatus = 'Pending Review';
-    $claimPassClasses = 'bg-yellow-100 text-yellow-700';
+    $claimPassClasses = 'bg-amber-100 text-amber-700';
     $claimGuidanceTitle = 'Awaiting Approval';
     $claimGuidanceCopy = 'Your assistance request is still under review. A QR/reference pass will appear after approval.';
-    $claimGuidanceClasses = 'border-yellow-200 bg-yellow-50 text-yellow-800';
+    $claimGuidanceClasses = 'border-amber-200 bg-amber-50 text-amber-800';
 
     if ($claim->status === 'Rejected') {
         $claimPassStatus = 'Rejected';
-        $claimPassClasses = 'bg-red-100 text-red-700';
+        $claimPassClasses = 'bg-rose-100 text-rose-700';
         $claimGuidanceTitle = 'Request Rejected';
         $claimGuidanceCopy = 'This assistance request was not approved. You may submit another request for an available program.';
-        $claimGuidanceClasses = 'border-red-200 bg-red-50 text-red-800';
+        $claimGuidanceClasses = 'border-rose-200 bg-rose-50 text-rose-800';
     } elseif ($claim->is_claimed) {
         $claimPassStatus = 'Claimed';
         $claimPassClasses = 'bg-cyan-100 text-cyan-700';
@@ -56,7 +56,7 @@
         </div>
 
         <a href="{{ route('member.claims.index') }}"
-           class="inline-flex w-fit items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+           class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ui-border bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas sm:w-fit">
             Back to My Claims
         </a>
     </div>
@@ -94,7 +94,7 @@
                     </p>
 
                     <p class="mt-1 font-semibold text-slate-800">
-                        PHP {{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}
+                        ₱{{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}
                     </p>
                 </div>
 
@@ -113,7 +113,7 @@
                         Reference Code
                     </p>
 
-                    <p class="mt-2 inline-flex rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm font-semibold text-slate-800">
+                    <p class="mt-2 block break-all rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm font-semibold text-slate-800">
                         {{ $claim->reference_code ?? 'Pending approval' }}
                     </p>
                 </div>
@@ -172,12 +172,12 @@
                         Print Claim Pass
                     </button>
                 @else
-                    <div class="mt-5 rounded-2xl border border-yellow-200 bg-yellow-50 p-5 text-left">
-                        <p class="font-semibold text-yellow-800">
+                    <div class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-left">
+                        <p class="font-semibold text-amber-800">
                             QR not available
                         </p>
 
-                        <p class="mt-1 text-sm text-yellow-700">
+                        <p class="mt-1 text-sm text-amber-700">
                             QR code will appear after approval.
                         </p>
                     </div>
@@ -230,7 +230,7 @@
                         id="close-qr-modal"
                         class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
                         aria-label="Close QR modal">
-                    X
+                    <x-icon name="x" size="h-5 w-5" />
                 </button>
             </div>
 
@@ -255,7 +255,7 @@
                     </p>
 
                     <p class="mt-1 font-semibold text-slate-800">
-                        PHP {{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}
+                        ₱{{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}
                     </p>
                 </div>
 

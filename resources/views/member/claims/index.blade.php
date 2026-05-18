@@ -1,4 +1,4 @@
-@extends('layouts.dashboard')
+﻿@extends('layouts.dashboard')
 
 @section('title', 'My Claims')
 
@@ -17,8 +17,8 @@
 
         return match ($claim->status) {
             'Approved' => 'bg-emerald-100 text-emerald-700',
-            'Rejected' => 'bg-red-100 text-red-700',
-            default => 'bg-yellow-100 text-yellow-700',
+            'Rejected' => 'bg-rose-100 text-rose-700',
+            default => 'bg-amber-100 text-amber-700',
         };
     };
 
@@ -56,7 +56,7 @@
     </div>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-500">
                 Total Requests
             </p>
@@ -70,7 +70,7 @@
             </p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-500">
                 Pending Review
             </p>
@@ -79,12 +79,12 @@
                 {{ number_format($pendingClaims) }}
             </p>
 
-            <p class="mt-1 text-sm text-yellow-600">
+            <p class="mt-1 text-sm text-amber-600">
                 Waiting for cooperative approval
             </p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-500">
                 Active Claim Passes
             </p>
@@ -98,7 +98,7 @@
             </p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-500">
                 Claimed
             </p>
@@ -183,7 +183,7 @@
 
                             <td class="px-6 py-5 align-top">
                                 <p class="font-semibold text-slate-800">
-                                    PHP {{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}
+                                    ₱{{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}
                                 </p>
 
                                 <p class="mt-1 text-xs text-slate-400">
@@ -208,18 +208,47 @@
                             </td>
 
                             <td class="px-6 py-5 align-top">
-                                <a href="{{ route('member.claims.show', $claim) }}"
-                                   class="inline-flex items-center rounded-xl bg-teal-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-teal-700">
-                                    View Claim
-                                </a>
+                                <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+                                    @if($claim->status === 'Pending' && ! $claim->is_claimed)
+                                        <a href="{{ route('member.assistance-requests.edit', $claim) }}"
+                                           class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-anchor px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-ui-action sm:w-28">
+                                            Edit
+                                        </a>
+
+                                        <form method="POST"
+                                              action="{{ route('member.assistance-requests.destroy', $claim) }}"
+                                              class="w-full sm:inline-flex sm:w-28"
+                                              data-confirm
+                                              data-confirm-title="Cancel this pending request?"
+                                              data-confirm-message="This will delete the pending request before admin review."
+                                              data-confirm-button="Cancel request"
+                                              data-confirm-tone="danger"
+                                              data-loading-text="Cancelling request..."
+                                              data-loader-title="Cancelling request..."
+                                              data-loader-message="Removing the pending request from the review queue.">
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button type="submit"
+                                                    class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-danger px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-rose-700">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    @endif
+
+                                    <a href="{{ route('member.claims.show', $claim) }}"
+                                       class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-action px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-ui-anchor sm:w-28">
+                                        View Claim
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
                             <td colspan="6" class="px-6 py-16 text-center">
                                 <div class="mx-auto max-w-md">
-                                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-500">
-                                        QR
+                                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                                        <x-icon name="qr-code" size="h-8 w-8" />
                                     </div>
 
                                     <h3 class="mt-5 text-lg font-semibold text-slate-700">

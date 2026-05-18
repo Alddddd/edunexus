@@ -162,9 +162,7 @@ class ClaimValidationController extends Controller
         );
 
         return redirect()
-            ->route('merchant.claims.verify', [
-                'reference_code' => $assistanceRequest->reference_code,
-            ])
+            ->route('merchant.claims.index')
             ->with(
                 'success',
                 $blockchainResult['success']

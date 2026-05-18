@@ -39,10 +39,15 @@ class AssistanceRequestController extends Controller
 
     $assistanceRequest->loadMissing('program');
 
+    $approvalLimit = min(
+        (float) $assistanceRequest->program->maximum_amount,
+        (float) $assistanceRequest->requested_amount
+    );
+
     $validated = $request->validate([
-        'approved_amount' => ['required', 'numeric', 'min:1', 'max:' . $assistanceRequest->program->maximum_amount],
+        'approved_amount' => ['required', 'numeric', 'min:1', 'max:' . $approvalLimit],
     ], [
-        'approved_amount.max' => 'The approved amount cannot exceed the program maximum of PHP ' . number_format($assistanceRequest->program->maximum_amount, 2) . '.',
+        'approved_amount.max' => 'The approved amount cannot exceed the lower of the requested amount and program maximum. Current limit: PHP ' . number_format($approvalLimit, 2) . '.',
     ]);
 
     $referenceCode = 'EDU-' . now()->format('Ymd') . '-' . strtoupper(Str::random(6));

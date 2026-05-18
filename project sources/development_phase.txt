@@ -1,0 +1,145 @@
+# EduNexUs Development Phase
+
+## Current Phase
+
+EduNexUs is currently in:
+
+- UI/UX Foundation Stabilization
+- Responsive Shared Layout Stabilization
+- Pre-Full-QA Phase
+
+The recent phase focused on making the existing MVP workflow clearer, safer, more responsive, and more demo-ready without redesigning the product or changing the blockchain workflow.
+
+---
+
+## Stable Core MVP Workflow
+
+The current MVP workflow must remain stable:
+
+```text
+Member Request
+-> Admin Approval
+-> QR Generation
+-> Merchant Validation
+-> Programmable Rule Validation
+-> Morph Blockchain Proof Recording
+-> Settlement Tracking
+-> Dashboard/Logs/Notifications Update
+```
+
+Protected systems:
+- assistance approval flow
+- QR/reference generation
+- merchant claim processing
+- programmable validation rules
+- blockchain proof recording flow
+- settlement workflow
+- notifications system
+- role middleware structure
+- dashboard navigation structure
+
+---
+
+## Recently Completed Stabilization Work
+
+Timezone:
+- app timezone migrated to Asia/Manila
+- config-only approach
+- no workflow logic rewritten
+- timestamps now align with Philippine operational time
+
+Toast system:
+- reusable Sonner-style native Blade/Tailwind toast system
+- success, error, warning, and info states
+- global toast stack in dashboard layout
+- auto-dismiss and close button support
+
+Confirmation modal system:
+- native browser confirms replaced
+- reusable Tailwind confirmation modal
+- title, message, confirm text, tone states, and loading states
+- applied to logout, approvals, rejections, settlements, blockchain proof confirmation, and merchant claim processing
+
+Premium loader overlay:
+- reusable global loader after confirmation approval
+- custom loader title and message
+- institutional fintech styling
+
+Validation:
+- member request amount respects program maximum
+- admin approval amount respects program maximum
+- merchant validation safety rule preserved
+
+Pagination:
+- major operational tables standardized to `paginate(5)`
+- centered pagination layout
+- query string filters preserved
+- dashboard/stat aggregation preserved
+
+QR claim pass:
+- enlarged QR modal added
+- QR payload compatibility preserved
+- print layout preserved
+- close, backdrop, and Escape behavior added
+
+Icon standardization:
+- reusable SVG icon component added
+- emoji/text icons replaced across major dashboard and workflow surfaces
+
+Responsive shell:
+- desktop persistent sidebar
+- mobile/tablet collapsible sidebar drawer
+- hamburger menu
+- backdrop close
+- Escape close
+- responsive topbar controls
+- responsive notification dropdown sizing
+- Alpine-based shell behavior
+
+---
+
+## Current Important Files
+
+Primary shared shell:
+- resources/views/layouts/dashboard.blade.php
+
+Primary dashboard reference:
+- resources/views/admin/dashboard.blade.php
+
+Reusable systems:
+- resources/views/components/toast.blade.php
+- resources/views/components/icon.blade.php
+
+Design/config reference:
+- tailwind.config.js
+
+---
+
+## Known Minor Issue
+
+There is still a perceived top-spacing issue on laptop widths in the Admin Dashboard shell/header area.
+
+Status:
+- not MVP-blocking
+- should be revisited later only if QA shows it affects usability
+
+---
+
+## Next Main Phase
+
+The UI foundation is now considered stabilized for MVP.
+
+Next development priority:
+1. Full End-to-End QA
+2. Workflow reliability validation
+3. Page-level responsive cleanup
+4. Responsive tables/forms/cards
+5. Final operational polish
+
+Priority:
+
+```text
+workflow reliability > additional UI redesign
+```
+
+Future changes should be small, safe, and compatible with existing routes, controllers, dashboard flows, Morph proof recording, and settlement behavior.

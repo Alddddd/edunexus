@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\AssistanceRequestController;
 use App\Http\Controllers\Admin\BlockchainTransactionController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MerchantController;
+use App\Http\Controllers\Admin\MerchantUserController;
 use App\Http\Controllers\Admin\SettlementController;
 use App\Http\Controllers\Auditor\DashboardController as AuditorDashboardController;
 use App\Http\Controllers\Member\AssistanceRequestController as MemberAssistanceRequestController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\Member\ClaimController;
 use App\Http\Controllers\Merchant\ClaimValidationController;
 use App\Http\Controllers\ProfileController;
 use App\Models\AssistanceRequest;
+use App\Models\BlockchainTransaction;
 use App\Models\Settlement;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
@@ -63,6 +65,15 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
             ->only(['index', 'create', 'store', 'edit', 'update'])
             ->names('admin.merchants');
 
+        Route::get('/admin/merchant-users', [MerchantUserController::class, 'index'])
+            ->name('admin.merchant-users.index');
+
+        Route::get('/admin/merchant-users/create', [MerchantUserController::class, 'create'])
+            ->name('admin.merchant-users.create');
+
+        Route::post('/admin/merchant-users', [MerchantUserController::class, 'store'])
+            ->name('admin.merchant-users.store');
+
         Route::get('/admin/blockchain-transactions', [BlockchainTransactionController::class, 'index'])
             ->name('admin.blockchain-transactions.index');
 
@@ -90,22 +101,26 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
             return view('member.dashboard', [
                 'totalRequests' => $memberRequests->count(),
                 'pendingRequests' => $memberRequests->where('status', 'Pending')->count(),
+                'approvedRequests' => $memberRequests->where('status', 'Approved')->count(),
                 'approvedClaimPasses' => $memberRequests
                     ->where('status', 'Approved')
                     ->where('is_claimed', false)
                     ->count(),
                 'claimedRequests' => $memberRequests->where('is_claimed', true)->count(),
+                'rejectedRequests' => $memberRequests->where('status', 'Rejected')->count(),
                 'latestRequest' => $memberRequests->first(),
                 'latestApprovedClaimPass' => $memberRequests
                     ->where('status', 'Approved')
                     ->where('is_claimed', false)
                     ->first(),
                 'recentClaims' => $memberRequests->take(5),
+                'recentNotifications' => auth()->user()->notifications()->latest()->take(5)->get(),
+                'unreadNotifications' => auth()->user()->unreadNotifications()->count(),
             ]);
         })->name('member.dashboard');
 
         Route::resource('/member/assistance-requests', MemberAssistanceRequestController::class)
-            ->only(['create', 'store'])
+            ->only(['create', 'store', 'edit', 'update', 'destroy'])
             ->names('member.assistance-requests');
 
         Route::get('/member/claims', [ClaimController::class, 'index'])
@@ -125,6 +140,31 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
                 ->latest()
                 ->get();
 
+            $pendingValidations = collect();
+
+            if ($merchantProfile && $merchantProfile->status === 'Active') {
+                $pendingValidations = AssistanceRequest::with(['member', 'program'])
+                    ->where('status', 'Approved')
+                    ->where('is_claimed', false)
+                    ->whereHas('program', function ($query) use ($merchantProfile) {
+                        $query->where('merchant_category', $merchantProfile->merchant_category);
+                    })
+                    ->latest()
+                    ->take(5)
+                    ->get();
+            }
+
+            $recentRequestIds = $merchantSettlements
+                ->pluck('assistance_request_id')
+                ->filter()
+                ->unique()
+                ->values();
+
+            $morphProofConfirmations = BlockchainTransaction::where('transaction_type', 'Claim')
+                ->whereIn('reference_id', $recentRequestIds)
+                ->where('blockchain_status', 'Confirmed')
+                ->count();
+
             return view('merchant.dashboard', [
                 'merchantProfile' => $merchantProfile,
                 'processedClaims' => $merchantSettlements->count(),
@@ -134,6 +174,9 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
                 'settledSettlementValue' => $merchantSettlements->where('status', 'Settled')->sum('amount'),
                 'totalSettlementValue' => $merchantSettlements->sum('amount'),
                 'recentSettlements' => $merchantSettlements->take(5),
+                'pendingValidationCount' => $pendingValidations->count(),
+                'pendingValidations' => $pendingValidations,
+                'morphProofConfirmations' => $morphProofConfirmations,
             ]);
         })->name('merchant.dashboard');
 

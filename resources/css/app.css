@@ -3,3 +3,65 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[x-cloak] {
+    display: none !important;
+}
+
+@layer components {
+    main table thead {
+        background-color: #EAF3EF;
+    }
+
+    main table thead th {
+        border-bottom: 1px solid #CFE0DA;
+        color: #0B5D56 !important;
+        font-weight: 700;
+        letter-spacing: 0.075em;
+        padding-bottom: 0.85rem !important;
+        padding-top: 0.85rem !important;
+    }
+
+    main table tbody tr {
+        transition: background-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    main table tbody tr:hover {
+        background-color: rgba(234, 240, 238, 0.62);
+    }
+
+    main table tbody td {
+        padding-bottom: 1rem !important;
+        padding-top: 1rem !important;
+    }
+
+    main nav[role="navigation"] {
+        color: #64748B;
+    }
+
+    main nav[role="navigation"] a,
+    main nav[role="navigation"] span {
+        border-color: #DDE7E3 !important;
+    }
+
+    main nav[role="navigation"] a {
+        background-color: #F9FCFB !important;
+        color: #0F2F2C !important;
+    }
+
+    main nav[role="navigation"] a:hover {
+        background-color: #EEF4F1 !important;
+        color: #0B5D56 !important;
+    }
+
+    main nav[role="navigation"] span[aria-current="page"] span {
+        background-color: #0B5D56 !important;
+        border-color: #0B5D56 !important;
+        color: #FFFFFF !important;
+    }
+
+    main nav[role="navigation"] span[aria-disabled="true"] span {
+        background-color: #EEF4F1 !important;
+        color: #94A3B8 !important;
+    }
+}

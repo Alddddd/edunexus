@@ -569,3 +569,42 @@ through:
 
 ```
 ```
+
+---
+
+# 13. STABILIZATION NOTES
+
+Current phase:
+
+```text
+UI/UX Foundation Stabilization
+Responsive Shared Layout Stabilization
+Pre-Full-QA Phase
+```
+
+Current stable MVP workflow:
+
+```text
+Member Request
+-> Admin Approval
+-> QR Generation
+-> Merchant Validation
+-> Programmable Rule Validation
+-> Morph Blockchain Proof Recording
+-> Settlement Tracking
+-> Dashboard/Logs/Notifications Update
+```
+
+Important workflow preservation notes:
+
+* The assistance request, admin approval, QR generation, merchant validation, programmable rule validation, Morph proof recording, settlement, dashboard, log, and notification flow remains unchanged.
+* Recent UI improvements added clearer feedback through toasts, confirmation modals, and loader overlays.
+* Recent validation improvements ensure member request amounts and admin approval amounts respect the assistance program maximum.
+* The QR claim pass enhancement preserves QR payload compatibility and print behavior.
+* Pagination changes preserve query string filters and dashboard/stat aggregation logic.
+* The next phase should prioritize end-to-end workflow reliability over further UI redesign.
+
+Known minor issue:
+
+* There is a remaining perceived top-spacing issue on laptop widths in the Admin Dashboard shell/header area.
+* This is not MVP-blocking and should be revisited only if needed during QA.

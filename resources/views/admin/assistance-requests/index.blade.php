@@ -3,132 +3,171 @@
 @section('title', 'Assistance Requests')
 
 @section('content')
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-slate-800">Assistance Requests</h1>
+    <x-page-header
+        title="Assistance Requests"
+        eyebrow="Admin Operations"
+        description="Review member assistance applications before approval, QR generation, merchant validation, and Morph proof recording." />
 
-        <p class="text-slate-500 mt-2">
-            Review member assistance applications before approval and QR generation.
-        </p>
-    </div>
+    <section class="mb-6 rounded-2xl border border-ui-border bg-ui-surface p-4 shadow-sm shadow-slate-200/60 sm:p-5">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div class="min-w-0">
+                <p class="text-sm font-semibold text-ui-text">
+                    Workflow Progress
+                </p>
 
-    <div class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-    <p class="text-sm font-semibold text-slate-700 mb-3">
-        Workflow Progress
-    </p>
+                <p class="mt-1 text-sm leading-6 text-ui-subtext">
+                    Current queue stage for admin review before claim pass validation.
+                </p>
+            </div>
 
-    <div class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
-        <span class="px-3 py-1 rounded-full bg-slate-100">Request</span>
-        <span>→</span>
-        <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700">Approval</span>
-        <span>→</span>
-        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700">QR Generated</span>
-        <span>→</span>
-        <span class="px-3 py-1 rounded-full bg-cyan-100 text-cyan-700">Merchant Claim</span>
-        <span>→</span>
-        <span class="px-3 py-1 rounded-full bg-teal-100 text-teal-700">Blockchain Log</span>
-    </div>
-</div>
-
-    @if(session('success'))
-        <div class="mb-6 px-4 py-3 rounded-xl bg-emerald-100 text-emerald-700">
-            {{ session('success') }}
+            <div class="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                <x-status-badge status="Request" tone="neutral" />
+                <x-icon name="chevron-right" size="hidden h-4 w-4 text-slate-400 sm:block" />
+                <x-status-badge status="Approval" tone="warning" />
+                <x-icon name="chevron-right" size="hidden h-4 w-4 text-slate-400 sm:block" />
+                <x-status-badge status="QR Generated" tone="success" />
+                <x-icon name="chevron-right" size="hidden h-4 w-4 text-slate-400 sm:block" />
+                <x-status-badge status="Merchant Claim" tone="proof" />
+                <x-icon name="chevron-right" size="hidden h-4 w-4 text-slate-400 sm:block" />
+                <x-status-badge status="Morph Proof" tone="proof" />
+            </div>
         </div>
-    @endif
+    </section>
 
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-
-        <table class="w-full text-sm">
-
-            <thead class="bg-slate-50 text-slate-500 uppercase text-xs">
-
-                <tr>
-                    <th class="px-6 py-4 text-left">Member</th>
-                    <th class="px-6 py-4 text-left">Program</th>
-                    <th class="px-6 py-4 text-left">Requested Amount</th>
-                    <th class="px-6 py-4 text-left">Status</th>
-                    <th class="px-6 py-4 text-left">Date</th>
-                    <th class="px-6 py-4 text-left">Action</th>
-                </tr>
-
-            </thead>
-
-            <tbody class="divide-y divide-slate-100">
-
-                @forelse($requests as $request)
-
+    <x-table-card
+        title="Request Queue"
+        description="Newest applications appear first. Open a request to approve, reject, or inspect its workflow details.">
+        <div class="hidden md:block">
+            <table class="min-w-full divide-y divide-ui-border text-sm">
+                <thead class="bg-ui-canvas/70">
                     <tr>
-
-                        <td class="px-6 py-4 font-medium text-slate-700">
-                            {{ $request->member->name }}
-                        </td>
-
-                        <td class="px-6 py-4">
-                            {{ $request->program->program_name }}
-                        </td>
-
-                        <td class="px-6 py-4 font-semibold">
-                            ₱{{ number_format($request->requested_amount, 2) }}
-                        </td>
-
-                        <td class="px-6 py-4">
-
-                           <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                {{ $request->status === 'Approved'
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : ($request->status === 'Rejected'
-                                        ? 'bg-red-100 text-red-700'
-                                        : ($request->is_claimed
-                                            ? 'bg-cyan-100 text-cyan-700'
-                                            : 'bg-yellow-100 text-yellow-700')) }}">
-                                {{ $request->is_claimed ? 'Claimed' : $request->status }}
-                            </span>
-
-                        </td>
-
-                        <td class="px-6 py-4 text-slate-500">
-                            {{ $request->created_at->format('M d, Y') }}
-                        </td>
-
-                        <td class="px-6 py-4">
-
-                            <a href="{{ route('admin.assistance-requests.show', $request) }}"
-                               class="text-teal-600 font-medium hover:text-teal-700">
-
-                                Review
-
-                            </a>
-
-                        </td>
-
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Member</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Program</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Requested Amount</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Status</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Date</th>
+                        <th class="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wider text-ui-subtext">Action</th>
                     </tr>
+                </thead>
 
-                @empty
+                <tbody class="divide-y divide-ui-border/70 bg-ui-surface">
+                    @forelse($requests as $request)
+                        <tr class="transition hover:bg-ui-canvas/60">
+                            <td class="px-5 py-4">
+                                <p class="font-semibold text-ui-text">
+                                    {{ $request->member->name }}
+                                </p>
+                            </td>
 
-                    <tr>
+                            <td class="px-5 py-4 text-slate-600">
+                                {{ $request->program->program_name }}
+                            </td>
 
-                        <td colspan="6" class="px-6 py-10 text-center text-slate-400">
-                            No assistance requests submitted yet.
-                        </td>
+                            <td class="px-5 py-4 font-semibold text-ui-text">
+                                &#8369;{{ number_format($request->requested_amount, 2) }}
+                            </td>
 
-                    </tr>
+                            <td class="px-5 py-4">
+                                <x-status-badge
+                                    :status="$request->is_claimed ? 'Claimed' : $request->status"
+                                    :tone="$request->is_claimed ? 'claimed' : $request->status" />
+                            </td>
 
-                @endforelse
+                            <td class="px-5 py-4 text-ui-subtext">
+                                {{ $request->created_at->format('M d, Y') }}
+                            </td>
 
-            </tbody>
+                            <td class="px-5 py-4 text-right">
+                                <a href="{{ route('admin.assistance-requests.show', $request) }}"
+                                   class="inline-flex min-h-10 items-center justify-center rounded-xl px-3 py-2 text-sm font-semibold text-ui-action transition hover:bg-teal-50 hover:text-ui-anchor">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center">
+                                <p class="font-medium text-ui-text">
+                                    No assistance requests submitted yet.
+                                </p>
 
-        </table>
+                                <p class="mt-1 text-sm text-ui-subtext">
+                                    New member applications will appear here for admin review.
+                                </p>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
-        <div class="border-t border-slate-100 bg-slate-50 px-6 py-4">
+        <div class="divide-y divide-ui-border/80 md:hidden">
+            @forelse($requests as $request)
+                <article class="p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="font-semibold text-ui-text">
+                                {{ $request->member->name }}
+                            </p>
+
+                            <p class="mt-1 text-sm leading-5 text-ui-subtext">
+                                {{ $request->program->program_name }}
+                            </p>
+                        </div>
+
+                        <x-status-badge
+                            :status="$request->is_claimed ? 'Claimed' : $request->status"
+                            :tone="$request->is_claimed ? 'claimed' : $request->status" />
+                    </div>
+
+                    <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                        <div class="rounded-xl bg-ui-canvas/70 p-3">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">
+                                Amount
+                            </dt>
+                            <dd class="mt-1 font-semibold text-ui-text">
+                                &#8369;{{ number_format($request->requested_amount, 2) }}
+                            </dd>
+                        </div>
+
+                        <div class="rounded-xl bg-ui-canvas/70 p-3">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">
+                                Date
+                            </dt>
+                            <dd class="mt-1 font-semibold text-ui-text">
+                                {{ $request->created_at->format('M d, Y') }}
+                            </dd>
+                        </div>
+                    </dl>
+
+                    <a href="{{ route('admin.assistance-requests.show', $request) }}"
+                       class="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-action px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor">
+                        Review Request
+                    </a>
+                </article>
+            @empty
+                <div class="px-4 py-10 text-center">
+                    <p class="font-medium text-ui-text">
+                        No assistance requests submitted yet.
+                    </p>
+
+                    <p class="mt-1 text-sm text-ui-subtext">
+                        New member applications will appear here for admin review.
+                    </p>
+                </div>
+            @endforelse
+        </div>
+
+        <x-slot:footer>
             <div class="flex flex-col items-center justify-center gap-3 text-center">
-                <p class="text-sm text-slate-500">
+                <p class="text-sm text-ui-subtext">
                     Showing {{ $requests->firstItem() ?? 0 }} to {{ $requests->lastItem() ?? 0 }} of {{ $requests->total() }} requests
                 </p>
 
-                <div class="flex justify-center">
+                <div class="flex max-w-full justify-center overflow-x-auto">
                     {{ $requests->links() }}
                 </div>
             </div>
-        </div>
-
-    </div>
+        </x-slot:footer>
+    </x-table-card>
 @endsection

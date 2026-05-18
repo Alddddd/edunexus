@@ -5,330 +5,259 @@
 @section('content')
 
 @php
-    $statusClasses = function ($request) {
-        if ($request?->is_claimed) {
-            return 'bg-cyan-100 text-cyan-700';
-        }
-
-        return match ($request?->status) {
-            'Approved' => 'bg-emerald-100 text-emerald-700',
-            'Rejected' => 'bg-red-100 text-red-700',
-            default => 'bg-yellow-100 text-yellow-700',
-        };
-    };
-
-    $statusLabel = function ($request) {
-        return $request?->is_claimed ? 'Claimed' : ($request?->status ?? 'No request yet');
-    };
+    $statusLabel = fn ($request) => $request?->is_claimed ? 'Claimed' : ($request?->status ?? 'No request yet');
+    $statusTone = fn ($request) => $request?->is_claimed ? 'claimed' : ($request?->status ?? 'neutral');
 @endphp
 
 <div class="max-w-7xl space-y-6">
+    <x-page-header
+        title="Welcome to EduNexUs"
+        eyebrow="Member Portal"
+        description="Submit assistance requests, track approval status, and access your QR claim pass once approved.">
+        <x-slot:actions>
+            <a href="{{ route('member.assistance-requests.create') }}"
+               class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ui-action px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor">
+                Request Assistance
+            </a>
 
-    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <p class="text-sm font-semibold uppercase tracking-wider text-teal-700">
-                    Member Portal
-                </p>
-
-                <h1 class="mt-2 text-3xl font-bold text-slate-800">
-                    Welcome to EduNexUs
-                </h1>
-
-                <p class="mt-2 max-w-3xl text-slate-500">
-                    Submit assistance requests, track approval status, and access your QR claim pass once approved.
-                </p>
-            </div>
-
-            <div class="flex flex-wrap gap-3">
-                <a href="{{ route('member.assistance-requests.create') }}"
-                   class="inline-flex items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700">
-                    Request Assistance
-                </a>
-
-                <a href="{{ route('member.claims.index') }}"
-                   class="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
-                    My Claims
-                </a>
-            </div>
-        </div>
-    </div>
+            <a href="{{ route('member.claims.index') }}"
+               class="inline-flex min-h-11 items-center justify-center rounded-xl border border-ui-border bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas">
+                My Claims
+            </a>
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">
-                Total Requests
-            </p>
-
-            <p class="mt-2 text-3xl font-bold text-slate-800">
-                {{ number_format($totalRequests) }}
-            </p>
-
-            <p class="mt-1 text-sm text-slate-400">
-                Submitted assistance requests
-            </p>
+        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+            <p class="text-sm text-ui-subtext">Total Requests</p>
+            <p class="mt-2 text-3xl font-bold text-ui-text">{{ number_format($totalRequests) }}</p>
+            <p class="mt-1 text-sm text-ui-subtext">Submitted assistance requests</p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">
-                Pending Review
-            </p>
-
-            <p class="mt-2 text-3xl font-bold text-slate-800">
-                {{ number_format($pendingRequests) }}
-            </p>
-
-            <p class="mt-1 text-sm text-yellow-600">
-                Waiting for cooperative approval
-            </p>
+        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+            <p class="text-sm text-ui-subtext">Pending Review</p>
+            <p class="mt-2 text-3xl font-bold text-ui-warning">{{ number_format($pendingRequests) }}</p>
+            <p class="mt-1 text-sm text-amber-600">Waiting for cooperative approval</p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">
-                Active Claim Passes
-            </p>
-
-            <p class="mt-2 text-3xl font-bold text-slate-800">
-                {{ number_format($approvedClaimPasses) }}
-            </p>
-
-            <p class="mt-1 text-sm text-emerald-600">
-                Ready for merchant validation
-            </p>
+        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+            <p class="text-sm text-ui-subtext">Active Claim Passes</p>
+            <p class="mt-2 text-3xl font-bold text-ui-success">{{ number_format($approvedClaimPasses) }}</p>
+            <p class="mt-1 text-sm text-emerald-600">Ready for merchant validation</p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p class="text-sm text-slate-500">
-                Claimed Assistance
-            </p>
-
-            <p class="mt-2 text-3xl font-bold text-slate-800">
-                {{ number_format($claimedRequests) }}
-            </p>
-
-            <p class="mt-1 text-sm text-cyan-600">
-                Processed by merchant
-            </p>
+        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+            <p class="text-sm text-ui-subtext">Claimed Assistance</p>
+            <p class="mt-2 text-3xl font-bold text-ui-proof">{{ number_format($claimedRequests) }}</p>
+            <p class="mt-1 text-sm text-cyan-600">Processed by merchant</p>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm xl:col-span-2">
-            <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div>
-                    <h2 class="text-lg font-semibold text-slate-800">
-                        Latest Request Status
-                    </h2>
-
-                    <p class="mt-1 text-sm text-slate-500">
-                        Your most recent assistance request and next step.
-                    </p>
-                </div>
-
-                @if($latestRequest)
-                    <span class="inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold {{ $statusClasses($latestRequest) }}">
-                        {{ $statusLabel($latestRequest) }}
-                    </span>
-                @endif
+    <x-form-card
+        title="Request Lifecycle"
+        description="A compact view of where your assistance records are in the cooperative workflow.">
+        <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <div class="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-amber-700">Pending</p>
+                <p class="mt-2 text-2xl font-bold text-amber-800">{{ number_format($pendingRequests) }}</p>
+                <p class="mt-1 text-xs text-amber-700">Editable until reviewed</p>
             </div>
 
+            <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700">Approved</p>
+                <p class="mt-2 text-2xl font-bold text-emerald-800">{{ number_format($approvedRequests) }}</p>
+                <p class="mt-1 text-xs text-emerald-700">QR/reference generated</p>
+            </div>
+
+            <div class="rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-cyan-700">Claimed</p>
+                <p class="mt-2 text-2xl font-bold text-cyan-800">{{ number_format($claimedRequests) }}</p>
+                <p class="mt-1 text-xs text-cyan-700">Merchant validated</p>
+            </div>
+
+            <div class="rounded-2xl border border-rose-100 bg-rose-50 p-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-rose-700">Rejected</p>
+                <p class="mt-2 text-2xl font-bold text-rose-800">{{ number_format($rejectedRequests) }}</p>
+                <p class="mt-1 text-xs text-rose-700">Closed after review</p>
+            </div>
+        </div>
+    </x-form-card>
+
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <x-form-card
+            class="xl:col-span-2"
+            title="Latest Request Status"
+            description="Your most recent assistance request and next operational step.">
+            <x-slot:actions>
+                @if($latestRequest)
+                    <x-status-badge :status="$statusLabel($latestRequest)" :tone="$statusTone($latestRequest)" />
+                @endif
+            </x-slot:actions>
+
             @if($latestRequest)
-                <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                            Program
-                        </p>
-
-                        <p class="mt-2 font-semibold text-slate-800">
-                            {{ $latestRequest->program->program_name ?? 'Assistance program' }}
-                        </p>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                    <div class="rounded-xl bg-ui-canvas/70 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-ui-subtext">Program</p>
+                        <p class="mt-2 font-semibold text-ui-text">{{ $latestRequest->program->program_name ?? 'Assistance program' }}</p>
                     </div>
 
-                    <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                            Amount
-                        </p>
-
-                        <p class="mt-2 font-semibold text-slate-800">
-                            PHP {{ number_format($latestRequest->approved_amount ?? $latestRequest->requested_amount, 2) }}
-                        </p>
+                    <div class="rounded-xl bg-ui-canvas/70 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-ui-subtext">Amount</p>
+                        <p class="mt-2 font-semibold text-ui-text">&#8369;{{ number_format($latestRequest->approved_amount ?? $latestRequest->requested_amount, 2) }}</p>
                     </div>
 
-                    <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                            Reference
-                        </p>
-
-                        <p class="mt-2 font-mono text-xs font-semibold text-slate-800">
-                            {{ $latestRequest->reference_code ?? 'Pending approval' }}
-                        </p>
+                    <div class="rounded-xl bg-ui-canvas/70 p-4">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-ui-subtext">Reference</p>
+                        <p class="mt-2 break-all font-mono text-xs font-semibold text-ui-text">{{ $latestRequest->reference_code ?? 'Pending approval' }}</p>
                     </div>
                 </div>
 
                 <div class="mt-5 rounded-2xl border border-teal-100 bg-teal-50 p-5">
                     @if($latestRequest->is_claimed)
-                        <p class="font-semibold text-cyan-800">
-                            Claim processed
-                        </p>
-
-                        <p class="mt-1 text-sm text-cyan-700">
-                            This assistance has already been validated and processed by a merchant.
-                        </p>
+                        <p class="font-semibold text-cyan-800">Claim processed</p>
+                        <p class="mt-1 text-sm text-cyan-700">This assistance has already been validated and processed by a merchant.</p>
                     @elseif($latestRequest->status === 'Approved')
-                        <p class="font-semibold text-teal-800">
-                            Claim pass ready
-                        </p>
-
-                        <p class="mt-1 text-sm text-teal-700">
-                            Present your QR/reference claim pass to an accredited merchant for validation.
-                        </p>
+                        <p class="font-semibold text-teal-800">Claim pass ready</p>
+                        <p class="mt-1 text-sm text-teal-700">Present your QR/reference claim pass to an accredited merchant for validation.</p>
                     @elseif($latestRequest->status === 'Rejected')
-                        <p class="font-semibold text-red-800">
-                            Request was not approved
-                        </p>
-
-                        <p class="mt-1 text-sm text-red-700">
-                            You may submit a new request for another available assistance program.
-                        </p>
+                        <p class="font-semibold text-rose-800">Request was not approved</p>
+                        <p class="mt-1 text-sm text-rose-700">You may submit a new request for another available assistance program.</p>
                     @else
-                        <p class="font-semibold text-yellow-800">
-                            Awaiting cooperative review
-                        </p>
+                        <p class="font-semibold text-amber-800">Awaiting cooperative review</p>
+                        <p class="mt-1 text-sm text-amber-700">Your request is in the admin review queue. You may still edit or cancel it while pending.</p>
 
-                        <p class="mt-1 text-sm text-yellow-700">
-                            Your request is in the admin review queue. You will receive a claim pass after approval.
-                        </p>
+                        <div class="mt-4 flex flex-col gap-3 sm:flex-row">
+                            <a href="{{ route('member.assistance-requests.edit', $latestRequest) }}"
+                               class="inline-flex min-h-10 items-center justify-center rounded-xl bg-white px-4 py-2 text-sm font-semibold text-amber-700 shadow-sm transition hover:bg-amber-100">
+                                Edit Pending Request
+                            </a>
+
+                            <form method="POST"
+                                  action="{{ route('member.assistance-requests.destroy', $latestRequest) }}"
+                                  data-confirm
+                                  data-confirm-title="Cancel this pending request?"
+                                  data-confirm-message="This will delete the pending request before admin review."
+                                  data-confirm-button="Cancel request"
+                                  data-confirm-tone="danger"
+                                  data-loading-text="Cancelling request..."
+                                  data-loader-title="Cancelling request..."
+                                  data-loader-message="Removing the pending request from the review queue.">
+                                @csrf
+                                @method('DELETE')
+
+                                <button type="submit"
+                                        class="inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-ui-danger px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 sm:w-auto">
+                                    Cancel Request
+                                </button>
+                            </form>
+                        </div>
                     @endif
                 </div>
             @else
-                <div class="mt-6 rounded-2xl border border-slate-100 bg-slate-50 p-8 text-center">
-                    <p class="font-semibold text-slate-700">
-                        No assistance request yet
-                    </p>
-
-                    <p class="mt-2 text-sm text-slate-500">
-                        Start by submitting a request for an available cooperative assistance program.
-                    </p>
-
+                <div class="rounded-2xl border border-ui-border bg-ui-canvas/70 p-8 text-center">
+                    <p class="font-semibold text-ui-text">No assistance request yet</p>
+                    <p class="mt-2 text-sm text-ui-subtext">Start by submitting a request for an available cooperative assistance program.</p>
                     <a href="{{ route('member.assistance-requests.create') }}"
-                       class="mt-5 inline-flex rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700">
+                       class="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-ui-action px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ui-anchor">
                         Request Assistance
                     </a>
                 </div>
             @endif
-        </div>
+        </x-form-card>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 class="text-lg font-semibold text-slate-800">
-                Claim Pass Access
-            </h2>
-
-            <p class="mt-1 text-sm text-slate-500">
-                Approved requests generate a QR/reference pass for merchant validation.
-            </p>
-
+        <x-form-card
+            title="Claim Pass Access"
+            description="Approved requests generate a QR/reference pass for merchant validation.">
             @if($latestApprovedClaimPass)
-                <div class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
-                    <p class="font-semibold text-emerald-800">
-                        Approved claim pass available
-                    </p>
-
-                    <p class="mt-2 text-sm text-emerald-700">
-                        {{ $latestApprovedClaimPass->program->program_name ?? 'Assistance program' }}
-                    </p>
-
-                    <p class="mt-3 font-mono text-xs font-semibold text-emerald-900">
-                        {{ $latestApprovedClaimPass->reference_code ?? 'Reference pending' }}
-                    </p>
+                <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
+                    <p class="font-semibold text-emerald-800">Approved claim pass available</p>
+                    <p class="mt-2 text-sm text-emerald-700">{{ $latestApprovedClaimPass->program->program_name ?? 'Assistance program' }}</p>
+                    <p class="mt-3 break-all font-mono text-xs font-semibold text-emerald-900">{{ $latestApprovedClaimPass->reference_code ?? 'Reference pending' }}</p>
                 </div>
 
                 <a href="{{ route('member.claims.show', $latestApprovedClaimPass) }}"
-                   class="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700">
+                   class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-action px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-ui-anchor">
                     Open Claim Pass
                 </a>
             @else
-                <div class="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-5">
-                    <p class="font-semibold text-slate-700">
-                        No active claim pass
-                    </p>
-
-                    <p class="mt-2 text-sm text-slate-500">
-                        Your QR/reference pass will appear after an assistance request is approved.
-                    </p>
+                <div class="rounded-2xl border border-ui-border bg-ui-canvas/70 p-5">
+                    <p class="font-semibold text-ui-text">No active claim pass</p>
+                    <p class="mt-2 text-sm text-ui-subtext">Your QR/reference pass will appear after an assistance request is approved.</p>
                 </div>
 
                 <a href="{{ route('member.claims.index') }}"
-                   class="mt-5 inline-flex w-full items-center justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                   class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ui-border px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas">
                     View My Claims
                 </a>
             @endif
-        </div>
+        </x-form-card>
     </div>
 
-    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-        <div class="border-b border-slate-100 px-6 py-5">
-            <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
-                    <h2 class="text-lg font-semibold text-slate-800">
-                        Recent Requests and Claims
-                    </h2>
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <x-table-card
+            class="xl:col-span-2"
+            title="Recent Requests and Claims"
+            description="Track your latest assistance activity and claim pass status.">
+            <div class="divide-y divide-ui-border/80">
+                @forelse($recentClaims as $claim)
+                    <div class="px-5 py-4 transition hover:bg-ui-canvas/70">
+                        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div>
+                                <p class="font-semibold text-ui-text">{{ $claim->program->program_name ?? 'Assistance program' }}</p>
+                                <p class="mt-1 font-mono text-xs text-ui-subtext">{{ $claim->reference_code ?? 'Pending reference' }}</p>
+                            </div>
 
-                    <p class="mt-1 text-sm text-slate-500">
-                        Track your latest assistance activity and claim pass status.
-                    </p>
-                </div>
+                            <div class="flex flex-wrap items-center gap-3 md:justify-end">
+                                <x-status-badge :status="$statusLabel($claim)" :tone="$statusTone($claim)" />
+                                <p class="text-sm font-semibold text-ui-text">&#8369;{{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}</p>
 
-                <a href="{{ route('member.claims.index') }}"
-                   class="text-sm font-semibold text-teal-600 hover:text-teal-700">
-                    View all
-                </a>
-            </div>
-        </div>
+                                @if($claim->status === 'Pending' && ! $claim->is_claimed)
+                                    <a href="{{ route('member.assistance-requests.edit', $claim) }}"
+                                       class="text-sm font-semibold text-ui-action hover:text-ui-anchor">
+                                        Edit
+                                    </a>
+                                @endif
 
-        <div class="divide-y divide-slate-100">
-            @forelse($recentClaims as $claim)
-                <div class="px-6 py-4 transition hover:bg-slate-50">
-                    <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div>
-                            <p class="font-semibold text-slate-800">
-                                {{ $claim->program->program_name ?? 'Assistance program' }}
-                            </p>
-
-                            <p class="mt-1 font-mono text-xs text-slate-400">
-                                {{ $claim->reference_code ?? 'Pending reference' }}
-                            </p>
-                        </div>
-
-                        <div class="flex flex-wrap items-center gap-3 md:justify-end">
-                            <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $statusClasses($claim) }}">
-                                {{ $statusLabel($claim) }}
-                            </span>
-
-                            <p class="text-sm font-semibold text-slate-800">
-                                PHP {{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}
-                            </p>
-
-                            <a href="{{ route('member.claims.show', $claim) }}"
-                               class="text-sm font-semibold text-teal-600 hover:text-teal-700">
-                                View
-                            </a>
+                                <a href="{{ route('member.claims.show', $claim) }}"
+                                   class="text-sm font-semibold text-ui-action hover:text-ui-anchor">
+                                    View
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            @empty
-                <div class="px-6 py-12 text-center">
-                    <p class="font-semibold text-slate-700">
-                        No request activity yet
-                    </p>
+                @empty
+                    <div class="px-6 py-12 text-center">
+                        <p class="font-semibold text-ui-text">No request activity yet</p>
+                        <p class="mt-2 text-sm text-ui-subtext">Submitted requests and claim passes will appear here.</p>
+                    </div>
+                @endforelse
+            </div>
+        </x-table-card>
 
-                    <p class="mt-2 text-sm text-slate-500">
-                        Submitted requests and claim passes will appear here.
-                    </p>
-                </div>
-            @endforelse
-        </div>
+        <x-form-card
+            title="Recent Notifications"
+            description="Latest member workflow updates.">
+            <div class="space-y-3">
+                @forelse($recentNotifications as $notification)
+                    <a href="{{ route('notifications.read', $notification->id) }}"
+                       class="block rounded-xl border border-ui-border bg-ui-canvas/60 p-4 transition hover:bg-ui-canvas">
+                        <div class="flex items-start justify-between gap-3">
+                            <p class="font-semibold text-ui-text">{{ $notification->data['title'] ?? 'Notification' }}</p>
+                            <x-status-badge :status="$notification->read_at ? 'Read' : 'Unread'" :tone="$notification->read_at ? 'neutral' : 'warning'" size="xs" />
+                        </div>
+
+                        <p class="mt-1 text-sm leading-5 text-ui-subtext">{{ $notification->data['message'] ?? 'No details available.' }}</p>
+                        <p class="mt-2 text-xs text-ui-subtext">{{ $notification->created_at->diffForHumans() }}</p>
+                    </a>
+                @empty
+                    <div class="rounded-xl border border-ui-border bg-ui-canvas/60 p-5 text-center">
+                        <p class="font-semibold text-ui-text">No notifications yet</p>
+                        <p class="mt-1 text-sm text-ui-subtext">Approval and claim updates will appear here.</p>
+                    </div>
+                @endforelse
+            </div>
+        </x-form-card>
     </div>
-
 </div>
 
 @endsection

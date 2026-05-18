@@ -33,37 +33,37 @@
 
                 <a href="#"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl bg-teal-50 text-teal-700 font-medium">
-                    <span>📊</span>
+                    <x-icon name="layout-dashboard" size="h-5 w-5 shrink-0" />
                     <span>Dashboard</span>
                 </a>
 
                 <a href="#"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition">
-                    <span>🛟</span>
+                    <x-icon name="lifebuoy" size="h-5 w-5 shrink-0" />
                     <span>Programs</span>
                 </a>
 
                 <a href="#"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition">
-                    <span>📄</span>
+                    <x-icon name="file-text" size="h-5 w-5 shrink-0" />
                     <span>Requests</span>
                 </a>
 
                 <a href="#"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition">
-                    <span>✅</span>
+                    <x-icon name="check-circle" size="h-5 w-5 shrink-0" />
                     <span>Claims</span>
                 </a>
 
                 <a href="#"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition">
-                    <span>💳</span>
+                    <x-icon name="credit-card" size="h-5 w-5 shrink-0" />
                     <span>Settlements</span>
                 </a>
 
                 <a href="#"
                    class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-100 transition">
-                    <span>⛓️</span>
+                    <x-icon name="link" size="h-5 w-5 shrink-0" />
                     <span>Blockchain Logs</span>
                 </a>
 
@@ -150,7 +150,7 @@
                             16
                         </h3>
 
-                        <p class="text-sm text-yellow-600 mt-2">
+                        <p class="text-sm text-amber-600 mt-2">
                             Awaiting processing
                         </p>
                     </div>

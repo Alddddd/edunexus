@@ -14,7 +14,7 @@
     $statusClasses = function ($status) {
         return match ($status) {
             'Approved', 'Confirmed', 'Settled' => 'bg-emerald-100 text-emerald-700',
-            'Rejected', 'Failed' => 'bg-red-100 text-red-700',
+            'Rejected', 'Failed' => 'bg-rose-100 text-rose-700',
             default => 'bg-slate-100 text-slate-600',
         };
     };
@@ -22,11 +22,22 @@
     $eventClasses = function ($eventType) {
         return match ($eventType) {
             'request_approved' => 'bg-teal-100 text-teal-700',
-            'request_rejected' => 'bg-red-100 text-red-700',
+            'request_rejected' => 'bg-rose-100 text-rose-700',
             'claim_processed' => 'bg-indigo-100 text-indigo-700',
             'blockchain_confirmed' => 'bg-cyan-100 text-cyan-700',
             'settlement_completed' => 'bg-emerald-100 text-emerald-700',
             default => 'bg-slate-100 text-slate-600',
+        };
+    };
+
+    $eventIcons = function ($eventType) {
+        return match ($eventType) {
+            'request_approved' => 'check-circle',
+            'request_rejected' => 'x-circle',
+            'claim_processed' => 'shield-check',
+            'blockchain_confirmed' => 'link',
+            'settlement_completed' => 'credit-card',
+            default => 'activity',
         };
     };
 @endphp
@@ -65,7 +76,7 @@
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-500">
                 Total Events
             </p>
@@ -79,7 +90,7 @@
             </p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-500">
                 Request Decisions
             </p>
@@ -93,7 +104,7 @@
             </p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-500">
                 Claim Proof Events
             </p>
@@ -107,7 +118,7 @@
             </p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-500">
                 Settlements
             </p>
@@ -121,16 +132,16 @@
             </p>
         </div>
 
-        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-500">
                 Needs Review
             </p>
 
-            <p class="mt-2 text-2xl font-bold text-red-700">
+            <p class="mt-2 text-2xl font-bold text-rose-700">
                 {{ number_format($stats['attention']) }}
             </p>
 
-            <p class="mt-1 text-xs text-red-600">
+            <p class="mt-1 text-xs text-rose-600">
                 Failed or rejected records
             </p>
         </div>
@@ -196,7 +207,7 @@
 
             <div class="flex items-end">
                 <button type="submit"
-                        class="inline-flex w-full items-center justify-center rounded-xl bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 lg:w-auto">
+                        class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ui-action/20 bg-ui-action/10 px-5 py-2.5 text-sm font-semibold text-ui-action shadow-sm transition hover:bg-ui-action/15 lg:w-auto">
                     Apply Filters
                 </button>
             </div>
@@ -263,8 +274,8 @@
 
                                 <div class="flex items-start gap-3">
 
-                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xs font-bold {{ $eventClasses($log->event_type) }}">
-                                        {{ str($log->event_type)->substr(0, 2)->upper() }}
+                                    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl {{ $eventClasses($log->event_type) }}">
+                                        <x-icon :name="$eventIcons($log->event_type)" size="h-5 w-5" />
                                     </div>
 
                                     <div>
@@ -336,8 +347,8 @@
 
                                 <div class="mx-auto max-w-md">
 
-                                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-500">
-                                        LOG
+                                    <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                                        <x-icon name="activity" size="h-8 w-8" />
                                     </div>
 
                                     <h3 class="mt-5 text-lg font-semibold text-slate-700">

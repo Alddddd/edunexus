@@ -51,7 +51,7 @@
                                     ? 'bg-teal-100 text-teal-700'
                                     : 'bg-slate-100 text-slate-500' }}">
 
-                                {{ is_null($notification->read_at) ? '🔔' : '✓' }}
+                                <x-icon :name="is_null($notification->read_at) ? 'bell' : 'check'" size="h-5 w-5" />
 
                             </div>
 
@@ -79,7 +79,7 @@
                                             {{ $notification->data['status'] === 'Approved'
                                                 ? 'bg-emerald-100 text-emerald-700'
                                                 : ($notification->data['status'] === 'Rejected'
-                                                    ? 'bg-red-100 text-red-700'
+                                                    ? 'bg-rose-100 text-rose-700'
                                                     : ($notification->data['status'] === 'Claimed'
                                                         ? 'bg-cyan-100 text-cyan-700'
                                                         : ($notification->data['status'] === 'Settled'
@@ -105,7 +105,7 @@
                                 <div class="flex items-center gap-2">
 
                                     @if(is_null($notification->read_at))
-                                        <span class="px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-semibold">
+                                        <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
                                             Unread
                                         </span>
                                     @else
@@ -133,8 +133,8 @@
 
                 <div class="px-6 py-16 text-center">
 
-                    <div class="text-5xl mb-4">
-                        🔔
+                    <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-500">
+                        <x-icon name="bell" size="h-8 w-8" />
                     </div>
 
                     <p class="text-lg font-semibold text-slate-700">
