@@ -31,6 +31,25 @@
             default => 'link',
         };
     };
+
+    $settlementLabel = function ($settlement) {
+        return match ($settlement?->status) {
+            'Settled' => 'Settlement Released',
+            'Pending' => 'Settlement Generated',
+            default => 'No settlement record',
+        };
+    };
+
+    $settlementTone = function ($settlement) {
+        return match ($settlement?->status) {
+            'Settled' => 'success',
+            'Pending' => 'warning',
+            default => 'neutral',
+        };
+    };
+
+    $integrityLabel = fn ($proofHash) => $proofHash ? 'Integrity Valid' : 'Integrity Pending';
+    $recordedLabel = fn ($transaction) => $transaction->recorded_at ? 'Proof Recorded' : 'Pending Timestamp';
 @endphp
 
 <div class="w-full min-w-0 max-w-7xl space-y-6">
@@ -81,9 +100,9 @@
         </div>
 
         <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
-            <p class="text-sm text-ui-subtext">Hashes Issued</p>
+            <p class="text-sm text-ui-subtext">Integrity Hashes</p>
             <p class="mt-2 text-2xl font-bold text-ui-proof">{{ number_format($stats['with_hash']) }}</p>
-            <p class="mt-1 text-xs text-cyan-600">Explorer-ready proof records</p>
+            <p class="mt-1 text-xs text-cyan-600">Proof bundle hashes recorded</p>
         </div>
     </div>
 
@@ -95,11 +114,14 @@
                 </p>
 
                 <p class="mt-1 max-w-3xl text-sm leading-6 text-cyan-700">
-                    EduNexUs records assistance workflow proofs on Morph so administrators and auditors can verify claim and settlement activity without exposing blockchain complexity to normal users.
+                    Morph records tamper-resistant proof receipts for assistance validation and settlement events, giving auditors a stable reference without exposing wallet complexity to normal users.
                 </p>
             </div>
 
-            <x-status-badge status="Morph Integrated" tone="proof" />
+            <div class="flex flex-wrap gap-2">
+                <x-status-badge status="Morph Integrated" tone="proof" />
+                <x-status-badge status="Audit-ready" tone="success" />
+            </div>
         </div>
     </section>
 
@@ -197,6 +219,22 @@
                             $shortHash = $hasRealHash
                                 ? substr($hash, 0, 10) . '...' . substr($hash, -8)
                                 : ($hash ?? 'Not available');
+                            $payload = $payloads[$transaction->id] ?? [];
+                            $assistanceRequest = $assistanceRequests[$transaction->reference_id] ?? null;
+                            $settlement = $settlements[$transaction->reference_id] ?? null;
+                            $merchantId = $payload['merchant_id'] ?? data_get($payload, 'proof_bundle.merchant_id');
+                            $merchant = $merchantId ? ($merchants[$merchantId] ?? null) : null;
+                            $merchantProfile = $merchant?->merchantProfile;
+                            $proofHash = $payload['proof_hash'] ?? null;
+                            $proofBundle = $payload['proof_bundle'] ?? [];
+                            $validationRules = $payload['validation_rules'] ?? data_get($proofBundle, 'validation_rules', []);
+                            $validationSummary = $payload['validation_summary'] ?? null;
+                            $passedRules = (int) ($validationSummary['passed'] ?? collect($validationRules)->where('passed', true)->count());
+                            $failedRules = (int) ($validationSummary['failed'] ?? collect($validationRules)->where('passed', false)->count());
+                            $totalRules = $passedRules + $failedRules;
+                            $ruleValidationPassed = (bool) ($validationSummary['all_passed'] ?? ($totalRules > 0 && $failedRules === 0));
+                            $eventType = $payload['event_type'] ?? data_get($proofBundle, 'event_type', $transaction->transaction_type);
+                            $approvedAmount = $payload['claim_amount'] ?? data_get($proofBundle, 'approved_amount') ?? $assistanceRequest?->approved_amount;
                         @endphp
 
                         <tr class="transition hover:bg-ui-canvas/60">
@@ -210,8 +248,18 @@
                                         <x-status-badge :status="$transaction->transaction_type" :tone="$typeTone($transaction->transaction_type)" />
 
                                         <p class="mt-2 text-xs text-ui-subtext">
-                                            Smart contract proof
+                                            {{ str($eventType)->replace('_', ' ')->title() }}
                                         </p>
+
+                                        <div class="mt-2 flex flex-wrap gap-1.5">
+                                            <x-status-badge :status="$transaction->blockchain_status === 'Confirmed' ? 'Verified' : 'Pending Verification'" :tone="$statusTone($transaction->blockchain_status)" size="xs" />
+                                            <x-status-badge :status="$integrityLabel($proofHash)" :tone="$proofHash ? 'success' : 'warning'" size="xs" />
+                                            @if($ruleValidationPassed)
+                                                <x-status-badge status="Validation Passed" tone="success" size="xs" />
+                                            @elseif($totalRules > 0)
+                                                <x-status-badge status="Validation Review" tone="warning" size="xs" />
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </td>
@@ -223,6 +271,10 @@
 
                                 <p class="mt-1 text-xs text-ui-subtext">
                                     Reference #{{ $transaction->reference_id }}
+                                </p>
+
+                                <p class="mt-2 text-xs text-ui-subtext">
+                                    {{ $assistanceRequest?->member?->name ?? 'Member not linked' }}
                                 </p>
                             </td>
 
@@ -236,10 +288,25 @@
                                         {{ $hasRealHash ? 'Morph transaction hash' : 'No explorer hash available' }}
                                     </span>
                                 </div>
+
+                                @if($proofHash)
+                                    <div class="mt-2 inline-flex max-w-xs flex-col rounded-xl border border-cyan-100 bg-cyan-50 px-3 py-2">
+                                        <span class="text-xs font-semibold text-cyan-800">Proof Bundle Hash</span>
+                                        <span class="mt-1 break-all font-mono text-[11px] text-cyan-700" title="{{ $proofHash }}">
+                                            {{ substr($proofHash, 0, 16) }}...{{ substr($proofHash, -12) }}
+                                        </span>
+                                    </div>
+                                @endif
                             </td>
 
                             <td class="px-5 py-5 align-top">
-                                <x-status-badge :status="$transaction->blockchain_status" :tone="$statusTone($transaction->blockchain_status)" />
+                                <div class="space-y-2">
+                                    <x-status-badge :status="$transaction->blockchain_status" :tone="$statusTone($transaction->blockchain_status)" />
+                                    <x-status-badge :status="$settlementLabel($settlement)" :tone="$settlementTone($settlement)" size="xs" />
+                                    <p class="text-xs text-ui-subtext">
+                                        {{ $totalRules > 0 ? $passedRules . ' of ' . $totalRules . ' governance checks passed' : 'Governance summary unavailable' }}
+                                    </p>
+                                </div>
                             </td>
 
                             <td class="px-5 py-5 align-top">
@@ -285,6 +352,105 @@
                                 @endif
                             </td>
                         </tr>
+
+                        <tr class="border-t border-ui-border/40 bg-ui-surface">
+                            <td colspan="6" class="px-5 pb-6">
+                                <details class="group rounded-2xl border border-ui-border bg-ui-canvas/50 p-4">
+                                    <summary class="flex cursor-pointer list-none flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <p class="text-sm font-semibold text-ui-text">Proof Bundle Review</p>
+                                            <p class="mt-1 text-xs text-ui-subtext">
+                                                Audit-oriented view of the recorded proof, validation summary, and reimbursement state.
+                                            </p>
+                                        </div>
+
+                                        <span class="inline-flex w-fit items-center rounded-xl border border-ui-border bg-white px-3 py-2 text-xs font-semibold text-ui-action transition group-open:bg-ui-action group-open:text-white">
+                                            View details
+                                        </span>
+                                    </summary>
+
+                                    <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
+                                        <div class="rounded-2xl border border-ui-border bg-white/80 p-4">
+                                            <div class="flex flex-wrap gap-2">
+                                                <x-status-badge :status="$recordedLabel($transaction)" :tone="$transaction->recorded_at ? 'success' : 'warning'" />
+                                                <x-status-badge :status="$proofHash ? 'Hash Recorded on Morph' : 'Hash Pending'" :tone="$proofHash ? 'proof' : 'warning'" />
+                                                <x-status-badge :status="$proofHash ? 'Timestamp Integrity Verified' : 'Timestamp Pending'" :tone="$proofHash ? 'success' : 'warning'" />
+                                            </div>
+
+                                            <dl class="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+                                                <div>
+                                                    <dt class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Event Type</dt>
+                                                    <dd class="mt-1 font-semibold text-ui-text">{{ str($eventType)->replace('_', ' ')->title() }}</dd>
+                                                </div>
+                                                <div>
+                                                    <dt class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Approved Amount</dt>
+                                                    <dd class="mt-1 font-semibold text-ui-text">&#8369;{{ number_format((float) $approvedAmount, 2) }}</dd>
+                                                </div>
+                                                <div>
+                                                    <dt class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Member</dt>
+                                                    <dd class="mt-1 font-semibold text-ui-text">{{ $assistanceRequest?->member?->name ?? 'Not linked' }}</dd>
+                                                </div>
+                                                <div>
+                                                    <dt class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Merchant</dt>
+                                                    <dd class="mt-1 font-semibold text-ui-text">{{ $merchantProfile?->business_name ?? $merchant?->name ?? 'Not linked' }}</dd>
+                                                </div>
+                                                <div>
+                                                    <dt class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Settlement Status</dt>
+                                                    <dd class="mt-1">
+                                                        <x-status-badge :status="$settlementLabel($settlement)" :tone="$settlementTone($settlement)" size="xs" />
+                                                    </dd>
+                                                </div>
+                                                <div>
+                                                    <dt class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Recorded</dt>
+                                                    <dd class="mt-1 font-semibold text-ui-text">{{ $transaction->recorded_at?->format('M d, Y g:i A') ?? 'Awaiting timestamp' }}</dd>
+                                                </div>
+                                            </dl>
+
+                                            @if($proofHash)
+                                                <div class="mt-4 rounded-xl border border-cyan-100 bg-cyan-50 p-3">
+                                                    <p class="text-xs font-semibold uppercase tracking-wide text-cyan-700">Verified Proof Hash</p>
+                                                    <p class="mt-1 break-all font-mono text-xs font-semibold text-cyan-900">{{ $proofHash }}</p>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <div class="space-y-4">
+                                            <div class="rounded-2xl border border-ui-border bg-white/80 p-4">
+                                                <p class="text-sm font-semibold text-ui-text">Transaction Lifecycle</p>
+                                                <div class="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold">
+                                                    @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', $settlement?->status === 'Settled' ? 'Settlement Released' : 'Release Pending', 'Morph Proof Recorded'] as $step)
+                                                        <span class="rounded-full px-3 py-1.5 {{ str_contains($step, 'Pending') ? 'bg-amber-50 text-ui-warning ring-1 ring-amber-100' : 'bg-emerald-50 text-ui-success ring-1 ring-emerald-100' }}">
+                                                            {{ $step }}
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+
+                                            <div class="rounded-2xl border border-ui-border bg-white/80 p-4">
+                                                <p class="text-sm font-semibold text-ui-text">Validation Summary</p>
+                                                <p class="mt-1 text-sm text-ui-subtext">
+                                                    {{ $totalRules > 0 ? $passedRules . ' of ' . $totalRules . ' governance checks passed.' : 'No structured validation summary stored for this proof.' }}
+                                                </p>
+
+                                                @if(count($validationRules) > 0)
+                                                    <div class="mt-3 space-y-2">
+                                                        @foreach($validationRules as $rule)
+                                                            <div class="flex items-start justify-between gap-3 rounded-xl border {{ ($rule['passed'] ?? false) ? 'border-emerald-100 bg-emerald-50' : 'border-amber-100 bg-amber-50' }} px-3 py-2">
+                                                                <div>
+                                                                    <p class="text-xs font-semibold {{ ($rule['passed'] ?? false) ? 'text-emerald-800' : 'text-amber-800' }}">{{ $rule['label'] ?? 'Governance check' }}</p>
+                                                                    <p class="mt-1 text-xs {{ ($rule['passed'] ?? false) ? 'text-emerald-700' : 'text-amber-700' }}">{{ $rule['message'] ?? 'No message stored.' }}</p>
+                                                                </div>
+                                                                <x-status-badge :status="($rule['passed'] ?? false) ? 'Passed' : 'Review'" :tone="($rule['passed'] ?? false) ? 'success' : 'warning'" size="xs" />
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </details>
+                            </td>
+                        </tr>
                     @empty
                         <tr>
                             <td colspan="6" class="px-6 py-16 text-center">
@@ -318,6 +484,22 @@
                     $shortHash = $hasRealHash
                         ? substr($hash, 0, 10) . '...' . substr($hash, -8)
                         : ($hash ?? 'Not available');
+                    $payload = $payloads[$transaction->id] ?? [];
+                    $assistanceRequest = $assistanceRequests[$transaction->reference_id] ?? null;
+                    $settlement = $settlements[$transaction->reference_id] ?? null;
+                    $merchantId = $payload['merchant_id'] ?? data_get($payload, 'proof_bundle.merchant_id');
+                    $merchant = $merchantId ? ($merchants[$merchantId] ?? null) : null;
+                    $merchantProfile = $merchant?->merchantProfile;
+                    $proofHash = $payload['proof_hash'] ?? null;
+                    $proofBundle = $payload['proof_bundle'] ?? [];
+                    $validationRules = $payload['validation_rules'] ?? data_get($proofBundle, 'validation_rules', []);
+                    $validationSummary = $payload['validation_summary'] ?? null;
+                    $passedRules = (int) ($validationSummary['passed'] ?? collect($validationRules)->where('passed', true)->count());
+                    $failedRules = (int) ($validationSummary['failed'] ?? collect($validationRules)->where('passed', false)->count());
+                    $totalRules = $passedRules + $failedRules;
+                    $ruleValidationPassed = (bool) ($validationSummary['all_passed'] ?? ($totalRules > 0 && $failedRules === 0));
+                    $eventType = $payload['event_type'] ?? data_get($proofBundle, 'event_type', $transaction->transaction_type);
+                    $approvedAmount = $payload['claim_amount'] ?? data_get($proofBundle, 'approved_amount') ?? $assistanceRequest?->approved_amount;
                 @endphp
 
                 <article class="p-4 sm:p-5">
@@ -331,6 +513,11 @@
                                 <div class="flex flex-wrap gap-2">
                                     <x-status-badge :status="$transaction->transaction_type" :tone="$typeTone($transaction->transaction_type)" />
                                     <x-status-badge :status="$transaction->blockchain_status" :tone="$statusTone($transaction->blockchain_status)" />
+                                    <x-status-badge :status="$integrityLabel($proofHash)" :tone="$proofHash ? 'success' : 'warning'" />
+                                    <x-status-badge :status="$settlementLabel($settlement)" :tone="$settlementTone($settlement)" />
+                                    @if($ruleValidationPassed)
+                                        <x-status-badge status="Validation Passed" tone="success" />
+                                    @endif
                                 </div>
 
                                 <p class="mt-2 font-mono text-xs font-semibold text-ui-text">
@@ -338,10 +525,14 @@
                                 </p>
 
                                 <p class="mt-1 text-xs text-ui-subtext">
-                                    Reference #{{ $transaction->reference_id }}
-                                </p>
-                            </div>
+                                Reference #{{ $transaction->reference_id }}
+                            </p>
+
+                            <p class="mt-1 text-xs text-ui-subtext">
+                                {{ $assistanceRequest?->member?->name ?? 'Member not linked' }}
+                            </p>
                         </div>
+                    </div>
                     </div>
 
                     <dl class="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
@@ -354,6 +545,15 @@
                                 {{ $hasRealHash ? 'Morph transaction hash' : 'No explorer hash available' }}
                             </dd>
                         </div>
+
+                        @if($proofHash)
+                            <div class="rounded-xl bg-cyan-50 p-3 sm:col-span-2">
+                                <dt class="text-xs font-medium uppercase tracking-wide text-cyan-700">Proof Bundle Hash</dt>
+                                <dd class="mt-1 break-all font-mono text-xs font-semibold text-cyan-800" title="{{ $proofHash }}">
+                                    {{ $proofHash }}
+                                </dd>
+                            </div>
+                        @endif
 
                         <div class="rounded-xl bg-ui-canvas/70 p-3">
                             <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">Recorded</dt>
@@ -368,13 +568,73 @@
                         <div class="rounded-xl bg-ui-canvas/70 p-3">
                             <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">Proof Layer</dt>
                             <dd class="mt-1 font-semibold text-ui-text">
-                                Smart contract proof
+                                {{ str($eventType)->replace('_', ' ')->title() }}
                             </dd>
                             <dd class="mt-1 text-xs text-ui-subtext">
-                                {{ $hasRealHash ? 'Explorer-ready record' : 'Console verification record' }}
+                                {{ $totalRules > 0 ? $passedRules . ' of ' . $totalRules . ' governance checks passed' : 'Console verification record' }}
                             </dd>
                         </div>
                     </dl>
+
+                    <details class="mt-4 rounded-2xl border border-ui-border bg-ui-canvas/50 p-4">
+                        <summary class="cursor-pointer list-none text-sm font-semibold text-ui-action">
+                            View Proof Bundle Review
+                        </summary>
+
+                        <div class="mt-4 space-y-4">
+                            <div class="rounded-xl border border-ui-border bg-white/80 p-3">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Audit Summary</p>
+                                <dl class="mt-3 grid grid-cols-1 gap-3 text-sm">
+                                    <div>
+                                        <dt class="text-xs text-ui-subtext">Member</dt>
+                                        <dd class="font-semibold text-ui-text">{{ $assistanceRequest?->member?->name ?? 'Not linked' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs text-ui-subtext">Merchant</dt>
+                                        <dd class="font-semibold text-ui-text">{{ $merchantProfile?->business_name ?? $merchant?->name ?? 'Not linked' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs text-ui-subtext">Approved Amount</dt>
+                                        <dd class="font-semibold text-ui-text">&#8369;{{ number_format((float) $approvedAmount, 2) }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-xs text-ui-subtext">Settlement</dt>
+                                        <dd class="mt-1"><x-status-badge :status="$settlementLabel($settlement)" :tone="$settlementTone($settlement)" size="xs" /></dd>
+                                    </div>
+                                </dl>
+                            </div>
+
+                            <div class="rounded-xl border border-ui-border bg-white/80 p-3">
+                                <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Lifecycle</p>
+                                <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+                                    @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', $settlement?->status === 'Settled' ? 'Settlement Released' : 'Release Pending', 'Morph Proof Recorded'] as $step)
+                                        <span class="rounded-full px-3 py-1.5 {{ str_contains($step, 'Pending') ? 'bg-amber-50 text-ui-warning ring-1 ring-amber-100' : 'bg-emerald-50 text-ui-success ring-1 ring-emerald-100' }}">{{ $step }}</span>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            @if($proofHash)
+                                <div class="rounded-xl border border-cyan-100 bg-cyan-50 p-3">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-cyan-700">Verified Proof Hash</p>
+                                    <p class="mt-1 break-all font-mono text-xs font-semibold text-cyan-900">{{ $proofHash }}</p>
+                                </div>
+                            @endif
+
+                            @if(count($validationRules) > 0)
+                                <div class="rounded-xl border border-ui-border bg-white/80 p-3">
+                                    <p class="text-sm font-semibold text-ui-text">{{ $passedRules }} of {{ $totalRules }} governance checks passed</p>
+                                    <div class="mt-3 space-y-2">
+                                        @foreach($validationRules as $rule)
+                                            <div class="rounded-lg {{ ($rule['passed'] ?? false) ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800' }} px-3 py-2">
+                                                <p class="text-xs font-semibold">{{ $rule['label'] ?? 'Governance check' }}</p>
+                                                <p class="mt-1 text-xs">{{ $rule['message'] ?? 'No message stored.' }}</p>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </details>
 
                     <div class="mt-4">
                         @if($hasRealHash)

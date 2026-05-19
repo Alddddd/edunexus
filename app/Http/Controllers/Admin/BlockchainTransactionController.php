@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssistanceRequest;
 use App\Models\BlockchainTransaction;
+use App\Models\Settlement;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class BlockchainTransactionController extends Controller
@@ -47,12 +50,48 @@ class BlockchainTransactionController extends Controller
             ->paginate(5)
             ->withQueryString();
 
+        $payloads = $transactions->getCollection()
+            ->mapWithKeys(fn (BlockchainTransaction $transaction) => [
+                $transaction->id => json_decode($transaction->payload ?: '[]', true) ?: [],
+            ]);
+
+        $requestIds = $transactions->getCollection()
+            ->pluck('reference_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $assistanceRequests = AssistanceRequest::with(['member', 'program'])
+            ->whereIn('id', $requestIds)
+            ->get()
+            ->keyBy('id');
+
+        $settlements = Settlement::query()
+            ->whereIn('assistance_request_id', $requestIds)
+            ->get()
+            ->keyBy('assistance_request_id');
+
+        $merchantIds = $payloads
+            ->map(fn (array $payload) => $payload['merchant_id'] ?? data_get($payload, 'proof_bundle.merchant_id'))
+            ->filter()
+            ->unique()
+            ->values();
+
+        $merchants = User::with('merchantProfile')
+            ->whereIn('id', $merchantIds)
+            ->get()
+            ->keyBy('id');
+
         return view('admin.blockchain-transactions.index', compact(
             'transactions',
             'filters',
             'statusOptions',
             'transactionTypeOptions',
-            'stats'
+            'stats',
+            'payloads',
+            'assistanceRequests',
+            'settlements',
+            'merchants'
         ));
     }
 

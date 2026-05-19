@@ -1,10 +1,22 @@
-# EduNexUs — Master Context File
+# EduNexUs - Master Context File
 
 ## Project Title
 EduNexUs
 
 ## Project Description
-A blockchain-backed programmable assistance and merchant settlement platform for Philippine teacher cooperatives using Morph blockchain for transparent and tamper-resistant payment verification.
+EduNexUs is a programmable cooperative assistance infrastructure platform for Philippine teacher cooperatives. It manages assistance approvals, QR claim passes, merchant validation, settlement lifecycle operations, and Morph-backed audit verification in one institutional reimbursement workflow.
+
+EduNexUs is positioned as:
+- programmable cooperative assistance infrastructure
+- merchant settlement workflow platform
+- blockchain-backed audit verification system
+- governance-focused reimbursement infrastructure
+
+EduNexUs is NOT:
+- a crypto wallet platform
+- a DeFi application
+- a token trading system
+- a consumer crypto product
 
 ---
 
@@ -17,8 +29,6 @@ Organized by:
 - Morph
 - Blockchain4Youth
 - DvCode
-
----
 
 ## Main Theme
 Focus:
@@ -36,24 +46,7 @@ The project must:
 
 ---
 
-# 2. Important Dates
-
-| Event | Date |
-|---|---|
-| Kickoff | May 18 |
-| Video Submission Deadline | May 22 |
-| Build Period | May 18–29 |
-| Judging | June 1–2 |
-| Awarding | June 4 |
-
-Important:
-- May 22 is the real MVP/demo deadline
-- core workflow must already work before May 22
-- prioritize polished vertical slice execution
-
----
-
-# 3. Chosen Tracks
+# 2. Chosen Tracks
 
 ## Primary
 SME Payments
@@ -63,32 +56,22 @@ Payroll & B2B
 
 ---
 
-# 4. Judging Priorities
-
-Focus:
-- meaningful blockchain integration
-- smooth workflows
-- polished UX
-- practical usability
-- realistic operational feel
-- strong demo quality
-- deployable system design
-
----
-
-# 5. Core Vision
+# 3. Core Vision
 
 EduNexUs modernizes cooperative financial assistance workflows through:
 - assistance approvals
-- programmable claims
-- merchant settlements
-- blockchain-backed verification
+- QR claim passes
+- programmable governance rule validation
+- merchant claim processing
+- settlement generation and release
+- proof bundle and deterministic proof hash generation
+- Morph-backed audit verification
 
 using Laravel + Morph blockchain.
 
 ---
 
-# 6. Pilot Sector
+# 4. Pilot Sector
 
 ## Teacher Cooperatives
 
@@ -97,14 +80,13 @@ Chosen because:
 - realistic in Philippine context
 - operationally believable
 - emotionally relatable
-- feasible within timeline
+- feasible within the hackathon timeline
 
 ---
 
-# 7. Core Blockchain Principle
+# 5. Core Blockchain Principle
 
-Blockchain must remain:
-# invisible to normal users
+Blockchain must remain invisible to normal users.
 
 Users:
 - do NOT manage wallets
@@ -113,12 +95,13 @@ Users:
 
 Morph blockchain acts as:
 - backend trust infrastructure
-- settlement verification layer
-- tamper-resistant proof system
+- settlement verification support
+- tamper-resistant proof receipt layer
+- audit visibility infrastructure
 
 ---
 
-# 8. Main Users
+# 6. Main Users
 
 ## Cooperative Admin
 Can:
@@ -126,107 +109,180 @@ Can:
 - approve/reject requests
 - monitor claims and settlements
 - manage merchants
-- review blockchain logs
-
----
+- release merchant settlements
+- review Morph proof records and proof bundles
 
 ## Cooperative Member
 Can:
 - request assistance
-- receive QR/reference
+- receive QR/reference claim pass
 - track claim status
-- present QR to merchants
-
----
+- present QR/reference to merchants
 
 ## Partner Merchant
 Can:
-- scan QR claims
-- validate assistance
-- confirm claims
-- submit settlement records
+- validate QR/reference claims
+- review programmable governance checks
+- process eligible claims
+- monitor reimbursement status
 
 Examples:
 - bookstores
 - school supply stores
 
----
-
 ## Auditor / Coop Manager
 Can:
-- review blockchain logs
-- audit transactions
+- review Morph proof records
+- inspect proof bundle summaries
+- inspect validation rule outcomes
 - monitor settlement transparency
+- verify operational audit trails
 
 ---
 
-# 9. Core MVP Workflow
+# 7. Current Stable Workflow
 
-Admin creates assistance program
-↓
-Member submits request
-↓
-Admin approves request
-↓
-QR/reference generated
-↓
-Member presents QR to merchant
-↓
-Merchant validates QR
-↓
-Programmable rules validate claim
-↓
-Morph blockchain records proof
-↓
-Dashboard updates
-↓
-Settlement recorded
+```text
+Member Request
+-> Admin Approval
+-> QR Claim Pass
+-> Merchant Validation
+-> Programmable Rule Validation
+-> Claim Processing
+-> Settlement Generation
+-> Settlement Release
+-> Morph Proof Recording
+-> Verification Console Audit Visibility
+```
+
+This workflow must remain protected. Future enhancements should clarify or extend governance, reporting, or audit visibility without redesigning the core flow.
 
 ---
 
-# 10. Grand-Prize Differentiator
+# 8. Grand-Prize Differentiator
 
-## Programmable Assistance Validation
+## Programmable Governance Validation + Proof Infrastructure
 
 Example:
 Education assistance:
 - usable only at approved school supply merchants
-- limited by claim amount
-- subject to expiration
+- limited by approved amount
+- subject to claim validity period
+- protected from duplicate redemption
 
 This makes blockchain:
 - operationally meaningful
+- connected to validated workflow events
 - more than simple record logging
+- understandable through proof bundles, deterministic hashes, and audit-ready verification UI
+
+Current structured governance checks:
+- claim reference verification
+- approval status confirmation
+- expiration / claim validity validation
+- merchant eligibility validation
+- duplicate redemption prevention
+- approved amount validation
+
+If any governance rule fails:
+- claim processing is blocked
+- settlement generation is prevented
+- Morph proof recording is not triggered for that failed claim
+- the merchant UI shows failed checks in an institutional pass/fail review
 
 ---
 
-# 11. Blockchain Integration Scope
+# 9. Blockchain Integration Scope
 
-## Morph Stores
-- approval proofs
-- claim proofs
-- settlement proofs
-- timestamps
+## Morph Stores / Receipts
+- proof receipts for validated workflow events
 - transaction hashes
-- verification records
-
----
+- timestamps
+- confirmation status
 
 ## Laravel/MySQL Stores
-- users
-- authentication
-- dashboards
-- reports
-- workflow data
-- QR generation
-- assistance records
+- users and authentication
+- assistance programs
+- assistance requests
+- QR claim payloads
+- structured validation rule summaries
+- settlements
+- blockchain transaction payloads
+- proof bundles
+- proof hashes
+- dashboards, reports, and audit views
+
+Sensitive personal data should not be placed on-chain.
 
 ---
-# 12. Smart Contract Scope
+
+# 10. Proof Bundle Infrastructure
+
+When a claim is successfully processed, Laravel prepares a proof bundle containing:
+- reference code
+- event type
+- assistance request id
+- program id
+- merchant id
+- member id
+- approved amount
+- merchant category
+- validation rule summary
+- workflow status
+- timestamp
+
+The proof bundle is hashed deterministically with SHA-256. The resulting proof hash is stored with the blockchain transaction payload and displayed in verification/audit surfaces.
+
+Current proof presentation includes:
+- verified proof hash
+- validation summary
+- rule pass/fail outcomes
+- lifecycle timeline visibility
+- settlement status context
+
+---
+
+# 11. Settlement Lifecycle Infrastructure
+
+Settlements now read as an institutional reimbursement lifecycle rather than a simple status table.
+
+Current lifecycle display:
+- Ready for Release
+- Released
+- Settlement Generated
+- Settlement Released
+- Settlement audit-ready
+
+Implementation note:
+- stored database statuses remain simple and safe (`Pending`, `Settled`)
+- UI labels translate those statuses into clearer reimbursement lifecycle language
+- no real money transfer, stablecoin transfer, wallet, or DeFi behavior was added
+
+---
+
+# 12. Advanced Morph Verification Console
+
+The Morph Verification Console has been upgraded from a transaction log into a governance and audit verification dashboard.
+
+Current capabilities:
+- verification status presentation
+- proof integrity labels
+- validation summary visualization
+- lifecycle timeline chips
+- expandable proof bundle viewer
+- settlement status context
+- readable member, merchant, amount, event, and timestamp metadata
+- restrained explanation of why Morph matters: tamper-resistant proof receipts for assistance validation and settlement events
+
+The console remains non-crypto in tone. It emphasizes institutional verification rather than wallet mechanics.
+
+---
+
+# 13. Smart Contract Scope
 
 Smart contracts must remain simple.
 
-Main functions:
+Main conceptual functions:
 
 ```solidity
 recordApproval()
@@ -235,153 +291,56 @@ recordSettlement()
 verifyTransaction()
 ```
 
-# 13. Platform Architecture
-
-EduNexUs is:
-- a web-based application
-- desktop-first dashboard system
-- responsive web platform
+The MVP may use demo-safe transaction handling where appropriate. The product story remains proof recording and auditability, not tokenized settlement.
 
 ---
 
 # 14. Current Stabilization State
 
-EduNexUs has completed a major UI/UX and workflow stabilization phase.
-
 Current phase:
-- UI/UX Foundation Stabilization
-- Responsive Shared Layout Stabilization
-- Pre-Full-QA Phase
+- Governance + Verification Infrastructure Stabilization
+- Programmable Rule Engine Stabilization
+- Settlement Lifecycle Infrastructure Polish
+- Advanced Morph Verification Console Stabilization
 
-The core MVP workflow remains stable:
-
-```text
-Member Request
--> Admin Approval
--> QR Generation
--> Merchant Validation
--> Programmable Rule Validation
--> Morph Blockchain Proof Recording
--> Settlement Tracking
--> Dashboard/Logs/Notifications Update
-```
-
-Important:
-- This phase did not redesign the product.
-- The assistance approval, QR generation, merchant claim processing, programmable validation rules, blockchain proof recording, settlement workflow, notifications, role middleware, and dashboard navigation structures must remain protected.
-- Current priority is workflow reliability over additional UI redesign.
+Protected systems:
+- assistance approval flow
+- QR/reference generation
+- merchant claim processing
+- programmable validation rules
+- proof bundle generation
+- Morph proof recording flow
+- settlement lifecycle workflow
+- notifications system
+- role middleware structure
+- dashboard navigation structure
 
 ---
 
 # 15. Stabilization Progress Summary
 
-## Timezone Stabilization
+Completed foundation work:
+- institutional shell/UI refinement
+- responsive admin/member/merchant workflow stabilization
+- shared page-header normalization
+- premium restrained interaction polish
+- searchable assistance program selector
+- dynamic validation feedback
+- notification/alert UX improvements
+- reusable toast, confirmation modal, and loader systems
+- QR claim pass enlargement
+- icon standardization
+- pagination standardization
 
-The app timezone was migrated safely to Asia/Manila through configuration only.
-
-Outcome:
-- Philippine operational timestamps now align across dashboard activity, logs, approvals, claims, settlements, and notifications.
-- No workflow logic was rewritten.
-- No payment, approval, or blockchain flow was changed.
-
-## Toast System
-
-A reusable Sonner-style native Blade/Tailwind toast system was implemented.
-
-Supports:
-- success
-- error
-- warning
-- info
-
-Current behavior:
-- global toast stack added to the dashboard layout
-- auto-dismiss support
-- close button support
-- restrained premium styling
-
-Primary file:
-- `resources/views/components/toast.blade.php`
-
-## Confirmation Modal System
-
-Native browser confirm dialogs were replaced with a reusable Tailwind confirmation modal system.
-
-Supports:
-- title
-- message
-- confirm text
-- tone states
-- loading states
-
-Applied to:
-- logout
-- approve request
-- reject request
-- settlement confirmation
-- blockchain proof confirmation
-- merchant claim processing
-
-The modal system improves perceived quality without changing workflow rules.
-
-## Premium Loader Overlay
-
-A reusable global loader overlay was added after confirmation modal approval.
-
-Supports:
-- custom loader title
-- custom loader message
-
-The loader uses institutional fintech styling and keeps long-running actions visually understandable during demos.
-
-## Validation Improvements
-
-Assistance amount validation was corrected and made safer.
-
-Current behavior:
-- member request amount respects the program maximum
-- admin approval amount respects the program maximum
-- merchant validation safety rules remain preserved
-
-## Pagination Standardization
-
-Major operational tables now use standardized `paginate(5)` behavior.
-
-Preserved:
-- centered pagination layout
-- query string filters
-- dashboard/stat aggregation logic
-
-## QR Claim Pass Enhancement
-
-The claim pass now supports an enlarged QR modal.
-
-Preserved:
-- QR payload compatibility
-- print layout
-
-Added:
-- modal close button behavior
-- backdrop close behavior
-- Escape key close behavior
-
-## Icon Standardization
-
-Emoji/text icons were replaced with a reusable SVG icon component.
-
-Standardized areas:
-- sidebar
-- notifications
-- activity logs
-- blockchain logs
-- settlement states
-- dashboard indicators
-- workflow arrows
-- toast icons
-- modal icons
-
-Primary file:
-- `resources/views/components/icon.blade.php`
+Completed infrastructure upgrades:
+- programmable governance rule engine
+- merchant rule validation interface
+- expired and duplicate claim protection
+- proof bundle generation
+- deterministic SHA-256 proof hash generation
+- Morph proof payload enrichment
+- settlement lifecycle infrastructure polish
+- advanced Morph Verification Console
 
 ---
 
@@ -398,10 +357,17 @@ The UI should feel:
 - modern
 - institutional
 - fintech-inspired
+- governance/audit oriented
 - operationally realistic
 - clean and understandable
 
-The current shell/layout should not be redesigned unless fixing a real UX issue.
+Avoid:
+- crypto-trader aesthetics
+- cyberpunk styling
+- gaming UI
+- wallet-first language
+- excessive animation
+- unnecessary dashboard redesign
 
 Semantic Tailwind tokens:
 - `ui-shell`
@@ -417,82 +383,21 @@ Semantic Tailwind tokens:
 - `ui-subtext`
 - `ui-muted`
 
-Finalized palette:
-- `ui-shell`: `#D4E2DC`
-- `ui-canvas`: `#EEF4F1`
-- `ui-surface`: `#F9FCFB`
-- `ui-action`: `#0B5D56`
-- `ui-anchor`: `#0F2F2C`
-
-Typography:
-- Inter font
-- strengthened hierarchy
-- institutional readable contrast
-- premium restrained style
-
-Visual hierarchy:
-- shell = structure
-- canvas = workspace
-- cards = elevated content
-
-Avoid:
-- crypto-trader aesthetic
-- cyberpunk styling
-- gaming UI
-- excessive animation
-- unnecessary dashboard redesign
-
 ---
 
-# 17. Responsive Foundation
+# 17. Next Main Phase
 
-The shared responsive shell is implemented in:
-- `resources/views/layouts/dashboard.blade.php`
+The governance + verification infrastructure is now the stabilized MVP foundation.
 
-Current behavior:
-- desktop persistent sidebar
-- mobile/tablet collapsible sidebar drawer
-- hamburger menu
-- backdrop close
-- Escape close
-- responsive topbar controls
-- responsive notification dropdown sizing
-- Alpine-based responsive shell behavior
-
-Animations:
-- restrained sidebar slide/fade
-- backdrop fade
-- subtle transitions
-- no heavy animation libraries
-
-Primary dashboard reference:
-- `resources/views/admin/dashboard.blade.php`
-
----
-
-# 18. Known Minor Issue
-
-There is a remaining perceived top-spacing issue on laptop widths in the Admin Dashboard shell/header area.
-
-Status:
-- not MVP-blocking
-- should be revisited only if it becomes a real UX issue during QA
-
----
-
-# 19. Next Main Phase
-
-The UI foundation is considered stabilized for MVP.
-
-Next phase:
-1. Full End-to-End QA
-2. Workflow reliability validation
-3. Page-level responsive cleanup
-4. Responsive tables/forms/cards
-5. Final operational polish
+Next recommended phase:
+1. Configurable Program Governance Rules
+2. Multi-sector Cooperative Scalability Readiness
+3. Reporting and Export Infrastructure
+4. Demo and Video Preparation
+5. Full End-to-End QA and final workflow reliability pass
 
 Priority order:
 
 ```text
-workflow reliability > additional UI redesign
+workflow reliability > audit clarity > additional UI redesign
 ```

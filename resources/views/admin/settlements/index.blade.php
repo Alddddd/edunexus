@@ -6,6 +6,26 @@
 
 @php
     $hasFilters = filled($filters['status'] ?? null);
+
+    $statusLabel = function ($status) {
+        return match ($status) {
+            'Pending' => 'Ready for Release',
+            'Settled' => 'Released',
+            default => $status,
+        };
+    };
+
+    $statusTone = function ($status) {
+        return match ($status) {
+            'Settled' => 'settled',
+            'Disputed' => 'danger',
+            default => 'warning',
+        };
+    };
+
+    $proofPayload = function ($proof) {
+        return $proof ? (json_decode($proof->payload ?: '[]', true) ?: []) : [];
+    };
 @endphp
 
 <div class="w-full min-w-0 max-w-7xl space-y-6">
@@ -24,7 +44,7 @@
                 </p>
 
                 <p class="text-xs text-teal-700">
-                    {{ $hasFilters ? $filters['status'] . ' settlement records' : 'All settlement records' }}
+                    {{ $hasFilters ? $statusLabel($filters['status']) . ' settlement records' : 'All settlement records' }}
                 </p>
             </div>
         </x-slot:actions>
@@ -32,21 +52,21 @@
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
         <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
-            <p class="text-sm text-ui-subtext">Total Records</p>
+            <p class="text-sm text-ui-subtext">Total Reimbursements</p>
             <p class="mt-2 text-2xl font-bold text-ui-text">{{ number_format($stats['total']) }}</p>
             <p class="mt-1 text-xs text-ui-subtext">Generated from merchant claims</p>
         </div>
 
         <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
-            <p class="text-sm text-ui-subtext">Pending</p>
+            <p class="text-sm text-ui-subtext">Pending Settlements</p>
             <p class="mt-2 text-2xl font-bold text-ui-warning">{{ number_format($stats['pending']) }}</p>
-            <p class="mt-1 text-xs text-amber-600">Awaiting cooperative payment</p>
+            <p class="mt-1 text-xs text-amber-600">Ready for release review</p>
         </div>
 
         <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
-            <p class="text-sm text-ui-subtext">Settled</p>
-            <p class="mt-2 text-2xl font-bold text-ui-success">{{ number_format($stats['settled']) }}</p>
-            <p class="mt-1 text-xs text-emerald-600">Merchant already reimbursed</p>
+            <p class="text-sm text-ui-subtext">Released / Completed</p>
+            <p class="mt-2 text-2xl font-bold text-ui-success">{{ number_format($stats['released']) }}</p>
+            <p class="mt-1 text-xs text-emerald-600">Merchant reimbursements released</p>
         </div>
 
         <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
@@ -56,8 +76,8 @@
         </div>
 
         <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
-            <p class="text-sm text-ui-subtext">Settled Value</p>
-            <p class="mt-2 text-2xl font-bold text-ui-text">&#8369;{{ number_format($stats['settled_amount'], 2) }}</p>
+            <p class="text-sm text-ui-subtext">Released Value</p>
+            <p class="mt-2 text-2xl font-bold text-ui-text">&#8369;{{ number_format($stats['released_amount'], 2) }}</p>
             <p class="mt-1 text-xs text-teal-600">Completed merchant reimbursements</p>
         </div>
     </div>
@@ -70,11 +90,14 @@
                 </p>
 
                 <p class="mt-1 max-w-3xl text-sm leading-6 text-teal-700">
-                    When a merchant processes a valid claim, EduNexUs creates a pending settlement. Once the cooperative reimburses the merchant, the record is marked as settled.
+                    When a merchant processes a valid claim, EduNexUs generates a reimbursement record. Admins review and release the settlement while claim proof remains visible for audit.
                 </p>
             </div>
 
-            <x-status-badge status="Reimbursement Tracking" tone="proof" />
+            <div class="flex flex-wrap gap-2">
+                <x-status-badge status="Reimbursement Tracking" tone="proof" />
+                <x-status-badge status="Settlement audit-ready" tone="success" />
+            </div>
         </div>
     </section>
 
@@ -109,10 +132,10 @@
                         class="mt-2 w-full rounded-xl border-slate-200 text-sm text-slate-700 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                     <option value="">All statuses</option>
                     <option value="Pending" @selected(($filters['status'] ?? null) === 'Pending')>
-                        Pending
+                        Ready for Release
                     </option>
                     <option value="Settled" @selected(($filters['status'] ?? null) === 'Settled')>
-                        Settled
+                        Released
                     </option>
                 </select>
             </div>
@@ -151,6 +174,11 @@
                     @forelse($settlements as $settlement)
                         @php
                             $merchantProfile = $settlement->merchant?->merchantProfile;
+                            $proofRecord = $proofRecords[$settlement->assistance_request_id] ?? null;
+                            $proofData = $proofPayload($proofRecord);
+                            $proofHash = $proofData['proof_hash'] ?? null;
+                            $proofStatus = $proofRecord?->blockchain_status ?? 'Not recorded';
+                            $isReleased = $settlement->status === 'Settled';
                         @endphp
 
                         <tr class="transition hover:bg-ui-canvas/60">
@@ -199,26 +227,52 @@
                             </td>
 
                             <td class="px-5 py-5 align-top">
-                                <x-status-badge :status="$settlement->status" :tone="$settlement->status === 'Settled' ? 'settled' : 'pending'" />
+                                <div class="space-y-2">
+                                    <x-status-badge
+                                        :status="$statusLabel($settlement->status)"
+                                        :tone="$statusTone($settlement->status)" />
+
+                                    <x-status-badge
+                                        :status="$proofStatus === 'Not recorded' ? 'Proof Pending' : 'Morph Proof ' . $proofStatus"
+                                        :tone="$proofStatus === 'Confirmed' ? 'success' : ($proofStatus === 'Failed' ? 'danger' : 'warning')"
+                                        size="xs" />
+                                </div>
                             </td>
 
                             <td class="px-5 py-5 align-top">
-                                <p class="text-sm font-medium text-slate-700">
-                                    Created {{ $settlement->created_at->format('M d, Y') }}
-                                </p>
+                                <div class="space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2.5 w-2.5 rounded-full bg-ui-success"></span>
+                                        <span class="text-xs font-semibold text-slate-700">Claim processed</span>
+                                    </div>
 
-                                <p class="mt-1 text-xs text-ui-subtext">
-                                    {{ $settlement->created_at->format('g:i A') }}
-                                </p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2.5 w-2.5 rounded-full bg-ui-success"></span>
+                                        <span class="text-xs font-semibold text-slate-700">Settlement generated</span>
+                                    </div>
 
-                                <p class="mt-3 text-sm font-medium {{ $settlement->settled_at ? 'text-ui-success' : 'text-ui-subtext' }}">
-                                    {{ $settlement->settled_at ? 'Settled ' . $settlement->settled_at->format('M d, Y') : 'Not settled yet' }}
-                                </p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2.5 w-2.5 rounded-full {{ $isReleased ? 'bg-ui-success' : 'bg-ui-warning' }}"></span>
+                                        <span class="text-xs font-semibold {{ $isReleased ? 'text-slate-700' : 'text-ui-warning' }}">
+                                            {{ $isReleased ? 'Settlement released' : 'Ready for release' }}
+                                        </span>
+                                    </div>
 
-                                @if($settlement->settled_at)
-                                    <p class="mt-1 text-xs text-emerald-600">
-                                        {{ $settlement->settled_at->format('g:i A') }}
-                                    </p>
+                                    <div class="flex items-center gap-2">
+                                        <span class="h-2.5 w-2.5 rounded-full {{ $proofRecord ? 'bg-ui-proof' : 'bg-slate-300' }}"></span>
+                                        <span class="text-xs font-semibold {{ $proofRecord ? 'text-slate-700' : 'text-ui-subtext' }}">
+                                            {{ $proofRecord ? 'Proof recorded' : 'Proof pending' }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                @if($proofHash)
+                                    <div class="mt-3 rounded-xl border border-cyan-100 bg-cyan-50 px-3 py-2">
+                                        <p class="text-xs font-semibold text-cyan-800">Proof Bundle Hash</p>
+                                        <p class="mt-1 break-all font-mono text-[11px] text-cyan-700" title="{{ $proofHash }}">
+                                            {{ substr($proofHash, 0, 16) }}...{{ substr($proofHash, -12) }}
+                                        </p>
+                                    </div>
                                 @endif
                             </td>
 
@@ -227,23 +281,23 @@
                                     <form method="POST"
                                           action="{{ route('admin.settlements.settle', $settlement) }}"
                                           data-confirm
-                                          data-confirm-title="Mark settlement as settled?"
-                                          data-confirm-message="This will complete the merchant reimbursement record and notify the merchant."
-                                          data-confirm-button="Mark settled"
+                                          data-confirm-title="Release merchant settlement?"
+                                          data-confirm-message="This records the cooperative reimbursement as released and notifies the merchant. No wallet or token transfer will be executed."
+                                          data-confirm-button="Release settlement"
                                           data-confirm-tone="success"
-                                          data-loading-text="Marking settled..."
-                                          data-loader-title="Completing settlement..."
-                                          data-loader-message="Finalizing the merchant reimbursement record and updating settlement visibility.">
+                                          data-loading-text="Releasing settlement..."
+                                          data-loader-title="Releasing settlement..."
+                                          data-loader-message="Updating the reimbursement lifecycle and notifying the merchant.">
                                         @csrf
 
                                         <button type="submit"
                                                 class="inline-flex min-h-10 items-center justify-center rounded-xl bg-ui-action px-4 py-2 text-xs font-semibold text-white transition hover:bg-ui-anchor">
-                                            Mark Settled
+                                            Release Settlement
                                         </button>
                                     </form>
                                 @else
                                     <span class="text-sm font-medium text-ui-subtext">
-                                        Completed
+                                        Released {{ $settlement->settled_at?->format('M d, Y') }}
                                     </span>
                                 @endif
                             </td>
@@ -277,6 +331,11 @@
             @forelse($settlements as $settlement)
                 @php
                     $merchantProfile = $settlement->merchant?->merchantProfile;
+                    $proofRecord = $proofRecords[$settlement->assistance_request_id] ?? null;
+                    $proofData = $proofPayload($proofRecord);
+                    $proofHash = $proofData['proof_hash'] ?? null;
+                    $proofStatus = $proofRecord?->blockchain_status ?? 'Not recorded';
+                    $isReleased = $settlement->status === 'Settled';
                 @endphp
 
                 <article class="p-4 sm:p-5">
@@ -295,7 +354,15 @@
                             </p>
                         </div>
 
-                        <x-status-badge :status="$settlement->status" :tone="$settlement->status === 'Settled' ? 'settled' : 'pending'" />
+                        <div class="flex flex-wrap gap-2 sm:justify-end">
+                            <x-status-badge
+                                :status="$statusLabel($settlement->status)"
+                                :tone="$statusTone($settlement->status)" />
+
+                            <x-status-badge
+                                :status="$proofStatus === 'Not recorded' ? 'Proof Pending' : 'Morph Proof ' . $proofStatus"
+                                :tone="$proofStatus === 'Confirmed' ? 'success' : ($proofStatus === 'Failed' ? 'danger' : 'warning')" />
+                        </div>
                     </div>
 
                     <dl class="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
@@ -330,9 +397,40 @@
                         </div>
 
                         <div class="rounded-xl bg-ui-canvas/70 p-3">
-                            <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">Settlement Timeline</dt>
-                            <dd class="mt-1 font-semibold {{ $settlement->settled_at ? 'text-ui-success' : 'text-ui-text' }}">
-                                {{ $settlement->settled_at ? 'Settled ' . $settlement->settled_at->format('M d, Y') : 'Not settled yet' }}
+                            <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">Lifecycle</dt>
+                            <dd class="mt-2 space-y-2">
+                                <span class="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-ui-success"></span>
+                                    Claim processed
+                                </span>
+                                <span class="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                                    <span class="h-2.5 w-2.5 rounded-full bg-ui-success"></span>
+                                    Settlement generated
+                                </span>
+                                <span class="flex items-center gap-2 text-xs font-semibold {{ $isReleased ? 'text-slate-700' : 'text-ui-warning' }}">
+                                    <span class="h-2.5 w-2.5 rounded-full {{ $isReleased ? 'bg-ui-success' : 'bg-ui-warning' }}"></span>
+                                    {{ $isReleased ? 'Settlement released' : 'Ready for release' }}
+                                </span>
+                                <span class="flex items-center gap-2 text-xs font-semibold {{ $proofRecord ? 'text-slate-700' : 'text-ui-subtext' }}">
+                                    <span class="h-2.5 w-2.5 rounded-full {{ $proofRecord ? 'bg-ui-proof' : 'bg-slate-300' }}"></span>
+                                    {{ $proofRecord ? 'Proof recorded' : 'Proof pending' }}
+                                </span>
+                            </dd>
+                        </div>
+
+                        @if($proofHash)
+                            <div class="rounded-xl bg-cyan-50 p-3 sm:col-span-2">
+                                <dt class="text-xs font-medium uppercase tracking-wide text-cyan-700">Proof Bundle Hash</dt>
+                                <dd class="mt-1 break-all font-mono text-xs font-semibold text-cyan-800" title="{{ $proofHash }}">
+                                    {{ $proofHash }}
+                                </dd>
+                            </div>
+                        @endif
+
+                        <div class="rounded-xl bg-ui-canvas/70 p-3">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">Release Timestamp</dt>
+                            <dd class="mt-1 font-semibold {{ $settlement->settled_at ? 'text-ui-success' : 'text-ui-subtext' }}">
+                                {{ $settlement->settled_at ? $settlement->settled_at->format('M d, Y') : 'Awaiting release' }}
                             </dd>
                             @if($settlement->settled_at)
                                 <dd class="mt-1 text-xs text-emerald-600">
@@ -347,23 +445,23 @@
                             <form method="POST"
                                   action="{{ route('admin.settlements.settle', $settlement) }}"
                                   data-confirm
-                                  data-confirm-title="Mark settlement as settled?"
-                                  data-confirm-message="This will complete the merchant reimbursement record and notify the merchant."
-                                  data-confirm-button="Mark settled"
+                                  data-confirm-title="Release merchant settlement?"
+                                  data-confirm-message="This records the cooperative reimbursement as released and notifies the merchant. No wallet or token transfer will be executed."
+                                  data-confirm-button="Release settlement"
                                   data-confirm-tone="success"
-                                  data-loading-text="Marking settled..."
-                                  data-loader-title="Completing settlement..."
-                                  data-loader-message="Finalizing the merchant reimbursement record and updating settlement visibility.">
+                                  data-loading-text="Releasing settlement..."
+                                  data-loader-title="Releasing settlement..."
+                                  data-loader-message="Updating the reimbursement lifecycle and notifying the merchant.">
                                 @csrf
 
                                 <button type="submit"
                                         class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-action px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor sm:w-auto">
-                                    Mark Settled
+                                    Release Settlement
                                 </button>
                             </form>
                         @else
                             <span class="inline-flex min-h-10 items-center rounded-xl bg-ui-canvas px-4 py-2 text-sm font-semibold text-ui-subtext">
-                                Completed
+                                Released {{ $settlement->settled_at?->format('M d, Y') }}
                             </span>
                         @endif
                     </div>

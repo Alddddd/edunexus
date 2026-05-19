@@ -45,6 +45,7 @@
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Member</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Program</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Requested Amount</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Approved Amount</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Status</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Date</th>
                         <th class="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wider text-ui-subtext">Action</th>
@@ -69,6 +70,18 @@
                             </td>
 
                             <td class="px-5 py-4">
+                                @if($request->approved_amount)
+                                    <p class="font-semibold text-ui-text">
+                                        &#8369;{{ number_format($request->approved_amount, 2) }}
+                                    </p>
+                                @else
+                                    <span class="text-sm text-ui-subtext">
+                                        Pending review
+                                    </span>
+                                @endif
+                            </td>
+
+                            <td class="px-5 py-4">
                                 <x-status-badge
                                     :status="$request->is_claimed ? 'Claimed' : $request->status"
                                     :tone="$request->is_claimed ? 'claimed' : $request->status" />
@@ -87,7 +100,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center">
+                            <td colspan="7" class="px-6 py-12 text-center">
                                 <p class="font-medium text-ui-text">
                                     No assistance requests submitted yet.
                                 </p>
@@ -124,10 +137,23 @@
                     <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
                         <div class="rounded-xl bg-ui-canvas/70 p-3">
                             <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">
-                                Amount
+                                Requested
                             </dt>
                             <dd class="mt-1 font-semibold text-ui-text">
                                 &#8369;{{ number_format($request->requested_amount, 2) }}
+                            </dd>
+                        </div>
+
+                        <div class="rounded-xl bg-ui-canvas/70 p-3">
+                            <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">
+                                Approved
+                            </dt>
+                            <dd class="mt-1 font-semibold {{ $request->approved_amount ? 'text-ui-text' : 'text-ui-subtext' }}">
+                                @if($request->approved_amount)
+                                    &#8369;{{ number_format($request->approved_amount, 2) }}
+                                @else
+                                    Pending review
+                                @endif
                             </dd>
                         </div>
 

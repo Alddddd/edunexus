@@ -1,5 +1,4 @@
-````md id="g7x4pf"
-# CoopFund Nexus — Workflow Logic
+# EduNexUs - Workflow Logic
 
 ## Purpose
 
@@ -8,8 +7,10 @@ This document defines:
 - role-based system behavior
 - approval logic
 - QR validation logic
-- merchant settlement flow
-- status transitions
+- programmable governance rule validation
+- merchant settlement lifecycle
+- Morph proof recording
+- verification and audit visibility
 - MVP operational rules
 
 The workflow is designed to:
@@ -17,199 +18,155 @@ The workflow is designed to:
 - support meaningful blockchain integration
 - prioritize smooth demo presentation
 - maintain implementation simplicity
+- present EduNexUs as cooperative reimbursement infrastructure, not a crypto app
 
 ---
 
-# 1. CORE WORKFLOW OVERVIEW
+# 1. Core Workflow Overview
 
-The system follows this main operational flow:
+The stable EduNexUs workflow is:
 
 ```text
-Admin creates assistance program
-↓
-Member submits assistance request
-↓
-Admin reviews request
-↓
-Admin approves request
-↓
-System generates QR/reference
-↓
-Member presents QR to merchant
-↓
-Merchant scans/verifies QR
-↓
-Programmable validation rules execute
-↓
-Claim succeeds or fails
-↓
-Morph blockchain records proof
-↓
-Dashboard updates
-↓
-Settlement recorded
-````
+Member Request
+-> Admin Approval
+-> QR Claim Pass
+-> Merchant Validation
+-> Programmable Rule Validation
+-> Claim Processing
+-> Settlement Generation
+-> Settlement Release
+-> Morph Proof Recording
+-> Verification Console Audit Visibility
+```
+
+The workflow must remain stable. Future improvements should add governance configurability, reporting, or audit depth without changing this core sequence.
 
 ---
 
-# 2. ROLE-BASED WORKFLOW LOGIC
+# 2. Role-Based Workflow Logic
 
-# 2.1 Admin Workflow
+## 2.1 Admin Workflow
 
 Admin responsibilities:
+- manage assistance programs
+- approve/reject requests
+- manage merchants
+- monitor claims
+- monitor settlement lifecycle
+- release merchant settlements
+- review Morph proof records
+- review activity/audit timelines
 
-* manage assistance programs
-* approve/reject requests
-* manage merchants
-* monitor claims
-* monitor settlements
-* monitor blockchain logs
-
----
-
-## Admin Operational Flow
+Admin operational flow:
 
 ```text
 Login
-↓
-Open Dashboard
-↓
-Review Assistance Requests
-↓
-Approve or Reject Request
-↓
-QR Generated
-↓
-Monitor Claims
-↓
-Monitor Settlements
-↓
-View Blockchain Logs
+-> Open Dashboard
+-> Review Assistance Requests
+-> Approve or Reject Request
+-> QR Claim Pass Generated
+-> Monitor Merchant Claims
+-> Review Settlement Console
+-> Release Settlement
+-> Review Morph Verification Console
 ```
 
----
-
-# 2.2 Member Workflow
+## 2.2 Member Workflow
 
 Member responsibilities:
+- request assistance
+- track request status
+- receive QR/reference claim pass
+- present QR/reference to merchants
 
-* request assistance
-* track request status
-* receive QR/reference
-* present QR to merchant
-
----
-
-## Member Operational Flow
+Member operational flow:
 
 ```text
 Login
-↓
-Submit Assistance Request
-↓
-Wait for Approval
-↓
-Receive QR/Reference
-↓
-Visit Merchant
-↓
-Present QR
-↓
-Claim Processed
+-> Submit Assistance Request
+-> Wait for Approval
+-> Receive QR Claim Pass
+-> Visit Merchant
+-> Present QR/Reference
+-> Claim Processed if Eligible
 ```
 
----
-
-# 2.3 Merchant Workflow
+## 2.3 Merchant Workflow
 
 Merchant responsibilities:
+- validate QR/reference claims
+- review governance rule results
+- process eligible claims
+- monitor reimbursement status
 
-* scan QR
-* validate claims
-* confirm claim usage
-* submit settlement records
-
----
-
-## Merchant Operational Flow
+Merchant operational flow:
 
 ```text
 Login
-↓
-Open Merchant Portal
-↓
-Scan QR
-↓
-System Validates Claim
-↓
-Approve Claim
-↓
-Claim Recorded
-↓
-Settlement Recorded
+-> Open Merchant Portal
+-> Enter/Scan Claim Reference
+-> System Runs Governance Rules
+-> Review Pass/Fail Validation Result
+-> Process Eligible Claim
+-> Settlement Generated
 ```
 
----
-
-# 2.4 Auditor Workflow
+## 2.4 Auditor / Coop Manager Workflow
 
 Auditor responsibilities:
+- monitor Morph proof records
+- inspect proof bundles
+- review validation summaries
+- review settlement status
+- verify operational transparency
 
-* monitor blockchain logs
-* review settlements
-* verify transaction transparency
-
----
-
-## Auditor Operational Flow
+Auditor operational flow:
 
 ```text
 Login
-↓
-Open Verification Dashboard
-↓
-Review Blockchain Logs
-↓
-Review Settlement Records
-↓
-Verify Transaction Hashes
+-> Open Verification Dashboard
+-> Review Morph Proof Records
+-> Inspect Proof Bundle
+-> Review Governance Validation Summary
+-> Review Settlement Lifecycle
 ```
 
 ---
 
-# 3. ASSISTANCE PROGRAM WORKFLOW
+# 3. Assistance Program Workflow
 
-# 3.1 Create Assistance Program
+Admin can define:
+- assistance name
+- description
+- merchant category
+- maximum amount
+- expiration rules
+- active/inactive status
 
-Admin can:
-
-* define assistance name
-* define merchant category
-* define maximum amount
-* define expiration rules
-
----
-
-## Example
+Example:
 
 ```text
 Education Assistance
-→ usable only at school supply merchants
-→ max ₱2,500
-→ expires after 30 days
+-> usable only at school supply merchants
+-> max PHP 2,500
+-> expires after 30 days
 ```
+
+Future direction:
+- configurable program-level governance rules
+- multi-sector cooperative support
+- reusable program rule templates
 
 ---
 
-# 4. ASSISTANCE REQUEST WORKFLOW
+# 4. Assistance Request Workflow
 
-# 4.1 Request Submission
+## 4.1 Request Submission
 
 Member submits:
-
-* assistance type
-* requested amount
-* optional reason/notes
+- assistance program
+- requested amount
+- optional reason/notes
 
 System creates:
 
@@ -217,32 +174,27 @@ System creates:
 Pending Request
 ```
 
----
-
-# 4.2 Request Review
+## 4.2 Request Review
 
 Admin reviews:
-
-* request validity
-* requested amount
-* assistance category
+- request validity
+- requested amount
+- program maximum
+- assistance category
 
 Admin actions:
+- Approve
+- Reject
 
-* Approve
-* Reject
+## 4.3 Approval Logic
 
----
-
-# 4.3 Approval Logic
-
-If approved:
-system:
-
-* assigns approved amount
-* generates reference code
-* generates QR code
-* creates approval record
+If approved, system:
+- assigns approved amount
+- generates reference code
+- generates QR payload
+- sets approval timestamp
+- sets expiration timestamp
+- preserves QR/reference compatibility
 
 Status becomes:
 
@@ -250,118 +202,102 @@ Status becomes:
 Approved
 ```
 
----
-
-# 4.4 Rejection Logic
+## 4.4 Rejection Logic
 
 If rejected:
-status becomes:
 
 ```text
 Rejected
 ```
 
-Optional:
-
-* rejection reason
-
 ---
 
-# 5. QR VALIDATION WORKFLOW
+# 5. QR Claim Pass and Merchant Validation
 
-# 5.1 QR Generation
+## 5.1 QR Claim Pass
 
-QR contains:
-
-* request reference
-* member reference
-* program reference
-* claim status
+QR/reference contains:
+- reference code
+- request id
+- member id
+- program id
+- approved status
 
 Purpose:
+- merchant verification
+- member claim presentation
+- stable operational reference
 
-* merchant verification
+## 5.2 Merchant Validation
 
----
-
-# 5.2 Merchant QR Scan
-
-Merchant scans QR.
+Merchant enters/scans QR/reference.
 
 System retrieves:
-
-* request data
-* program rules
-* claim history
-* expiration status
-
----
-
-# 5.3 Validation Rules
-
-System validates:
-
-## Merchant Category Match
-
-Example:
-
-```text
-Education Assistance
-→ only school supply merchants allowed
-```
+- request data
+- member
+- program
+- merchant profile
+- claim history
+- expiration status
 
 ---
 
-## Expiration Validation
+# 6. Programmable Governance Rule Engine
 
-Claim fails if:
+The merchant validation system now uses structured rule results. These are shown to the merchant as a readable governance review.
 
-```text
-current_date > expiration_date
-```
+Current rule checks:
+- claim reference verified
+- approval status confirmed
+- claim validity active
+- merchant eligibility verified
+- redemption availability confirmed
+- approved amount validated
+
+Each rule returns:
+- key
+- label
+- passed true/false
+- user-friendly message
+
+## 6.1 Passed Validation
+
+If all rules pass:
+- merchant sees "Eligible for Claim Processing"
+- claim processing is allowed
+- claim is marked used
+- settlement is generated
+- Morph proof recording is triggered
+- proof bundle and proof hash are stored in the proof payload
+
+## 6.2 Failed Validation
+
+If any rule fails:
+- claim processing is blocked
+- settlement generation is prevented
+- Morph proof recording is not triggered
+- merchant sees the failed rule and reason
+
+Common failed states:
+- claim validity expired
+- claim already redeemed
+- merchant category mismatch
+- request not approved
+- approved amount invalid
 
 ---
 
-## Duplicate Claim Prevention
+# 7. Claim Processing Workflow
 
-Claim fails if:
+After successful validation:
+- assistance request is marked claimed
+- `claimed_at`, `claimed_by`, and `claim_status` are updated
+- member notification is sent
+- settlement record is created if not already present
+- claim proof recording is triggered through the Morph service
+- blockchain transaction payload stores proof bundle metadata
 
-```text
-claim already processed
-```
-
----
-
-## Status Validation
-
-Claim only allowed if:
-
-```text
-request_status = Approved
-```
-
----
-
-## Amount Validation
-
-Claim cannot exceed:
-
-```text
-approved_amount
-```
-
----
-
-# 5.4 Successful Validation
-
-If validation succeeds:
-
-* claim recorded
-* blockchain transaction triggered
-* transaction hash stored
-* settlement record created
-
-Request status becomes:
+Claim status becomes:
 
 ```text
 Claimed
@@ -369,242 +305,171 @@ Claimed
 
 ---
 
-# 5.5 Failed Validation
+# 8. Settlement Lifecycle Workflow
 
-If validation fails:
-claim rejected.
+## 8.1 Settlement Generation
 
-Possible reasons:
-
-* expired assistance
-* duplicate claim
-* invalid merchant category
-* invalid QR
-* already settled
-
-No blockchain transaction executed.
-
----
-
-# 6. CLAIM WORKFLOW
-
-# 6.1 Claim Creation
-
-After successful validation:
-system creates:
-
-```text
-Claim Record
-```
-
-Includes:
-
-* merchant
-* amount
-* timestamp
-* verification status
-
----
-
-# 6.2 Claim Verification
-
-Merchant confirms:
-
-```text
-claim successfully processed
-```
-
-Claim status becomes:
-
-```text
-Verified
-```
-
----
-
-# 7. SETTLEMENT WORKFLOW
-
-# 7.1 Settlement Creation
-
-After successful claim:
-system creates:
+After a successful claim, system creates:
 
 ```text
 Pending Settlement
 ```
 
----
+In UI language this appears as:
 
-# 7.2 Settlement Monitoring
+```text
+Ready for Release
+```
+
+## 8.2 Settlement Monitoring
 
 Admin can:
+- monitor pending reimbursements
+- view merchant/member/program metadata
+- review settlement amount
+- inspect related proof status
+- see lifecycle timeline
 
-* monitor pending settlements
-* verify merchant transactions
-* confirm settlement completion
+## 8.3 Settlement Release
 
----
+When cooperative reimbursement is ready, admin marks the settlement released.
 
-# 7.3 Settlement Completion
-
-After settlement processing:
-status becomes:
+Stored database status:
 
 ```text
 Settled
 ```
 
-Blockchain settlement proof recorded.
-
----
-
-# 8. BLOCKCHAIN WORKFLOW TRIGGERS
-
-# 8.1 Approval Trigger
-
-When admin approves request:
-system executes:
+UI language:
 
 ```text
-recordApproval()
+Released
 ```
 
----
-
-# 8.2 Claim Trigger
-
-When merchant successfully validates claim:
-system executes:
-
-```text
-recordClaim()
-```
+Important:
+- this is not a real money transfer
+- this is not stablecoin settlement
+- this does not add wallets or token mechanics
+- it records the operational reimbursement lifecycle
 
 ---
 
-# 8.3 Settlement Trigger
+# 9. Morph Proof Workflow
 
-When settlement completes:
-system executes:
+When claim processing succeeds:
+- Laravel prepares proof bundle
+- Laravel generates deterministic SHA-256 proof hash
+- Morph proof recording runs through the existing blockchain service
+- blockchain transaction row is created
+- payload stores proof hash, validation summary, and proof bundle metadata
+- verification console displays proof integrity and workflow context
 
-```text
-recordSettlement()
-```
-
----
-
-# 9. DASHBOARD UPDATE WORKFLOW
-
-Dashboard updates after:
-
-* approval
-* claim
-* settlement
-* blockchain confirmation
-
-Displayed metrics:
-
-* total assistance released
-* total claims
-* total settlements
-* blockchain activity
+Proof bundle includes:
+- reference code
+- event type
+- assistance request id
+- program id
+- merchant id
+- member id
+- approved amount
+- merchant category
+- validation rule summary
+- status
+- timestamp
 
 ---
 
-# 10. MVP WORKFLOW PRINCIPLES
+# 10. Verification Console Audit Visibility
+
+The Morph Verification Console presents:
+- verification status
+- proof integrity labels
+- rule validation summary
+- lifecycle timeline
+- proof bundle viewer
+- member/merchant/program metadata
+- settlement status
+- recorded timestamp
+- transaction hash
+
+Purpose:
+- show why blockchain matters
+- make proof records understandable to judges and auditors
+- avoid crypto-heavy mechanics
+- reinforce tamper-resistant workflow verification
+
+---
+
+# 11. Dashboard Update Workflow
+
+Dashboards update after:
+- request submission
+- approval/rejection
+- claim processing
+- settlement generation/release
+- blockchain proof recording/confirmation
+- notification events
+
+Displayed metrics include:
+- total assistance approved
+- pending approvals
+- processed claims
+- pending settlement value
+- released settlement value
+- Morph confirmations
+- proof records and integrity hashes
+
+---
+
+# 12. MVP Workflow Principles
 
 The workflow must remain:
-
-* smooth
-* realistic
-* easy to explain
-* visually satisfying
-* blockchain-meaningful
+- smooth
+- realistic
+- easy to explain
+- visually satisfying
+- blockchain-meaningful
+- institution-ready
 
 Priority:
-
-* polished operational flow
-* believable payment infrastructure
-* demo-friendly transitions
+- polished operational flow
+- believable payment/reimbursement infrastructure
+- governance clarity
+- audit visibility
+- demo-friendly transitions
 
 ---
 
-# 11. IMPORTANT MVP LIMITATIONS
+# 13. MVP Limitations
 
 The MVP intentionally avoids:
-
-* advanced banking logic
-* partial payment computation
-* multi-wallet architecture
-* token systems
-* complex financial calculations
+- advanced banking logic
+- partial payment computation
+- multi-wallet architecture
+- token systems
+- stablecoin transfer
+- DeFi mechanics
+- real crypto settlement
 
 Reason:
-
-* maintain feasibility
-* prioritize polished execution
-* reduce technical risk
-
----
-
-# 12. FINAL WORKFLOW STRATEGY
-
-The workflow should feel:
-
-* deployable
-* institution-ready
-* operationally believable
-* blockchain-supported
-* easy to understand
-
-The system should demonstrate:
-
-# modern cooperative financial infrastructure
-
-through:
-
-* programmable validation
-* merchant verification
-* blockchain-backed transparency
-
-```
-```
+- maintain feasibility
+- prioritize polished execution
+- reduce technical risk
+- keep blockchain as proof infrastructure
 
 ---
 
-# 13. STABILIZATION NOTES
+# 14. Current Phase Notes
 
 Current phase:
 
 ```text
-UI/UX Foundation Stabilization
-Responsive Shared Layout Stabilization
-Pre-Full-QA Phase
+Governance + Verification Infrastructure Stabilization
 ```
 
-Current stable MVP workflow:
-
-```text
-Member Request
--> Admin Approval
--> QR Generation
--> Merchant Validation
--> Programmable Rule Validation
--> Morph Blockchain Proof Recording
--> Settlement Tracking
--> Dashboard/Logs/Notifications Update
-```
-
-Important workflow preservation notes:
-
-* The assistance request, admin approval, QR generation, merchant validation, programmable rule validation, Morph proof recording, settlement, dashboard, log, and notification flow remains unchanged.
-* Recent UI improvements added clearer feedback through toasts, confirmation modals, and loader overlays.
-* Recent validation improvements ensure member request amounts and admin approval amounts respect the assistance program maximum.
-* The QR claim pass enhancement preserves QR payload compatibility and print behavior.
-* Pagination changes preserve query string filters and dashboard/stat aggregation logic.
-* The next phase should prioritize end-to-end workflow reliability over further UI redesign.
-
-Known minor issue:
-
-* There is a remaining perceived top-spacing issue on laptop widths in the Admin Dashboard shell/header area.
-* This is not MVP-blocking and should be revisited only if needed during QA.
+Next recommended future work:
+- configurable program governance rules
+- multi-sector cooperative scalability readiness
+- reporting/export infrastructure
+- demo/video preparation
+- full end-to-end QA

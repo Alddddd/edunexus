@@ -4,11 +4,19 @@
 
 EduNexUs is currently in:
 
-- UI/UX Foundation Stabilization
-- Responsive Shared Layout Stabilization
-- Pre-Full-QA Phase
+```text
+Governance + Verification Infrastructure Stabilization
+```
 
-The recent phase focused on making the existing MVP workflow clearer, safer, more responsive, and more demo-ready without redesigning the product or changing the blockchain workflow.
+This phase follows the earlier UI/UX foundation and responsive shell stabilization work. The product has evolved from a basic assistance workflow into programmable cooperative assistance, settlement lifecycle, and Morph-backed audit verification infrastructure.
+
+Current stabilization focus:
+- programmable governance rule validation
+- merchant rule validation UX
+- proof bundle and proof hash infrastructure
+- settlement lifecycle presentation
+- Morph verification console audit clarity
+- preserving the stable core workflow
 
 ---
 
@@ -19,12 +27,14 @@ The current MVP workflow must remain stable:
 ```text
 Member Request
 -> Admin Approval
--> QR Generation
+-> QR Claim Pass
 -> Merchant Validation
 -> Programmable Rule Validation
--> Morph Blockchain Proof Recording
--> Settlement Tracking
--> Dashboard/Logs/Notifications Update
+-> Claim Processing
+-> Settlement Generation
+-> Settlement Release
+-> Morph Proof Recording
+-> Verification Console Audit Visibility
 ```
 
 Protected systems:
@@ -32,8 +42,9 @@ Protected systems:
 - QR/reference generation
 - merchant claim processing
 - programmable validation rules
-- blockchain proof recording flow
-- settlement workflow
+- proof bundle generation
+- Morph proof recording flow
+- settlement lifecycle workflow
 - notifications system
 - role middleware structure
 - dashboard navigation structure
@@ -42,53 +53,16 @@ Protected systems:
 
 ## Recently Completed Stabilization Work
 
-Timezone:
-- app timezone migrated to Asia/Manila
-- config-only approach
-- no workflow logic rewritten
-- timestamps now align with Philippine operational time
+### UI Foundation
+- centralized Institutional Sage Fintech visual direction
+- semantic Tailwind tokens
+- Inter typography
+- stronger dashboard hierarchy
+- restrained teal action styling
 
-Toast system:
-- reusable Sonner-style native Blade/Tailwind toast system
-- success, error, warning, and info states
-- global toast stack in dashboard layout
-- auto-dismiss and close button support
-
-Confirmation modal system:
-- native browser confirms replaced
-- reusable Tailwind confirmation modal
-- title, message, confirm text, tone states, and loading states
-- applied to logout, approvals, rejections, settlements, blockchain proof confirmation, and merchant claim processing
-
-Premium loader overlay:
-- reusable global loader after confirmation approval
-- custom loader title and message
-- institutional fintech styling
-
-Validation:
-- member request amount respects program maximum
-- admin approval amount respects program maximum
-- merchant validation safety rule preserved
-
-Pagination:
-- major operational tables standardized to `paginate(5)`
-- centered pagination layout
-- query string filters preserved
-- dashboard/stat aggregation preserved
-
-QR claim pass:
-- enlarged QR modal added
-- QR payload compatibility preserved
-- print layout preserved
-- close, backdrop, and Escape behavior added
-
-Icon standardization:
-- reusable SVG icon component added
-- emoji/text icons replaced across major dashboard and workflow surfaces
-
-Responsive shell:
+### Responsive Shell
 - desktop persistent sidebar
-- mobile/tablet collapsible sidebar drawer
+- mobile/tablet drawer sidebar
 - hamburger menu
 - backdrop close
 - Escape close
@@ -96,22 +70,92 @@ Responsive shell:
 - responsive notification dropdown sizing
 - Alpine-based shell behavior
 
+### Interaction Systems
+- reusable toast stack
+- reusable confirmation modal
+- reusable loader overlay
+- tone-aware action confirmations
+- improved notifications/alerts
+
+### Workflow UX
+- shared page-header normalization
+- searchable assistance program selector
+- dynamic validation feedback
+- QR claim pass modal
+- major table pagination standardization
+- approved amount visibility in admin request queue
+
+### Programmable Governance Rule Engine
+- structured rule result system
+- claim reference verification
+- approval status confirmation
+- claim validity/expiration validation
+- merchant eligibility validation
+- duplicate redemption prevention
+- approved amount validation
+- merchant pass/fail rule visualization
+- blocked processing on failed rules
+
+### Proof Bundle Infrastructure
+- proof bundle generated on successful claim processing
+- deterministic SHA-256 proof hash
+- validation summary metadata
+- validation rules metadata
+- proof hash stored in blockchain transaction payload
+- proof hash surfaced in verification and settlement audit views
+
+### Settlement Lifecycle Infrastructure
+- pending settlements displayed as Ready for Release
+- settled records displayed as Released
+- release settlement UX copy improved
+- settlement lifecycle timeline shown
+- proof-linked settlement status shown
+- reimbursement metrics clarified
+
+### Advanced Morph Verification Console
+- transaction log upgraded into audit dashboard
+- verification status presentation
+- proof integrity labels
+- validation summary visualization
+- lifecycle timeline chips
+- expandable proof bundle review
+- settlement status context
+- subtle "why blockchain matters" explanation
+
 ---
 
 ## Current Important Files
 
 Primary shared shell:
-- resources/views/layouts/dashboard.blade.php
+- `resources/views/layouts/dashboard.blade.php`
 
 Primary dashboard reference:
-- resources/views/admin/dashboard.blade.php
+- `resources/views/admin/dashboard.blade.php`
 
-Reusable systems:
-- resources/views/components/toast.blade.php
-- resources/views/components/icon.blade.php
+Governance validation:
+- `app/Services/ClaimValidationRuleService.php`
+- `resources/views/merchant/claims/verify.blade.php`
+
+Proof bundle:
+- `app/Services/ProofBundleService.php`
+- `app/Http/Controllers/Merchant/ClaimValidationController.php`
+
+Settlement lifecycle:
+- `app/Http/Controllers/Admin/SettlementController.php`
+- `resources/views/admin/settlements/index.blade.php`
+
+Morph verification:
+- `app/Http/Controllers/Admin/BlockchainTransactionController.php`
+- `resources/views/admin/blockchain-transactions/index.blade.php`
+
+Reusable UI systems:
+- `resources/views/components/toast.blade.php`
+- `resources/views/components/icon.blade.php`
+- `resources/views/components/status-badge.blade.php`
 
 Design/config reference:
-- tailwind.config.js
+- `tailwind.config.js`
+- `resources/css/app.css`
 
 ---
 
@@ -125,21 +169,25 @@ Status:
 
 ---
 
-## Next Main Phase
-
-The UI foundation is now considered stabilized for MVP.
+## Next Recommended Phase
 
 Next development priority:
-1. Full End-to-End QA
-2. Workflow reliability validation
-3. Page-level responsive cleanup
-4. Responsive tables/forms/cards
-5. Final operational polish
+1. Configurable Program Governance Rules
+2. Multi-sector Cooperative Scalability Readiness
+3. Reporting/export infrastructure
+4. Demo/video preparation
+5. Full end-to-end QA and final workflow reliability pass
+
+Future changes should be:
+- small
+- safe
+- compatible with existing routes/controllers
+- respectful of dashboard flows
+- compatible with Morph proof recording
+- compatible with settlement lifecycle behavior
 
 Priority:
 
 ```text
-workflow reliability > additional UI redesign
+workflow reliability > audit clarity > additional UI redesign
 ```
-
-Future changes should be small, safe, and compatible with existing routes, controllers, dashboard flows, Morph proof recording, and settlement behavior.

@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\AssistanceRequest;
 use App\Models\BlockchainTransaction;
 use App\Models\Settlement;
+use App\Services\ClaimValidationRuleService;
 use App\Services\MorphBlockchainService;
 use App\Services\ActivityLogService;
+use App\Services\ProofBundleService;
 use Illuminate\Http\Request;
 use App\Notifications\ClaimProcessedNotification;
 
@@ -18,7 +20,7 @@ class ClaimValidationController extends Controller
         return view('merchant.claims.index');
     }
 
-    public function verify(Request $request)
+    public function verify(Request $request, ClaimValidationRuleService $ruleService)
     {
         $referenceCode = $request->reference_code;
 
@@ -39,40 +41,7 @@ class ClaimValidationController extends Controller
             );
         }
 
-        $merchantProfile = auth()->user()->merchantProfile;
-
-        $merchantCategoryAllowed =
-            $merchantProfile &&
-            $merchantProfile->status === 'Active' &&
-            strtolower($merchantProfile->merchant_category) === strtolower($assistanceRequest->program->merchant_category);
-
-        $rules = [
-            [
-                'label' => 'Request is approved',
-                'passed' => $assistanceRequest->status === 'Approved',
-                'description' => 'Only approved assistance requests can be claimed.',
-            ],
-            [
-                'label' => 'Claim is not expired',
-                'passed' => now()->lessThanOrEqualTo($assistanceRequest->expiration_date),
-                'description' => 'The claim must still be within its validity period.',
-            ],
-            [
-                'label' => 'Claim has not been used',
-                'passed' => ! $assistanceRequest->is_claimed,
-                'description' => 'Each assistance QR/reference can only be claimed once.',
-            ],
-            [
-                'label' => 'Amount is within program limit',
-                'passed' => $assistanceRequest->approved_amount <= $assistanceRequest->program->maximum_amount,
-                'description' => 'Approved amount must not exceed the program maximum.',
-            ],
-            [
-                'label' => 'Merchant category is allowed',
-                'passed' => $merchantCategoryAllowed,
-                'description' => 'Merchant must be active and match the assistance program category.',
-            ],
-        ];
+        $rules = $ruleService->evaluate($assistanceRequest, auth()->user()->merchantProfile);
 
         return view('merchant.claims.verify', [
             'request' => $assistanceRequest,
@@ -82,28 +51,20 @@ class ClaimValidationController extends Controller
 
     public function process(
         AssistanceRequest $assistanceRequest,
-        MorphBlockchainService $blockchainService
+        MorphBlockchainService $blockchainService,
+        ClaimValidationRuleService $ruleService,
+        ProofBundleService $proofBundleService
     ) {
-        if ($assistanceRequest->status !== 'Approved') {
-            return back()->with('error', 'Claim is not approved.');
-        }
-
-        if ($assistanceRequest->is_claimed) {
-            return back()->with('error', 'Claim already processed.');
-        }
-
-        if (now()->greaterThan($assistanceRequest->expiration_date)) {
-            return back()->with('error', 'Claim has expired.');
-        }
+        $assistanceRequest->loadMissing(['member', 'program']);
 
         $merchantProfile = auth()->user()->merchantProfile;
+        $rules = $ruleService->evaluate($assistanceRequest, $merchantProfile);
 
-        if (
-            ! $merchantProfile ||
-            $merchantProfile->status !== 'Active' ||
-            strtolower($merchantProfile->merchant_category) !== strtolower($assistanceRequest->program->merchant_category)
-        ) {
-            return back()->with('error', 'Merchant is not accredited for this assistance category.');
+        if (! $ruleService->allPassed($rules)) {
+            return back()->with(
+                'error',
+                $ruleService->firstFailureMessage($rules) ?? 'Claim failed programmable validation.'
+            );
         }
 
         $assistanceRequest->update([
@@ -117,7 +78,7 @@ class ClaimValidationController extends Controller
             new ClaimProcessedNotification($assistanceRequest)
         );
 
-            Settlement::firstOrCreate(
+        Settlement::firstOrCreate(
             [
                 'assistance_request_id' => $assistanceRequest->id,
             ],
@@ -134,6 +95,14 @@ class ClaimValidationController extends Controller
             auth()->id()
         );
 
+        $ruleSummary = $ruleService->summary($rules);
+        $proofBundle = $proofBundleService->claimProcessedBundle(
+            $assistanceRequest,
+            $merchantProfile,
+            $ruleSummary
+        );
+        $proofHash = $proofBundleService->hash($proofBundle);
+
         BlockchainTransaction::create([
             'transaction_type' => 'Claim',
             'reference_id' => $assistanceRequest->id,
@@ -141,11 +110,20 @@ class ClaimValidationController extends Controller
             'transaction_hash' => $blockchainResult['transaction_hash'],
             'blockchain_status' => $blockchainResult['success'] ? 'Confirmed' : 'Failed',
             'payload' => json_encode([
+                'event_type' => 'CLAIM_PROCESSED',
                 'reference_code' => $assistanceRequest->reference_code,
                 'claim_amount' => $assistanceRequest->approved_amount,
                 'merchant_id' => auth()->id(),
                 'merchant_category' => $merchantProfile->merchant_category,
                 'program_category' => $assistanceRequest->program->merchant_category,
+                'proof_hash' => $proofHash,
+                'proof_bundle' => $proofBundle,
+                'validation_rules' => $ruleSummary,
+                'validation_summary' => [
+                    'passed' => collect($ruleSummary)->where('passed', true)->count(),
+                    'failed' => collect($ruleSummary)->where('passed', false)->count(),
+                    'all_passed' => true,
+                ],
                 'status' => 'Claimed',
                 'blockchain_error' => $blockchainResult['error'],
             ]),

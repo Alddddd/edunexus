@@ -8,6 +8,17 @@
     $allRulesPassed = collect($rules)->every(fn ($rule) => $rule['passed']);
     $passedRules = collect($rules)->where('passed', true)->count();
     $failedRules = collect($rules)->where('passed', false)->count();
+    $totalRules = count($rules);
+    $validationTitle = $allRulesPassed ? 'Eligible for Claim Processing' : 'Claim Not Eligible';
+    $validationMessage = $allRulesPassed
+        ? $passedRules . ' of ' . $totalRules . ' governance checks passed.'
+        : $failedRules . ' of ' . $totalRules . ' governance ' . str($failedRules === 1 ? 'check requires' : 'checks require') . ' attention.';
+    $validationToneClasses = $allRulesPassed
+        ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
+        : 'border-rose-200 bg-rose-50 text-rose-800';
+    $validationIconClasses = $allRulesPassed
+        ? 'bg-emerald-100 text-emerald-700 ring-emerald-200'
+        : 'bg-rose-100 text-rose-700 ring-rose-200';
 @endphp
 
 <div class="w-full min-w-0 max-w-6xl space-y-6">
@@ -43,25 +54,50 @@
         </div>
     @endif
 
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-success bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
-            <p class="text-sm text-ui-subtext">Rule Checks Passed</p>
-            <p class="mt-2 text-3xl font-bold text-ui-success">{{ $passedRules }}</p>
-            <p class="mt-1 text-sm text-emerald-600">Eligible validation checks</p>
+    <section class="validation-overview rounded-2xl border p-6 shadow-[0_18px_42px_rgba(15,47,44,0.08)] ring-1 ring-ui-anchor/5 {{ $validationToneClasses }}">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div class="flex min-w-0 items-start gap-4">
+                <div class="validation-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ring-1 {{ $validationIconClasses }}">
+                    <x-icon :name="$allRulesPassed ? 'shield-check' : 'alert-triangle'" size="h-6 w-6" />
+                </div>
+
+                <div class="min-w-0">
+                    <p class="text-sm font-semibold uppercase tracking-wider {{ $allRulesPassed ? 'text-emerald-700' : 'text-rose-700' }}">
+                        Programmable Validation Result
+                    </p>
+
+                    <h2 class="mt-1 text-2xl font-bold">
+                        {{ $validationTitle }}
+                    </h2>
+
+                    <p class="mt-2 text-sm leading-6 {{ $allRulesPassed ? 'text-emerald-700' : 'text-rose-700' }}">
+                        {{ $validationMessage }}
+                    </p>
+                </div>
+            </div>
+
+            <x-status-badge
+                :status="$allRulesPassed ? 'Ready to Process' : 'Processing Blocked'"
+                :tone="$allRulesPassed ? 'success' : 'danger'" />
         </div>
 
-        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-danger bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
-            <p class="text-sm text-ui-subtext">Rule Checks Failed</p>
-            <p class="mt-2 text-3xl font-bold {{ $failedRules > 0 ? 'text-ui-danger' : 'text-ui-text' }}">{{ $failedRules }}</p>
-            <p class="mt-1 text-sm {{ $failedRules > 0 ? 'text-rose-600' : 'text-ui-subtext' }}">Blocking conditions</p>
-        </div>
+        <div class="mt-6 grid grid-cols-1 gap-3 text-sm md:grid-cols-3">
+            <div class="rounded-xl border border-white/70 bg-white/70 p-4">
+                <p class="{{ $allRulesPassed ? 'text-emerald-700' : 'text-rose-700' }}">Checks Passed</p>
+                <p class="mt-1 text-2xl font-bold">{{ $passedRules }}</p>
+            </div>
 
-        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-action bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
-            <p class="text-sm text-ui-subtext">Claim Amount</p>
-            <p class="mt-2 text-3xl font-bold text-ui-text">&#8369;{{ number_format($request->approved_amount, 2) }}</p>
-            <p class="mt-1 text-sm text-teal-600">Merchant reimbursement value</p>
+            <div class="rounded-xl border border-white/70 bg-white/70 p-4">
+                <p class="{{ $allRulesPassed ? 'text-emerald-700' : 'text-rose-700' }}">Needs Attention</p>
+                <p class="mt-1 text-2xl font-bold">{{ $failedRules }}</p>
+            </div>
+
+            <div class="rounded-xl border border-white/70 bg-white/70 p-4">
+                <p class="{{ $allRulesPassed ? 'text-emerald-700' : 'text-rose-700' }}">Claim Amount</p>
+                <p class="mt-1 text-2xl font-bold">&#8369;{{ number_format($request->approved_amount, 2) }}</p>
+            </div>
         </div>
-    </div>
+    </section>
 
     <x-form-card
         title="Verified Claim"
@@ -99,12 +135,12 @@
         <div class="border-b border-ui-border/80 py-6">
             <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <p class="text-sm font-semibold text-ui-text">
-                        Programmable Validation Rules
+                    <p class="text-base font-semibold text-ui-text">
+                        Governance Checks
                     </p>
 
                     <p class="mt-1 text-sm leading-6 text-ui-subtext">
-                        EduNexUs evaluates each rule before allowing merchant claim processing.
+                        Each check explains why this claim can proceed or why processing is blocked.
                     </p>
                 </div>
 
@@ -113,14 +149,14 @@
 
             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                 @foreach($rules as $rule)
-                    <div class="rounded-2xl border {{ $rule['passed'] ? 'border-emerald-200 bg-emerald-50' : 'border-rose-200 bg-rose-50' }} px-4 py-4">
+                    <div class="validation-rule-card rounded-2xl border px-4 py-4 {{ $rule['passed'] ? 'border-emerald-200 bg-emerald-50/90 hover:border-emerald-300' : 'border-rose-200 bg-rose-50/90 hover:border-rose-300' }}">
                         <div class="flex items-start gap-3">
-                            <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full {{ $rule['passed'] ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
-                                <x-icon :name="$rule['passed'] ? 'check' : 'x'" size="h-4 w-4" />
+                            <div class="validation-icon mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ring-1 {{ $rule['passed'] ? 'bg-emerald-100 text-emerald-700 ring-emerald-200' : 'bg-rose-100 text-rose-700 ring-rose-200' }}">
+                                <x-icon :name="$rule['passed'] ? 'check-circle' : 'x-circle'" size="h-5 w-5" />
                             </div>
 
                             <div class="min-w-0">
-                                <div class="mb-1">
+                                <div class="mb-2">
                                     <x-status-badge :status="$rule['passed'] ? 'Passed' : 'Failed'" :tone="$rule['passed'] ? 'success' : 'danger'" size="xs" />
                                 </div>
 
@@ -129,7 +165,11 @@
                                 </p>
 
                                 <p class="mt-1 text-sm leading-6 {{ $rule['passed'] ? 'text-emerald-700' : 'text-rose-700' }}">
-                                    {{ $rule['description'] }}
+                                    {{ $rule['message'] }}
+                                </p>
+
+                                <p class="mt-3 font-mono text-[10px] uppercase tracking-wider {{ $rule['passed'] ? 'text-emerald-600/70' : 'text-rose-600/70' }}">
+                                    Audit rule: {{ str($rule['key'])->replace('_', ' ') }}
                                 </p>
                             </div>
                         </div>
@@ -151,8 +191,8 @@
                 </div>
             @elseif(now()->greaterThan($request->expiration_date))
                 <div class="rounded-2xl border border-rose-200 bg-rose-50 p-5">
-                    <p class="font-semibold text-rose-700">Claim Expired</p>
-                    <p class="mt-1 text-sm text-rose-600">The claim validity period has expired.</p>
+                    <p class="font-semibold text-rose-700">Claim Validity Expired</p>
+                    <p class="mt-1 text-sm text-rose-600">This claim pass is outside its approved redemption period.</p>
                 </div>
             @elseif(! $allRulesPassed)
                 <div class="rounded-2xl border border-rose-200 bg-rose-50 p-6">
@@ -160,6 +200,15 @@
                     <p class="mt-1 max-w-2xl text-sm text-rose-700">
                         This claim cannot be processed because one or more programmable validation rules failed.
                     </p>
+
+                    <div class="mt-4 space-y-2">
+                        @foreach(collect($rules)->where('passed', false) as $rule)
+                            <div class="rounded-xl border border-rose-100 bg-white/70 px-4 py-3 text-sm text-rose-700">
+                                <span class="font-semibold">{{ $rule['label'] }}:</span>
+                                {{ $rule['message'] }}
+                            </div>
+                        @endforeach
+                    </div>
                 </div>
             @else
                 <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-6">
@@ -170,7 +219,7 @@
                             </p>
 
                             <p class="mt-1 text-sm text-emerald-700">
-                                All programmable validation checks passed.
+                                Eligible for claim processing.
                             </p>
 
                             <p class="mt-4 max-w-2xl text-sm leading-6 text-emerald-700">

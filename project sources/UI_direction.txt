@@ -3,17 +3,17 @@
 ## Current UI Phase
 
 EduNexUs is now in:
+- Governance + Verification Infrastructure Stabilization
+- Institutional Settlement Lifecycle Polish
+- Advanced Morph Verification Console Stabilization
 
-- UI/UX Foundation Stabilization
-- Responsive Shared Layout Stabilization
-- Pre-Full-QA Phase
-
-This file documents the stabilized direction after the recent UI/UX and workflow polish phase.
+This file documents the stabilized direction after the recent UI/UX, governance validation, settlement lifecycle, and audit verification upgrades.
 
 Important:
 - This is not a redesign brief.
 - Do not redesign the shared shell/layout unless fixing a real UX issue.
 - Preserve the current MVP workflow and protected operational systems.
+- Continue presenting EduNexUs as institutional reimbursement and verification infrastructure, not a crypto product.
 
 ---
 
@@ -21,7 +21,9 @@ Important:
 
 Current visual direction:
 
+```text
 Institutional Sage Fintech
+```
 
 The interface should feel:
 - premium
@@ -29,6 +31,7 @@ The interface should feel:
 - institutional
 - fintech-inspired
 - cooperative-aware
+- governance/audit oriented
 - operationally realistic
 - calm and readable
 - demo-ready without feeling theatrical
@@ -37,18 +40,18 @@ Avoid:
 - crypto-trader aesthetics
 - cyberpunk styling
 - gaming UI
+- wallet-first language
 - excessive animation
+- neon/glow blockchain motifs
 - visual clutter
 - unnecessary gradients
-- overdesigned landing-page patterns inside dashboards
+- marketing-page patterns inside dashboards
 
 ---
 
 ## Central Design Tokens
 
-EduNexUs now uses a centralized semantic Tailwind token system.
-
-Current semantic tokens:
+EduNexUs uses centralized semantic Tailwind tokens:
 - ui-shell
 - ui-canvas
 - ui-surface
@@ -62,7 +65,7 @@ Current semantic tokens:
 - ui-subtext
 - ui-muted
 
-Current finalized palette:
+Current palette:
 - ui-shell: #D4E2DC
 - ui-canvas: #EEF4F1
 - ui-surface: #F9FCFB
@@ -73,6 +76,7 @@ Visual hierarchy:
 - shell = structure
 - canvas = workspace
 - cards = elevated content
+- proof surfaces = audit/verification emphasis
 
 Typography:
 - Inter font
@@ -85,9 +89,9 @@ Typography:
 ## Shared Shell Standard
 
 Primary shared shell:
-- resources/views/layouts/dashboard.blade.php
+- `resources/views/layouts/dashboard.blade.php`
 
-The shared dashboard shell currently includes:
+The shared dashboard shell includes:
 - desktop persistent sidebar
 - mobile/tablet collapsible sidebar drawer
 - hamburger menu
@@ -98,25 +102,25 @@ The shared dashboard shell currently includes:
 - Alpine-powered responsive behavior
 
 Animations:
-- sidebar slide/fade
+- restrained sidebar slide/fade
 - backdrop fade
-- subtle transitions
+- subtle hover transitions
 - no heavy animation libraries
-
-Known minor issue:
-- A perceived top-spacing issue remains on laptop widths in the Admin Dashboard shell/header area.
-- This is not MVP-blocking and should only be revisited if QA confirms it affects usability.
+- no opacity animation on dense text cards if it risks flicker
 
 ---
 
 ## Reusable UI Systems
 
 Current reusable systems:
-- resources/views/components/toast.blade.php
-- resources/views/components/icon.blade.php
+- `resources/views/components/toast.blade.php`
+- `resources/views/components/icon.blade.php`
+- status badge component
+- confirmation modal system
+- loader overlay
+- shared page-header patterns
 
 Toast system:
-- Sonner-style native Blade/Tailwind implementation
 - success, error, warning, and info states
 - global toast stack in dashboard layout
 - auto-dismiss behavior
@@ -126,7 +130,7 @@ Toast system:
 Confirmation modal system:
 - replaces native browser confirm dialogs
 - supports title, message, confirm text, tone states, and loading states
-- used for logout, approvals, rejections, settlements, blockchain proof actions, and merchant claim processing
+- used for logout, approvals, rejections, settlement release, blockchain proof actions, and merchant claim processing
 
 Loader overlay:
 - reusable global loader
@@ -135,8 +139,100 @@ Loader overlay:
 - styled for institutional fintech workflows
 
 Icon standardization:
-- emoji/text icons have been replaced with a reusable SVG icon component
-- used across sidebar, notifications, logs, blockchain states, settlements, dashboard indicators, workflow arrows, toasts, and modals
+- reusable SVG icon component
+- used across sidebar, notifications, logs, blockchain states, settlement states, dashboard indicators, workflow arrows, toasts, and modals
+
+---
+
+## Governance Rule Validation UI
+
+Merchant validation should present backend checks as understandable governance decisions.
+
+Rule validation UI should:
+- lead with an overall eligibility result
+- show pass/fail governance cards
+- explain failed checks in plain language
+- keep raw rule keys subtle as audit metadata only
+- block processing visibly when any rule fails
+- avoid developer-oriented wording
+
+Preferred labels:
+- Claim reference verified
+- Approval status confirmed
+- Claim validity active
+- Merchant eligibility verified
+- Redemption availability confirmed
+- Approved amount validated
+
+Motion guidance:
+- hover shadow/lift is acceptable
+- avoid opacity animations on detailed rule cards
+- text must never disappear during scroll
+- respect `prefers-reduced-motion`
+
+---
+
+## Settlement Lifecycle UI
+
+Settlement surfaces should feel like institutional reimbursement infrastructure.
+
+Use lifecycle language:
+- Ready for Release
+- Released
+- Settlement Generated
+- Settlement Released
+- Settlement audit-ready
+
+Avoid implying:
+- real crypto payment transfer
+- stablecoin settlement
+- wallet movement
+- token payout
+
+Settlement UI should show:
+- merchant
+- member/program context
+- amount visibility
+- lifecycle progress
+- release timestamp when available
+- linked proof/audit status when available
+
+---
+
+## Advanced Morph Verification Console Direction
+
+The Morph Verification Console should feel like a governance and audit verification dashboard, not a crypto explorer clone.
+
+It should show:
+- verification status
+- proof integrity labels
+- validation summary
+- lifecycle timeline
+- proof bundle viewer
+- proof hash
+- transaction hash
+- settlement status context
+- member/merchant/amount metadata
+- recorded timestamp
+
+Preferred labels:
+- Verified
+- Proof Recorded
+- Integrity Valid
+- Validation Passed
+- Pending Verification
+- Integrity Warning
+- Audit-ready
+
+Explanation direction:
+- Morph records tamper-resistant proof receipts for assistance validation and settlement events.
+- Keep this explanation restrained and institutional.
+
+Avoid:
+- hacker aesthetics
+- chain hype language
+- fake cryptographic claims
+- pretending wallet/on-chain verification exists when it does not
 
 ---
 
@@ -169,14 +265,16 @@ Do not make dashboard pages feel like:
 
 ## Responsive Direction
 
-The shared responsive foundation is now stable enough for MVP.
+The shared responsive foundation is stable enough for MVP.
 
-Next responsive work should focus on page-level cleanup:
+Next responsive work should focus on:
 - responsive operational tables
 - responsive forms
 - responsive cards
 - readable mobile spacing
 - filter and pagination usability
+- proof bundle viewer readability
+- settlement lifecycle card density
 
 Preserve:
 - shared shell structure
@@ -188,15 +286,15 @@ Preserve:
 
 ## Current Priority
 
-The UI foundation is now considered stabilized for MVP.
-
 Priority order:
 
-workflow reliability > additional UI redesign
+```text
+workflow reliability > audit clarity > additional UI redesign
+```
 
-Next main phase:
-1. Full End-to-End QA
-2. Workflow reliability validation
-3. Page-level responsive cleanup
-4. Responsive tables/forms/cards
-5. Final operational polish
+Next recommended phase:
+1. Configurable Program Governance Rules
+2. Multi-sector Cooperative Scalability Readiness
+3. Reporting/export infrastructure
+4. Demo/video preparation
+5. Full end-to-end QA

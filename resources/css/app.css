@@ -146,6 +146,41 @@
     main > .dashboard-page-header + * {
         margin-top: 1.5rem;
     }
+
+    .validation-overview {
+        animation: validation-overview-enter 180ms ease-out both;
+    }
+
+    .validation-rule-card {
+        transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
+    }
+
+    .validation-rule-card:hover {
+        transform: translateY(-0.125rem);
+        box-shadow: 0 14px 30px rgba(15, 47, 44, 0.09);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .validation-overview,
+        .validation-rule-card {
+            animation: none;
+            transition: none;
+        }
+
+        .validation-rule-card:hover {
+            transform: none;
+        }
+    }
+
+    @keyframes validation-overview-enter {
+        from {
+            transform: translateY(0.375rem);
+        }
+
+        to {
+            transform: translateY(0);
+        }
+    }
     
     
     

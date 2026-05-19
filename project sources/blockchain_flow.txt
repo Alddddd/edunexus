@@ -1,67 +1,62 @@
-````md
-# CoopFund Nexus — Blockchain Flow
+# EduNexUs - Blockchain and Proof Flow
 
 ## Purpose
 
 This document defines:
 - how Morph blockchain is used
-- what data goes on-chain
 - what data stays in MySQL
-- smart contract triggers
-- blockchain transaction flow
-- verification and logging strategy
+- what proof data is prepared by Laravel
+- how proof bundles and proof hashes work
+- how blockchain transaction payloads support audit visibility
+- how the Morph Verification Console explains proof integrity
 
 The goal is to make blockchain integration:
 - meaningful
 - simple
 - demo-ready
 - technically believable
-- aligned with the Build In! Payments hackathon
+- aligned with institutional cooperative reimbursement infrastructure
 
 ---
 
-# 1. BLOCKCHAIN ROLE
+# 1. Blockchain Role
 
-Morph blockchain acts as the system’s:
-
-# tamper-resistant verification layer
+Morph blockchain acts as EduNexUs' tamper-resistant verification layer.
 
 It is used for:
-- approval proof
-- claim proof
-- settlement proof
-- audit trail
-- transaction verification
+- claim proof recording
+- workflow proof receipts
+- transaction hash visibility
+- audit trail support
+- verification console evidence
 
 Morph is NOT used as:
 - the main database
 - a wallet system for normal users
 - a token economy
 - a DeFi platform
+- a real-time settlement rail
 
 ---
 
-# 2. MAIN ARCHITECTURE
+# 2. Main Architecture
 
 ```text
 Laravel Web App
-↓
-MySQL Database
-↓
-ethers.js / Blockchain Connector
-↓
-Solidity Smart Contract
-↓
-Morph Blockchain
-↓
-Transaction Hash Stored Back in Laravel
-````
+-> MySQL Operational Database
+-> Proof Bundle Preparation
+-> Deterministic SHA-256 Proof Hash
+-> Morph Blockchain Service / Connector
+-> Morph Transaction Receipt
+-> Blockchain Transaction Payload Stored in Laravel
+-> Verification Console Audit View
+```
 
 ---
 
-# 3. WHAT STAYS IN MYSQL
+# 3. What Stays in MySQL
 
-MySQL stores normal operational records:
+MySQL stores operational records:
 
 ```text
 users
@@ -69,231 +64,173 @@ members
 merchants
 assistance programs
 assistance requests
-claims
+QR payloads
+claim status
 settlements
-dashboard data
-QR data
-role permissions
+notifications
+dashboards
+proof bundle payloads
+proof hashes
+validation summaries
+blockchain transaction logs
 ```
 
 Reason:
-
-* faster queries
-* easier dashboard reporting
-* privacy protection
-* simpler implementation
+- faster queries
+- dashboard reporting
+- privacy protection
+- simple MVP implementation
+- readable institutional audit views
 
 ---
 
-# 4. WHAT GOES ON MORPH BLOCKCHAIN
+# 4. What Goes to Morph
 
-Morph stores proof records only:
+Morph receives proof activity through the existing blockchain service. The product treats Morph as the receipt/proof layer.
 
-```text
-approval proof
-claim proof
-settlement proof
-timestamp
-transaction hash
-hashed reference ID
-amount
-status
-```
+Proof records currently focus on:
+- reference code / workflow reference
+- claim amount
+- merchant reference
+- transaction hash
+- timestamp / recorded state
+- confirmation status
 
 Important:
-Do NOT store sensitive personal data on-chain.
+- do not store sensitive personal data on-chain
+- keep personal/member details in Laravel/MySQL
+- use proof hashes and references for audit linkage
 
 Do NOT store:
-
-```text
-full names
-emails
-addresses
-passwords
-private documents
-medical data
-personal financial history
-```
+- full names
+- emails
+- addresses
+- passwords
+- private documents
+- medical data
+- personal financial history
 
 ---
 
-# 5. SMART CONTRACT SCOPE
+# 5. Proof Bundle Infrastructure
 
-The smart contract must remain simple.
+Laravel prepares a proof bundle when a claim is successfully processed.
 
-Main functions:
+Current claim proof bundle includes:
+- reference_code
+- event_type
+- assistance_request_id
+- program_id
+- merchant_id
+- member_id
+- approved_amount
+- merchant_category
+- validation_rules
+- status
+- timestamp
 
-```solidity
-recordApproval()
-recordClaim()
-recordSettlement()
-verifyTransaction()
-```
+The proof bundle is hashed with deterministic SHA-256. The resulting proof hash is stored in the blockchain transaction payload.
 
-The contract is only responsible for recording proof events.
-
-It should NOT handle:
-
-* token balances
-* staking
-* lending
-* DeFi logic
-* full accounting
-* complex user management
-
----
-
-# 6. SMART CONTRACT EVENT TYPES
-
-The smart contract should emit events such as:
-
-```solidity
-ApprovalRecorded
-ClaimRecorded
-SettlementRecorded
-```
-
-These events help the system show:
-
-* proof of action
-* blockchain timestamp
-* transaction hash
-* verification status
+This supports:
+- proof integrity presentation
+- audit-ready verification console views
+- readable validation summaries
+- lifecycle traceability
 
 ---
 
-# 7. APPROVAL BLOCKCHAIN FLOW
+# 6. Governance Validation Before Proof
+
+Morph proof recording only happens after successful programmable rule validation.
+
+Current governance checks:
+- claim reference verified
+- approval status confirmed
+- claim validity active
+- merchant eligibility verified
+- redemption availability confirmed
+- approved amount validated
+
+If any rule fails:
+- claim is not processed
+- settlement is not generated
+- proof bundle is not recorded for that failed claim
+- merchant sees a blocked processing result
+
+This keeps proof records meaningful: they represent validated workflow events.
+
+---
+
+# 7. Claim Blockchain Flow
 
 Triggered when:
 
-# Admin approves an assistance request.
+```text
+Merchant successfully validates and processes a claim.
+```
 
 Flow:
 
 ```text
-Admin approves request
-↓
-Laravel saves approval in MySQL
-↓
-System calls recordApproval()
-↓
-Morph blockchain records approval proof
-↓
-Transaction hash returned
-↓
-Laravel stores hash in blockchain_logs
-↓
-Dashboard shows blockchain verification
+Merchant validates QR/reference
+-> Laravel evaluates governance rules
+-> All rules pass
+-> Claim is marked Claimed
+-> Settlement is generated
+-> Proof bundle is prepared
+-> SHA-256 proof hash is generated
+-> Morph proof recording runs
+-> Transaction hash/status returned
+-> Blockchain transaction payload stored in Laravel
+-> Verification Console shows proof integrity and lifecycle context
 ```
 
-Data recorded on-chain:
-
-```text
-hashed_request_reference
-approved_amount
-program_type
-timestamp
-status = Approved
-```
+Stored Laravel proof payload can include:
+- event type
+- reference code
+- claim amount
+- merchant id
+- merchant category
+- program category
+- proof hash
+- proof bundle
+- validation rules
+- validation summary
+- blockchain error if any
 
 ---
 
-# 8. CLAIM BLOCKCHAIN FLOW
+# 8. Settlement Proof / Lifecycle Context
 
-Triggered when:
+Settlement lifecycle is currently stored in Laravel as operational reimbursement status.
 
-# Merchant successfully verifies and confirms a QR claim.
+Stored statuses:
+- Pending
+- Settled
 
-Flow:
+UI lifecycle language:
+- Ready for Release
+- Released
 
-```text
-Merchant scans QR
-↓
-Laravel validates programmable rules
-↓
-Claim is confirmed
-↓
-Laravel saves claim in MySQL
-↓
-System calls recordClaim()
-↓
-Morph blockchain records claim proof
-↓
-Transaction hash returned
-↓
-Laravel stores hash in blockchain_logs
-↓
-Blockchain receipt displayed
-```
+Verification surfaces connect settlement status to proof records through the assistance request reference. This gives auditors context without adding real wallet or token transfer behavior.
 
-Data recorded on-chain:
-
-```text
-hashed_claim_reference
-merchant_reference
-claim_amount
-timestamp
-status = Claimed
-```
+Future settlement proof recording may be expanded, but the current MVP does not implement real crypto settlement.
 
 ---
 
-# 9. SETTLEMENT BLOCKCHAIN FLOW
+# 9. Blockchain Transaction Table Purpose
 
-Triggered when:
-
-# Admin marks merchant settlement as settled.
-
-Flow:
-
-```text
-Admin reviews merchant settlement
-↓
-Admin marks settlement as Settled
-↓
-Laravel saves settlement status in MySQL
-↓
-System calls recordSettlement()
-↓
-Morph blockchain records settlement proof
-↓
-Transaction hash returned
-↓
-Laravel stores hash in blockchain_logs
-↓
-Auditor can verify settlement proof
-```
-
-Data recorded on-chain:
-
-```text
-hashed_settlement_reference
-merchant_reference
-settlement_amount
-timestamp
-status = Settled
-```
-
----
-
-# 10. BLOCKCHAIN LOGS TABLE PURPOSE
-
-The `blockchain_logs` table stores:
+The `blockchain_transactions` table stores:
 
 ```text
 transaction_type
 reference_id
+reference_code
 transaction_hash
 blockchain_status
+payload
 recorded_at
-```
-
-Transaction types:
-
-```text
-Approval
-Claim
-Settlement
+timestamps
 ```
 
 Blockchain statuses:
@@ -305,25 +242,70 @@ Failed
 ```
 
 Purpose:
-
-* connect Laravel records to Morph transactions
-* display verification history
-* support audit dashboard
-* support demo proof
+- connect Laravel workflow records to Morph receipts
+- store proof bundle metadata
+- store deterministic proof hash
+- display verification history
+- support audit dashboard and demo proof
 
 ---
 
-# 11. USER EXPERIENCE PRINCIPLE
+# 10. Advanced Morph Verification Console
+
+The Morph Verification Console now presents proof records as governance/audit infrastructure.
+
+Each proof entry can show:
+- verification status
+- proof integrity label
+- rule validation result
+- settlement status
+- timestamp/recorded state
+- transaction hash
+- proof hash
+- lifecycle timeline
+- proof bundle review
+
+Lifecycle timeline:
+
+```text
+Request Submitted
+-> Approved
+-> Merchant Validated
+-> Settlement Generated
+-> Settlement Released / Release Pending
+-> Morph Proof Recorded
+```
+
+Proof bundle viewer shows:
+- proof hash
+- event type
+- reference code
+- member
+- merchant
+- approved amount
+- settlement status
+- validation summary
+- validation rules
+- timestamp
+
+Important wording principle:
+- say "proof recorded" or "hash recorded"
+- do not claim deep on-chain verification unless implemented
+- do not fake tamper-detection systems
+
+---
+
+# 11. User Experience Principle
 
 Blockchain must be visible only as proof, not as complexity.
 
 Normal users should see:
 
 ```text
-Verified on Morph Blockchain
-Transaction Hash: 0x...
-Timestamp: ...
-Status: Confirmed
+Proof Recorded
+Verified Proof Hash
+Morph Proof Confirmed
+Settlement Audit-Ready
 ```
 
 They should NOT need to understand:
@@ -332,83 +314,55 @@ They should NOT need to understand:
 gas fees
 wallet signing
 smart contract internals
-block explorers
 private keys
+token transfers
 ```
 
 ---
 
-# 12. BLOCKCHAIN FAILURE HANDLING
+# 12. Blockchain Failure Handling
 
 If blockchain transaction fails:
-
-System should:
-
-* keep Laravel record
-* mark blockchain status as Failed
-* allow retry
-* show clear admin warning
+- keep Laravel workflow record
+- mark blockchain status as Failed
+- show clear admin/audit warning
+- keep proof payload available for operational review
 
 Example:
 
 ```text
-Claim saved locally, but blockchain proof failed. Please retry verification.
+Claim processed locally, but Morph proof recording failed.
 ```
 
-This prevents demo/system collapse.
+This prevents demo/system collapse while keeping audit status honest.
 
 ---
 
-# 13. MVP BLOCKCHAIN SUCCESS CONDITIONS
+# 13. MVP Blockchain Success Conditions
 
 Blockchain integration is successful if:
-
-* recordApproval() works
-* recordClaim() works
-* recordSettlement() works
-* transaction hashes are returned
-* blockchain logs are saved in Laravel
-* dashboard displays verification proof
-* demo can show Morph blockchain confirmation
-
----
-
-# 14. DEMO BLOCKCHAIN MOMENT
-
-The strongest blockchain demo moment is:
-
-```text
-Merchant confirms claim
-↓
-System validates rules
-↓
-Morph transaction runs
-↓
-Transaction hash appears
-↓
-Dashboard updates to Verified
-```
-
-This should be treated as one of the main wow moments.
+- claim proof recording works
+- transaction hashes are returned when available
+- blockchain transaction rows are saved in Laravel
+- proof bundle payloads are visible
+- proof hash is visible
+- validation summaries are readable
+- settlement context is connected
+- verification console explains why Morph matters
 
 ---
 
-# 15. FINAL BLOCKCHAIN STRATEGY
+# 14. Final Blockchain Strategy
 
-Morph blockchain should make CoopFund Nexus feel:
-
-* transparent
-* tamper-resistant
-* payment-focused
-* audit-ready
-* technically meaningful
+Morph blockchain should make EduNexUs feel:
+- transparent
+- tamper-resistant
+- payment-infrastructure aligned
+- audit-ready
+- technically meaningful
 
 The blockchain layer should remain:
-
-* simple
-* focused
-* invisible to normal users
-* visible to judges through receipts and logs
-
-```
-```
+- simple
+- focused
+- invisible to normal users
+- visible to judges through receipts, hashes, proof bundles, and audit timelines

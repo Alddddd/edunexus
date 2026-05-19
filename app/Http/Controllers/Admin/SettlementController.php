@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\BlockchainTransaction;
 use App\Models\Settlement;
 use App\Services\ActivityLogService;
 use App\Notifications\SettlementCompletedNotification;
@@ -20,8 +21,11 @@ class SettlementController extends Controller
             'total' => Settlement::count(),
             'pending' => Settlement::where('status', 'Pending')->count(),
             'settled' => Settlement::where('status', 'Settled')->count(),
+            'released' => Settlement::where('status', 'Settled')->count(),
             'pending_amount' => Settlement::where('status', 'Pending')->sum('amount'),
             'settled_amount' => Settlement::where('status', 'Settled')->sum('amount'),
+            'released_amount' => Settlement::where('status', 'Settled')->sum('amount'),
+            'total_amount' => Settlement::sum('amount'),
         ];
 
         $settlements = Settlement::with([
@@ -37,17 +41,27 @@ class SettlementController extends Controller
             ->paginate(5)
             ->withQueryString();
 
+        $proofRecords = BlockchainTransaction::query()
+            ->where('transaction_type', 'Claim')
+            ->whereIn('reference_id', $settlements->pluck('assistance_request_id')->filter())
+            ->latest('recorded_at')
+            ->latest('id')
+            ->get()
+            ->unique('reference_id')
+            ->keyBy('reference_id');
+
         return view('admin.settlements.index', compact(
             'settlements',
             'filters',
-            'stats'
+            'stats',
+            'proofRecords'
         ));
     }
 
  public function markAsSettled(Settlement $settlement)
 {
     if ($settlement->status === 'Settled') {
-        return back()->with('success', 'Settlement is already marked as settled.');
+        return back()->with('success', 'Settlement has already been released.');
     }
 
     $settlement->update([
@@ -61,14 +75,14 @@ class SettlementController extends Controller
 
     ActivityLogService::record(
         'settlement_completed',
-        'Merchant settlement completed',
-        'Admin marked settlement #' . $settlement->id . ' as settled.',
+        'Merchant settlement released',
+        'Admin released merchant settlement #' . $settlement->id . '.',
         \App\Models\Settlement::class,
         $settlement->id,
         'Settled'
     );
 
-    return back()->with('success', 'Settlement marked as settled.');
+    return back()->with('success', 'Settlement released and merchant notified.');
 }
 
     
