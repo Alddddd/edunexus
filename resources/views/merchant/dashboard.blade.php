@@ -89,7 +89,7 @@
             </div>
         </x-form-card>
 
-        <section class="rounded-2xl border border-ui-action/15 bg-gradient-to-br from-ui-action/10 via-ui-surface/90 to-ui-proof/10 p-6 shadow-[0_20px_44px_rgba(11,93,86,0.10)] ring-1 ring-ui-anchor/5 xl:col-span-2">
+        <section class="demo-surface-card rounded-2xl border border-ui-action/15 bg-gradient-to-br from-ui-action/10 via-ui-surface/90 to-ui-proof/10 p-6 shadow-[0_20px_44px_rgba(11,93,86,0.10)] ring-1 ring-ui-anchor/5 xl:col-span-2">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-wider text-teal-700">
@@ -105,7 +105,9 @@
                     </p>
                 </div>
 
-                <x-status-badge status="Rule-enforced terminal" tone="proof" />
+                <div class="flex justify-start lg:justify-end">
+                    <x-status-badge status="Rule-enforced terminal" tone="proof" />
+                </div>
             </div>
 
             <div class="mt-6 grid grid-cols-1 gap-3 text-sm md:grid-cols-4">

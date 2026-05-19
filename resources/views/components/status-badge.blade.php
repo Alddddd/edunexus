@@ -40,6 +40,6 @@
     $displayLabel = $label ?: $status;
 @endphp
 
-<span {{ $attributes->merge(['class' => 'inline-flex items-center rounded-full font-semibold ring-1 ring-inset ' . $sizeClass . ' ' . $badgeClass]) }}>
+<span {{ $attributes->merge(['class' => 'inline-flex w-fit max-w-full shrink-0 items-center justify-center whitespace-normal text-center leading-tight rounded-full font-semibold ring-1 ring-inset ' . $sizeClass . ' ' . $badgeClass]) }}>
     {{ $displayLabel }}
 </span>

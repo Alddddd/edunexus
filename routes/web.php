@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BlockchainTransactionController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\MerchantController;
 use App\Http\Controllers\Admin\MerchantUserController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettlementController;
 use App\Http\Controllers\Auditor\DashboardController as AuditorDashboardController;
 use App\Http\Controllers\Member\AssistanceRequestController as MemberAssistanceRequestController;
@@ -79,6 +80,15 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
 
         Route::post('/admin/blockchain-transactions/{blockchainTransaction}/confirm', [BlockchainTransactionController::class, 'confirm'])
             ->name('admin.blockchain-transactions.confirm');
+
+        Route::get('/admin/reports', [ReportController::class, 'index'])
+            ->name('admin.reports.index');
+
+        Route::get('/admin/reports/exports/settlements', [ReportController::class, 'exportSettlements'])
+            ->name('admin.reports.exports.settlements');
+
+        Route::get('/admin/reports/exports/proofs', [ReportController::class, 'exportProofs'])
+            ->name('admin.reports.exports.proofs');
 
         Route::get('/admin/settlements', [SettlementController::class, 'index'])
             ->name('admin.settlements.index');

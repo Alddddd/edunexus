@@ -5,7 +5,7 @@
 @section('content')
 
 @php
-    $hasFilters = filled($filters['status'] ?? null);
+    $hasFilters = filled($filters['status'] ?? null) || filled($filters['search'] ?? null);
 
     $statusLabel = function ($status) {
         return match ($status) {
@@ -44,7 +44,7 @@
                 </p>
 
                 <p class="text-xs text-teal-700">
-                    {{ $hasFilters ? $statusLabel($filters['status']) . ' settlement records' : 'All settlement records' }}
+                    {{ filled($filters['status'] ?? null) ? $statusLabel($filters['status']) . ' settlement records' : ($hasFilters ? 'Search results' : 'All settlement records') }}
                 </p>
             </div>
         </x-slot:actions>
@@ -121,7 +121,20 @@
             @endif
         </div>
 
-        <form method="GET" action="{{ route('admin.settlements.index') }}" class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
+        <form method="GET" action="{{ route('admin.settlements.index') }}" class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_auto]">
+            <div>
+                <label for="search" class="block text-sm font-semibold text-slate-700">
+                    Search
+                </label>
+
+                <input id="search"
+                       name="search"
+                       type="search"
+                       value="{{ $filters['search'] ?? '' }}"
+                       placeholder="Reference, member, merchant, or status"
+                       class="mt-2 w-full rounded-xl border-slate-200 text-sm text-slate-700 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+            </div>
+
             <div>
                 <label for="status" class="block text-sm font-semibold text-slate-700">
                     Settlement Status
@@ -143,7 +156,7 @@
             <div class="flex items-end">
                 <button type="submit"
                         class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ui-action/20 bg-ui-action/10 px-5 py-2.5 text-sm font-semibold text-ui-action shadow-sm transition hover:bg-ui-action/15 lg:w-auto">
-                    Apply Filter
+                    Apply Filters
                 </button>
             </div>
         </form>
@@ -316,7 +329,7 @@
 
                                     <p class="mt-2 text-sm text-ui-subtext">
                                         {{ $hasFilters
-                                            ? 'No settlement records match the selected status. Clear filters to return to the full console.'
+                                            ? 'No settlement records match the selected search or status. Clear filters to return to the full console.'
                                             : 'Settlement records appear after merchants process valid claims.' }}
                                     </p>
                                 </div>
@@ -478,7 +491,7 @@
 
                     <p class="mx-auto mt-2 max-w-md text-sm text-ui-subtext">
                         {{ $hasFilters
-                            ? 'No settlement records match the selected status. Clear filters to return to the full console.'
+                            ? 'No settlement records match the selected search or status. Clear filters to return to the full console.'
                             : 'Settlement records appear after merchants process valid claims.' }}
                     </p>
                 </div>

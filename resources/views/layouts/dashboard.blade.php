@@ -53,6 +53,8 @@
 
 @if($unreadNotificationCount > 0)
     <div data-notification-nudge
+         data-notification-count="{{ $unreadNotificationCount }}"
+         data-notification-user="{{ auth()->id() }}"
          class="pointer-events-none fixed right-4 top-[5.25rem] z-[95] flex max-w-[calc(100vw-2rem)] translate-y-2 items-center gap-3 rounded-2xl border border-ui-border bg-ui-surface/95 px-4 py-3 text-sm font-semibold text-ui-text opacity-0 shadow-xl shadow-ui-anchor/10 ring-1 ring-white/70 backdrop-blur-xl transition duration-300 ease-out sm:right-6">
         <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ui-action/10 text-ui-action ring-1 ring-ui-action/15">
             <x-icon name="bell" size="h-4 w-4" />
@@ -138,6 +140,15 @@
                                 : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
                             <x-icon name="receipt" size="h-5 w-5 shrink-0" />
                             <span>Activity Timeline</span>
+                        </a>
+
+                        <a href="{{ route('admin.reports.index') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+                           {{ request()->routeIs('admin.reports.*')
+                                ? 'bg-ui-action/10 text-ui-anchor shadow-sm ring-1 ring-ui-action/15'
+                                : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
+                            <x-icon name="chart" size="h-5 w-5 shrink-0" />
+                            <span>Audit Reports</span>
                         </a>
                     </div>
                 </div>
@@ -354,6 +365,15 @@
                                 : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
                             <x-icon name="receipt" size="h-5 w-5 shrink-0" />
                             <span>Activity Timeline</span>
+                        </a>
+
+                        <a href="{{ route('admin.reports.index') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+                           {{ request()->routeIs('admin.reports.*')
+                                ? 'bg-ui-action/10 text-ui-anchor shadow-sm ring-1 ring-ui-action/15'
+                                : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
+                            <x-icon name="chart" size="h-5 w-5 shrink-0" />
+                            <span>Audit Reports</span>
                         </a>
                     </div>
                 </div>
@@ -913,6 +933,17 @@
     const notificationNudge = document.querySelector('[data-notification-nudge]');
 
     if (notificationNudge) {
+        const notificationCount = notificationNudge.dataset.notificationCount || '0';
+        const notificationUser = notificationNudge.dataset.notificationUser || 'guest';
+        const storageKey = `edunexus:notification-nudge:${notificationUser}`;
+        let lastSeenCount = null;
+
+        try {
+            lastSeenCount = window.sessionStorage.getItem(storageKey);
+        } catch (error) {
+            lastSeenCount = null;
+        }
+
         const showNotificationNudge = () => {
             notificationNudge.classList.remove('translate-y-2', 'opacity-0');
             notificationNudge.classList.add('translate-y-0', 'opacity-100');
@@ -927,8 +958,17 @@
             }, 320);
         };
 
-        window.setTimeout(showNotificationNudge, 250);
-        window.setTimeout(dismissNotificationNudge, 4200);
+        if (lastSeenCount !== notificationCount) {
+            try {
+                window.sessionStorage.setItem(storageKey, notificationCount);
+            } catch (error) {
+                // The nudge can still show if browser storage is unavailable.
+            }
+            window.setTimeout(showNotificationNudge, 250);
+            window.setTimeout(dismissNotificationNudge, 4200);
+        } else {
+            notificationNudge.remove();
+        }
     }
 
     const confirmationModal = document.getElementById('confirmation-modal');

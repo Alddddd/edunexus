@@ -54,6 +54,7 @@
     </div>
 
     <x-form-card
+        class="demo-surface-card"
         title="Request Lifecycle"
         description="A compact view of where your assistance records are in the cooperative workflow.">
         <div class="mb-6 flex flex-wrap items-center gap-2 text-sm font-semibold">
@@ -107,7 +108,7 @@
 
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <x-form-card
-            class="xl:col-span-2"
+            class="xl:col-span-2 demo-surface-card"
             title="Latest Request Status"
             description="Your most recent assistance request and next operational step.">
             <x-slot:actions>

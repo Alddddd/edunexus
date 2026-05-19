@@ -16,6 +16,7 @@ class BlockchainTransactionController extends Controller
         $filters = $request->validate([
             'blockchain_status' => ['nullable', 'string', 'max:255'],
             'transaction_type' => ['nullable', 'string', 'max:255'],
+            'search' => ['nullable', 'string', 'max:255'],
         ]);
 
         $statusOptions = BlockchainTransaction::query()
@@ -44,6 +45,33 @@ class BlockchainTransactionController extends Controller
             })
             ->when($filters['transaction_type'] ?? null, function ($query, $type) {
                 $query->where('transaction_type', $type);
+            })
+            ->when($filters['search'] ?? null, function ($query, $search) {
+                $query->where(function ($query) use ($search) {
+                    $query
+                        ->where('reference_code', 'like', '%' . $search . '%')
+                        ->orWhere('transaction_hash', 'like', '%' . $search . '%')
+                        ->orWhere('blockchain_status', 'like', '%' . $search . '%')
+                        ->orWhere('transaction_type', 'like', '%' . $search . '%')
+                        ->orWhere('payload', 'like', '%' . $search . '%')
+                        ->orWhereIn('reference_id', function ($subquery) use ($search) {
+                            $subquery
+                                ->select('assistance_requests.id')
+                                ->from('assistance_requests')
+                                ->leftJoin('users as members', 'members.id', '=', 'assistance_requests.member_id')
+                                ->where('members.name', 'like', '%' . $search . '%');
+                        })
+                        ->orWhereIn('reference_id', function ($subquery) use ($search) {
+                            $subquery
+                                ->select('settlements.assistance_request_id')
+                                ->from('settlements')
+                                ->leftJoin('users as merchants', 'merchants.id', '=', 'settlements.merchant_id')
+                                ->leftJoin('merchant_profiles', 'merchant_profiles.user_id', '=', 'settlements.merchant_id')
+                                ->where('merchants.name', 'like', '%' . $search . '%')
+                                ->orWhere('merchant_profiles.business_name', 'like', '%' . $search . '%')
+                                ->orWhere('merchant_profiles.merchant_category', 'like', '%' . $search . '%');
+                        });
+                });
             })
             ->latest()
             ->latest('id')

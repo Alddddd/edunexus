@@ -5,7 +5,7 @@
 @section('content')
 
 @php
-    $hasFilters = filled($filters['blockchain_status'] ?? null) || filled($filters['transaction_type'] ?? null);
+    $hasFilters = filled($filters['blockchain_status'] ?? null) || filled($filters['transaction_type'] ?? null) || filled($filters['search'] ?? null);
     $explorerBaseUrl = 'https://explorer-hoodi.morph.network/tx/';
 
     $statusTone = function ($status) {
@@ -48,7 +48,9 @@
         };
     };
 
-    $integrityLabel = fn ($proofHash) => $proofHash ? 'Integrity Valid' : 'Integrity Pending';
+    $integrityLabel = fn ($proofHash, $payload = []) => $proofHash
+        ? 'Integrity Valid'
+        : (filled($payload) ? 'Verification Metadata Unavailable' : 'Legacy Proof Record');
     $recordedLabel = fn ($transaction) => $transaction->recorded_at ? 'Proof Recorded' : 'Pending Timestamp';
 @endphp
 
@@ -145,7 +147,20 @@
             @endif
         </div>
 
-        <form method="GET" action="{{ route('admin.blockchain-transactions.index') }}" class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_1fr_auto]">
+        <form method="GET" action="{{ route('admin.blockchain-transactions.index') }}" class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr_1fr_auto]">
+            <div>
+                <label for="search" class="block text-sm font-semibold text-slate-700">
+                    Search
+                </label>
+
+                <input id="search"
+                       name="search"
+                       type="search"
+                       value="{{ $filters['search'] ?? '' }}"
+                       placeholder="Reference, member, merchant, hash, or status"
+                       class="mt-2 w-full rounded-xl border-slate-200 text-sm text-slate-700 shadow-sm focus:border-cyan-500 focus:ring-cyan-500">
+            </div>
+
             <div>
                 <label for="transaction_type" class="block text-sm font-semibold text-slate-700">
                     Transaction Type
@@ -253,7 +268,7 @@
 
                                         <div class="mt-2 flex flex-wrap gap-1.5">
                                             <x-status-badge :status="$transaction->blockchain_status === 'Confirmed' ? 'Verified' : 'Pending Verification'" :tone="$statusTone($transaction->blockchain_status)" size="xs" />
-                                            <x-status-badge :status="$integrityLabel($proofHash)" :tone="$proofHash ? 'success' : 'warning'" size="xs" />
+                                            <x-status-badge :status="$integrityLabel($proofHash, $payload)" :tone="$proofHash ? 'success' : 'neutral'" size="xs" />
                                             @if($ruleValidationPassed)
                                                 <x-status-badge status="Validation Passed" tone="success" size="xs" />
                                             @elseif($totalRules > 0)
@@ -324,7 +339,7 @@
                                     <a href="{{ $explorerBaseUrl . $hash }}"
                                        target="_blank"
                                        rel="noopener noreferrer"
-                                       class="inline-flex min-h-10 items-center justify-center rounded-xl bg-ui-proof px-4 py-2 text-xs font-semibold text-white transition hover:bg-cyan-700">
+                                       class="inline-flex min-h-9 items-center justify-center rounded-xl bg-ui-proof px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-cyan-700">
                                         View on Morph
                                     </a>
                                 @elseif($transaction->blockchain_status === 'Pending')
@@ -355,8 +370,10 @@
 
                         <tr class="border-t border-ui-border/40 bg-ui-surface">
                             <td colspan="6" class="px-5 pb-6">
-                                <details class="group rounded-2xl border border-ui-border bg-ui-canvas/50 p-4">
-                                    <summary class="flex cursor-pointer list-none flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div x-data="{ open: false }" class="proof-review-card rounded-2xl border border-ui-border bg-gradient-to-br from-white via-ui-canvas/80 to-cyan-50/40 p-4 shadow-sm shadow-slate-200/70">
+                                    <button type="button"
+                                            @click="open = !open"
+                                            class="flex w-full cursor-pointer flex-col gap-3 text-left sm:flex-row sm:items-center sm:justify-between">
                                         <div>
                                             <p class="text-sm font-semibold text-ui-text">Proof Bundle Review</p>
                                             <p class="mt-1 text-xs text-ui-subtext">
@@ -364,13 +381,22 @@
                                             </p>
                                         </div>
 
-                                        <span class="inline-flex w-fit items-center rounded-xl border border-ui-border bg-white px-3 py-2 text-xs font-semibold text-ui-action transition group-open:bg-ui-action group-open:text-white">
-                                            View details
+                                        <span class="inline-flex w-fit items-center gap-2 rounded-xl border border-ui-border bg-white px-3 py-2 text-xs font-semibold text-ui-action shadow-sm transition hover:border-ui-action/20 hover:bg-ui-action/10">
+                                            <span x-text="open ? 'Collapse Proof Review' : 'Expand Proof Review'">Expand Proof Review</span>
+                                            <x-icon name="chevron-right" size="h-3.5 w-3.5 transition-transform duration-200" x-bind:class="open ? 'rotate-90' : ''" />
                                         </span>
-                                    </summary>
+                                    </button>
 
-                                    <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
-                                        <div class="rounded-2xl border border-ui-border bg-white/80 p-4">
+                                    <div x-cloak
+                                         x-show="open"
+                                         x-transition:enter="transition ease-out duration-200"
+                                         x-transition:enter-start="opacity-0 -translate-y-1"
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         x-transition:leave="transition ease-in duration-150"
+                                         x-transition:leave-start="opacity-100 translate-y-0"
+                                         x-transition:leave-end="opacity-0 -translate-y-1"
+                                         class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
+                                        <div class="rounded-2xl border border-ui-border bg-white/90 p-4 shadow-sm shadow-slate-200/60">
                                             <div class="flex flex-wrap gap-2">
                                                 <x-status-badge :status="$recordedLabel($transaction)" :tone="$transaction->recorded_at ? 'success' : 'warning'" />
                                                 <x-status-badge :status="$proofHash ? 'Hash Recorded on Morph' : 'Hash Pending'" :tone="$proofHash ? 'proof' : 'warning'" />
@@ -415,7 +441,7 @@
                                         </div>
 
                                         <div class="space-y-4">
-                                            <div class="rounded-2xl border border-ui-border bg-white/80 p-4">
+                                            <div class="rounded-2xl border border-ui-border bg-white/90 p-4 shadow-sm shadow-slate-200/60">
                                                 <p class="text-sm font-semibold text-ui-text">Transaction Lifecycle</p>
                                                 <div class="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold">
                                                     @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', $settlement?->status === 'Settled' ? 'Settlement Released' : 'Release Pending', 'Morph Proof Recorded'] as $step)
@@ -426,7 +452,7 @@
                                                 </div>
                                             </div>
 
-                                            <div class="rounded-2xl border border-ui-border bg-white/80 p-4">
+                                            <div class="rounded-2xl border border-ui-border bg-white/90 p-4 shadow-sm shadow-slate-200/60">
                                                 <p class="text-sm font-semibold text-ui-text">Validation Summary</p>
                                                 <p class="mt-1 text-sm text-ui-subtext">
                                                     {{ $totalRules > 0 ? $passedRules . ' of ' . $totalRules . ' governance checks passed.' : 'No structured validation summary stored for this proof.' }}
@@ -448,7 +474,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                </details>
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -513,7 +539,7 @@
                                 <div class="flex flex-wrap gap-2">
                                     <x-status-badge :status="$transaction->transaction_type" :tone="$typeTone($transaction->transaction_type)" />
                                     <x-status-badge :status="$transaction->blockchain_status" :tone="$statusTone($transaction->blockchain_status)" />
-                                    <x-status-badge :status="$integrityLabel($proofHash)" :tone="$proofHash ? 'success' : 'warning'" />
+                                    <x-status-badge :status="$integrityLabel($proofHash, $payload)" :tone="$proofHash ? 'success' : 'neutral'" />
                                     <x-status-badge :status="$settlementLabel($settlement)" :tone="$settlementTone($settlement)" />
                                     @if($ruleValidationPassed)
                                         <x-status-badge status="Validation Passed" tone="success" />
@@ -576,13 +602,24 @@
                         </div>
                     </dl>
 
-                    <details class="mt-4 rounded-2xl border border-ui-border bg-ui-canvas/50 p-4">
-                        <summary class="cursor-pointer list-none text-sm font-semibold text-ui-action">
-                            View Proof Bundle Review
-                        </summary>
+                    <div x-data="{ open: false }" class="proof-review-card mt-4 rounded-2xl border border-ui-border bg-gradient-to-br from-white via-ui-canvas/80 to-cyan-50/40 p-4 shadow-sm shadow-slate-200/70">
+                        <button type="button"
+                                @click="open = !open"
+                                class="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-ui-action">
+                            <span x-text="open ? 'Collapse Proof Review' : 'Expand Proof Review'">Expand Proof Review</span>
+                            <x-icon name="chevron-right" size="h-4 w-4 transition-transform duration-200" x-bind:class="open ? 'rotate-90' : ''" />
+                        </button>
 
-                        <div class="mt-4 space-y-4">
-                            <div class="rounded-xl border border-ui-border bg-white/80 p-3">
+                        <div x-cloak
+                             x-show="open"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 translate-y-0"
+                             x-transition:leave-end="opacity-0 -translate-y-1"
+                             class="mt-4 space-y-4">
+                            <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
                                 <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Audit Summary</p>
                                 <dl class="mt-3 grid grid-cols-1 gap-3 text-sm">
                                     <div>
@@ -604,7 +641,7 @@
                                 </dl>
                             </div>
 
-                            <div class="rounded-xl border border-ui-border bg-white/80 p-3">
+                            <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
                                 <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Lifecycle</p>
                                 <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
                                     @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', $settlement?->status === 'Settled' ? 'Settlement Released' : 'Release Pending', 'Morph Proof Recorded'] as $step)
@@ -621,7 +658,7 @@
                             @endif
 
                             @if(count($validationRules) > 0)
-                                <div class="rounded-xl border border-ui-border bg-white/80 p-3">
+                                <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
                                     <p class="text-sm font-semibold text-ui-text">{{ $passedRules }} of {{ $totalRules }} governance checks passed</p>
                                     <div class="mt-3 space-y-2">
                                         @foreach($validationRules as $rule)
@@ -634,14 +671,14 @@
                                 </div>
                             @endif
                         </div>
-                    </details>
+                    </div>
 
-                    <div class="mt-4">
+                    <div class="mt-4 flex justify-start">
                         @if($hasRealHash)
                             <a href="{{ $explorerBaseUrl . $hash }}"
                                target="_blank"
                                rel="noopener noreferrer"
-                               class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-proof px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-cyan-700 sm:w-auto">
+                               class="inline-flex min-h-10 w-fit items-center justify-center rounded-xl bg-ui-proof px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-cyan-700">
                                 View on Morph
                             </a>
                         @elseif($transaction->blockchain_status === 'Pending')

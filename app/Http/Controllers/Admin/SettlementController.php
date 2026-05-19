@@ -15,6 +15,7 @@ class SettlementController extends Controller
     {
         $filters = $request->validate([
             'status' => ['nullable', 'string', 'in:Pending,Settled'],
+            'search' => ['nullable', 'string', 'max:255'],
         ]);
 
         $stats = [
@@ -35,6 +36,28 @@ class SettlementController extends Controller
             ])
             ->when($filters['status'] ?? null, function ($query, $status) {
                 $query->where('status', $status);
+            })
+            ->when($filters['search'] ?? null, function ($query, $search) {
+                $query->where(function ($query) use ($search) {
+                    $query
+                        ->where('status', 'like', '%' . $search . '%')
+                        ->orWhereHas('assistanceRequest', function ($query) use ($search) {
+                            $query
+                                ->where('reference_code', 'like', '%' . $search . '%')
+                                ->orWhereHas('member', function ($query) use ($search) {
+                                    $query->where('name', 'like', '%' . $search . '%');
+                                });
+                        })
+                        ->orWhereHas('merchant', function ($query) use ($search) {
+                            $query
+                                ->where('name', 'like', '%' . $search . '%')
+                                ->orWhereHas('merchantProfile', function ($query) use ($search) {
+                                    $query
+                                        ->where('business_name', 'like', '%' . $search . '%')
+                                        ->orWhere('merchant_category', 'like', '%' . $search . '%');
+                                });
+                        });
+                });
             })
             ->latest()
             ->latest('id')
