@@ -10,14 +10,14 @@
     $failedRules = collect($rules)->where('passed', false)->count();
 @endphp
 
-<div class="max-w-6xl space-y-6">
+<div class="w-full min-w-0 max-w-6xl space-y-6">
     <x-page-header
         title="Programmable Rule Review"
         eyebrow="Claim Verification Result"
         description="Review eligibility checks before processing merchant settlement and recording Morph proof.">
         <x-slot:actions>
             <a href="{{ route('merchant.claims.index') }}"
-               class="inline-flex min-h-11 items-center justify-center rounded-xl border border-ui-border bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas">
+               class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ui-border bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas sm:w-auto">
                 Validate Another Claim
             </a>
         </x-slot:actions>
@@ -44,19 +44,19 @@
     @endif
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-success bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Rule Checks Passed</p>
             <p class="mt-2 text-3xl font-bold text-ui-success">{{ $passedRules }}</p>
             <p class="mt-1 text-sm text-emerald-600">Eligible validation checks</p>
         </div>
 
-        <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-danger bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Rule Checks Failed</p>
             <p class="mt-2 text-3xl font-bold {{ $failedRules > 0 ? 'text-ui-danger' : 'text-ui-text' }}">{{ $failedRules }}</p>
             <p class="mt-1 text-sm {{ $failedRules > 0 ? 'text-rose-600' : 'text-ui-subtext' }}">Blocking conditions</p>
         </div>
 
-        <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-action bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Claim Amount</p>
             <p class="mt-2 text-3xl font-bold text-ui-text">&#8369;{{ number_format($request->approved_amount, 2) }}</p>
             <p class="mt-1 text-sm text-teal-600">Merchant reimbursement value</p>

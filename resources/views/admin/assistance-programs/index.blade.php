@@ -3,6 +3,7 @@
 @section('title', 'Assistance Programs')
 
 @section('content')
+<div class="w-full min-w-0 max-w-7xl space-y-6">
     <x-page-header
         title="Assistance Programs"
         eyebrow="Program Rules"
@@ -133,4 +134,5 @@
             </div>
         </x-slot:footer>
     </x-table-card>
+</div>
 @endsection

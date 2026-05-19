@@ -3,12 +3,13 @@
 @section('title', 'Assistance Requests')
 
 @section('content')
+<div class="w-full min-w-0 max-w-7xl space-y-6">
     <x-page-header
         title="Assistance Requests"
         eyebrow="Admin Operations"
         description="Review member assistance applications before approval, QR generation, merchant validation, and Morph proof recording." />
 
-    <section class="mb-6 rounded-2xl border border-ui-border bg-ui-surface p-4 shadow-sm shadow-slate-200/60 sm:p-5">
+    <section class="rounded-2xl border border-ui-border bg-ui-surface p-4 shadow-sm shadow-slate-200/60 sm:p-5">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="min-w-0">
                 <p class="text-sm font-semibold text-ui-text">
@@ -170,4 +171,5 @@
             </div>
         </x-slot:footer>
     </x-table-card>
+</div>
 @endsection

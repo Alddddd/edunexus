@@ -42,37 +42,28 @@
     };
 @endphp
 
-<div class="max-w-7xl space-y-6">
+<div class="w-full min-w-0 max-w-7xl space-y-6">
 
-    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-            <p class="text-sm font-semibold uppercase tracking-wider text-teal-700">
-                Audit Visibility
-            </p>
+    <x-page-header
+        title="Activity Timeline"
+        eyebrow="Audit Visibility"
+        description="Operational audit trail for approvals, claims, blockchain validation, and settlement activity.">
+        <x-slot:actions>
+            <div class="rounded-2xl border border-teal-100 bg-teal-50 px-5 py-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-teal-700">
+                    Current View
+                </p>
 
-            <h1 class="mt-2 text-3xl font-bold text-slate-800">
-                Activity Timeline
-            </h1>
+                <p class="mt-1 text-2xl font-bold text-teal-800">
+                    {{ number_format($activities->total()) }}
+                </p>
 
-            <p class="mt-2 max-w-3xl text-slate-500">
-                Operational audit trail for approvals, claims, blockchain validation, and settlement activity.
-            </p>
-        </div>
-
-        <div class="rounded-2xl border border-teal-100 bg-teal-50 px-5 py-4">
-            <p class="text-xs font-semibold uppercase tracking-wider text-teal-700">
-                Current View
-            </p>
-
-            <p class="mt-1 text-2xl font-bold text-teal-800">
-                {{ number_format($activities->total()) }}
-            </p>
-
-            <p class="text-xs text-teal-700">
-                {{ $hasFilters ? 'Filtered audit records' : 'All audit records' }}
-            </p>
-        </div>
-    </div>
+                <p class="text-xs text-teal-700">
+                    {{ $hasFilters ? 'Filtered audit records' : 'All audit records' }}
+                </p>
+            </div>
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
 

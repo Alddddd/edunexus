@@ -79,7 +79,7 @@
                         @enderror
                     </div>
 
-                    <div x-data="merchantCategorySelector(@js(old('merchant_category')))">
+                    <div x-data="merchantCategorySelector(@js(old('merchant_category')))" @click.outside="closeSuggestions()">
                         <label class="mb-2 block text-sm font-medium text-slate-700">
                             Merchant Category
                         </label>
@@ -89,6 +89,7 @@
                                    name="merchant_category"
                                    x-model="query"
                                    @focus="open = true"
+                                   @click="open = true"
                                    @input="open = true"
                                    @keydown.escape="open = false"
                                    placeholder="Search or type a custom category"
@@ -97,7 +98,8 @@
                                    required>
 
                             <button type="button"
-                                    @click="open = !open"
+                                    @mousedown.prevent
+                                    @click="toggleSuggestions()"
                                     class="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-ui-subtext transition hover:text-ui-action"
                                     aria-label="Toggle category suggestions">
                                 <x-icon name="chevron-down" size="h-4 w-4" />
@@ -105,10 +107,11 @@
 
                             <div x-cloak
                                  x-show="open && filteredCategories().length"
-                                 @click.away="open = false"
+                                 x-transition.origin.top
                                  class="absolute z-30 mt-2 max-h-56 w-full overflow-y-auto rounded-2xl border border-ui-border bg-ui-surface p-2 shadow-xl shadow-ui-anchor/10">
                                 <template x-for="category in filteredCategories()" :key="category">
                                     <button type="button"
+                                            @mousedown.prevent
                                             @click="selectCategory(category)"
                                             class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-ui-text transition hover:bg-ui-canvas">
                                         <span x-text="category"></span>
@@ -226,6 +229,12 @@
                 },
                 selectCategory(category) {
                     this.query = category;
+                    this.open = false;
+                },
+                toggleSuggestions() {
+                    this.open = !this.open;
+                },
+                closeSuggestions() {
                     this.open = false;
                 },
             };

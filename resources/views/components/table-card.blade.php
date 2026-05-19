@@ -3,12 +3,12 @@
     'description' => null,
 ])
 
-<section {{ $attributes->merge(['class' => 'overflow-hidden rounded-2xl border border-ui-border/90 bg-ui-surface shadow-[0_14px_32px_rgba(15,47,44,0.06)] ring-1 ring-white/60']) }}>
+<section {{ $attributes->merge(['class' => 'w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-ui-border/95 bg-ui-surface shadow-[0_18px_40px_rgba(6,78,59,0.08)] ring-1 ring-white/80']) }}>
     @if($title || $description || isset($actions))
-        <div class="flex flex-col gap-4 border-b border-ui-border/80 px-4 py-4 sm:px-6 sm:py-5 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-col gap-4 border-b border-ui-border/85 bg-gradient-to-r from-ui-surface to-ui-muted/45 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
             <div class="min-w-0">
                 @if($title)
-                    <h2 class="text-base font-semibold text-ui-text">
+                    <h2 class="text-base font-bold text-ui-anchor">
                         {{ $title }}
                     </h2>
                 @endif
@@ -28,7 +28,7 @@
         </div>
     @endif
 
-    <div class="overflow-x-auto">
+    <div class="max-w-full overflow-x-auto">
         {{ $slot }}
     </div>
 

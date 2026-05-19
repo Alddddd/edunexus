@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-ui-shell">
 <head>
     <meta charset="utf-8">
@@ -9,11 +9,12 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="m-0 min-h-screen font-sans antialiased bg-ui-shell text-ui-text">
+<body class="m-0 min-h-screen overflow-x-hidden font-sans antialiased bg-ui-shell text-ui-text">
 
 @php
+    $successMessage = session('success');
+    $unreadNotificationCount = auth()->user()->unreadNotifications->count();
     $toastMessages = collect([
-        'success' => session('success'),
         'error' => session('error'),
         'warning' => session('warning'),
         'info' => session('info'),
@@ -29,9 +30,43 @@
     </div>
 @endif
 
+@if($successMessage)
+    <div id="success-flash"
+         data-success-flash
+         class="pointer-events-none fixed inset-0 z-[130] flex items-center justify-center px-4 py-6">
+        <div data-success-flash-panel
+             class="w-full max-w-md translate-y-3 scale-[0.98] rounded-3xl border border-emerald-100 bg-ui-surface/95 p-6 text-center opacity-0 shadow-2xl shadow-ui-anchor/20 ring-1 ring-white/80 backdrop-blur-xl transition duration-200 ease-out">
+            <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-ui-success/10 text-ui-success ring-1 ring-ui-success/15">
+                <x-icon name="check-circle" size="h-7 w-7" />
+            </div>
+
+            <p class="mt-4 text-sm font-semibold uppercase tracking-[0.14em] text-ui-success">
+                Success
+            </p>
+
+            <p class="mt-2 text-base font-semibold leading-6 text-ui-text">
+                {{ $successMessage }}
+            </p>
+        </div>
+    </div>
+@endif
+
+@if($unreadNotificationCount > 0)
+    <div data-notification-nudge
+         class="pointer-events-none fixed right-4 top-[5.25rem] z-[95] flex max-w-[calc(100vw-2rem)] translate-y-2 items-center gap-3 rounded-2xl border border-ui-border bg-ui-surface/95 px-4 py-3 text-sm font-semibold text-ui-text opacity-0 shadow-xl shadow-ui-anchor/10 ring-1 ring-white/70 backdrop-blur-xl transition duration-300 ease-out sm:right-6">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-ui-action/10 text-ui-action ring-1 ring-ui-action/15">
+            <x-icon name="bell" size="h-4 w-4" />
+        </span>
+
+        <span>
+            You have {{ $unreadNotificationCount }} new {{ \Illuminate\Support\Str::plural('notification', $unreadNotificationCount) }}.
+        </span>
+    </div>
+@endif
+
 <div x-data="{ mobileSidebarOpen: false }"
      @keydown.escape.window="mobileSidebarOpen = false"
-     class="min-h-screen flex bg-ui-shell">
+     class="flex min-h-screen w-full max-w-full overflow-x-hidden bg-ui-shell">
 
     <!-- Mobile Sidebar Backdrop -->
     <div x-cloak
@@ -47,6 +82,7 @@
 
     <!-- Mobile Sidebar Drawer -->
     <aside x-cloak
+           data-dashboard-sidebar
            x-show="mobileSidebarOpen"
            x-transition:enter="transition ease-out duration-200"
            x-transition:enter-start="-translate-x-full opacity-80"
@@ -54,7 +90,7 @@
            x-transition:leave="transition ease-in duration-150"
            x-transition:leave-start="translate-x-0 opacity-100"
            x-transition:leave-end="-translate-x-full opacity-80"
-           class="fixed inset-y-0 left-0 z-[90] flex w-[min(84vw,20rem)] flex-col bg-ui-shell shadow-2xl shadow-ui-anchor/20 ring-1 ring-ui-anchor/10 lg:hidden">
+           class="fixed inset-y-0 left-0 z-[90] flex w-[min(84vw,20rem)] flex-col bg-ui-action shadow-2xl shadow-ui-anchor/25 ring-1 ring-white/10 lg:hidden">
 
         <div class="flex h-[72px] items-center justify-between border-b border-ui-border/70 px-5">
             <div class="min-w-0">
@@ -274,10 +310,10 @@
     </aside>
 
     <!-- Sidebar -->
-    <aside class="hidden lg:flex lg:flex-col lg:w-72 bg-ui-shell border-r border-ui-anchor/10 shadow-[12px_0_34px_rgba(15,47,44,0.07)] backdrop-blur-xl">
+    <aside data-dashboard-sidebar class="hidden lg:flex lg:flex-col lg:w-72 bg-ui-action border-r border-white/10 shadow-[14px_0_38px_rgba(6,78,59,0.22)] backdrop-blur-xl">
 
         <!-- Logo -->
-        <div class="h-[72px] flex items-center px-6 border-b border-ui-border/70">
+        <div class="h-[68px] flex items-center px-6 border-b border-ui-border/70">
             <div>
                 <h1 class="text-2xl font-bold text-ui-anchor">
                     EduNexUs
@@ -494,10 +530,10 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col bg-ui-canvas">
+    <div class="flex min-w-0 flex-1 flex-col bg-ui-canvas">
 
         <!-- Top Navbar -->
-        <header class="h-[72px] bg-ui-shell border-b border-ui-anchor/10 shadow-[0_10px_28px_rgba(15,47,44,0.06)] backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+        <header data-dashboard-topbar class="h-[68px] min-w-0 bg-ui-shell border-b border-ui-anchor/10 shadow-[0_10px_28px_rgba(15,47,44,0.06)] backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
             <div class="flex min-w-0 items-center gap-3">
                 <button type="button"
                         @click="mobileSidebarOpen = true"
@@ -539,9 +575,9 @@
 
                         <x-icon name="bell" size="h-5 w-5 text-ui-subtext" />
 
-                        @if(auth()->user()->unreadNotifications->count() > 0)
+                        @if($unreadNotificationCount > 0)
                             <span class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 rounded-full bg-ui-action text-white text-xs flex items-center justify-center font-semibold">
-                                {{ auth()->user()->unreadNotifications->count() }}
+                                {{ $unreadNotificationCount }}
                             </span>
                         @endif
                     </button>
@@ -550,11 +586,11 @@
                          x-show="open"
                          @click.away="open = false"
                          x-transition
-                         class="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-[380px] bg-ui-surface/95 rounded-2xl border border-ui-border shadow-xl shadow-ui-anchor/10 backdrop-blur-xl overflow-hidden z-50">
+                         class="fixed left-4 right-4 top-[4.75rem] z-50 max-h-[calc(100vh-6rem)] overflow-hidden rounded-2xl border border-ui-border bg-ui-surface/95 shadow-xl shadow-ui-anchor/10 backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-[min(24rem,calc(100vw-2rem))]">
 
-                        <div class="px-5 py-4 border-b border-ui-border/70">
-                            <div class="flex items-center justify-between">
-                                <div>
+                        <div class="border-b border-ui-border/70 px-4 py-4 sm:px-5">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
                                     <p class="font-semibold text-ui-text">
                                         Notifications
                                     </p>
@@ -570,7 +606,7 @@
                                             <x-icon name="chevron-right" size="h-3.5 w-3.5" />
                                         </a>
 
-                                        @if(auth()->user()->unreadNotifications->count() > 0)
+                                        @if($unreadNotificationCount > 0)
                                             <form method="POST" action="{{ route('notifications.mark-all-read') }}">
                                                 @csrf
 
@@ -583,27 +619,27 @@
                                     </div>
                                 </div>
 
-                                @if(auth()->user()->unreadNotifications->count() > 0)
-                                    <span class="px-2 py-1 rounded-full bg-ui-action/10 text-ui-action text-xs font-semibold ring-1 ring-ui-action/15">
-                                        {{ auth()->user()->unreadNotifications->count() }} New
+                                @if($unreadNotificationCount > 0)
+                                    <span class="shrink-0 rounded-full bg-ui-action/10 px-2 py-1 text-xs font-semibold text-ui-action ring-1 ring-ui-action/15">
+                                        {{ $unreadNotificationCount }} New
                                     </span>
                                 @endif
                             </div>
                         </div>
 
-                        <div class="max-h-[420px] overflow-y-auto divide-y divide-ui-border/70">
+                        <div class="max-h-[min(420px,calc(100vh-14rem))] divide-y divide-ui-border/70 overflow-y-auto">
                             @forelse(auth()->user()->notifications->take(8) as $notification)
-                                <div class="px-5 py-4 hover:bg-ui-canvas transition">
+                                <div class="px-4 py-4 transition hover:bg-ui-canvas sm:px-5">
                                     <div class="flex items-start gap-3">
-                                        <div class="mt-1 w-3 h-3 rounded-full
+                                        <div class="mt-1 h-3 w-3 shrink-0 rounded-full
                                             {{ is_null($notification->read_at)
                                                 ? 'bg-ui-action/10'
                                                 : 'bg-ui-muted' }}">
                                         </div>
 
-                                        <div class="flex-1">
-                                            <div class="flex items-start justify-between gap-3">
-                                                <div>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                                                <div class="min-w-0">
                                                     <p class="font-semibold text-ui-text text-sm">
                                                         {{ $notification->data['title'] ?? 'Notification' }}
                                                     </p>
@@ -614,12 +650,7 @@
                                                 </div>
 
                                                 @if(isset($notification->data['status']))
-                                                    <span class="px-2 py-1 rounded-full text-[11px] font-semibold
-                                                        {{ $notification->data['status'] === 'Approved'
-                                                            ? 'bg-ui-success/10 text-ui-success ring-1 ring-ui-success/15'
-                                                            : 'bg-ui-muted text-ui-subtext' }}">
-                                                        {{ $notification->data['status'] }}
-                                                    </span>
+                                                    <x-status-badge :status="$notification->data['status']" size="xs" class="shrink-0" />
                                                 @endif
                                             </div>
 
@@ -723,7 +754,7 @@
         </header>
 
         <!-- Page Content -->
-        <main class="flex-1 bg-ui-canvas px-4 pt-5 pb-8 sm:px-6 lg:px-8 lg:pt-6">
+        <main class="w-full min-w-0 flex-1 overflow-x-hidden bg-ui-canvas px-4 pt-4 pb-8 sm:px-6 lg:px-8">
             @yield('content')
         </main>
 
@@ -856,6 +887,49 @@
             dismissToast();
         });
     });
+
+    const successFlash = document.querySelector('[data-success-flash]');
+    const successFlashPanel = successFlash?.querySelector('[data-success-flash-panel]');
+
+    if (successFlash && successFlashPanel) {
+        const showSuccessFlash = () => {
+            successFlashPanel.classList.remove('translate-y-3', 'scale-[0.98]', 'opacity-0');
+            successFlashPanel.classList.add('translate-y-0', 'scale-100', 'opacity-100');
+        };
+
+        const dismissSuccessFlash = () => {
+            successFlashPanel.classList.add('translate-y-3', 'scale-[0.98]', 'opacity-0');
+            successFlashPanel.classList.remove('translate-y-0', 'scale-100', 'opacity-100');
+
+            window.setTimeout(() => {
+                successFlash.remove();
+            }, 220);
+        };
+
+        window.setTimeout(showSuccessFlash, 90);
+        window.setTimeout(dismissSuccessFlash, 2800);
+    }
+
+    const notificationNudge = document.querySelector('[data-notification-nudge]');
+
+    if (notificationNudge) {
+        const showNotificationNudge = () => {
+            notificationNudge.classList.remove('translate-y-2', 'opacity-0');
+            notificationNudge.classList.add('translate-y-0', 'opacity-100');
+        };
+
+        const dismissNotificationNudge = () => {
+            notificationNudge.classList.add('translate-y-2', 'opacity-0');
+            notificationNudge.classList.remove('translate-y-0', 'opacity-100');
+
+            window.setTimeout(() => {
+                notificationNudge.remove();
+            }, 320);
+        };
+
+        window.setTimeout(showNotificationNudge, 250);
+        window.setTimeout(dismissNotificationNudge, 4200);
+    }
 
     const confirmationModal = document.getElementById('confirmation-modal');
     const confirmationPanel = confirmationModal?.querySelector('[data-confirm-panel]');

@@ -3,6 +3,7 @@
 @section('title', 'Merchants')
 
 @section('content')
+<div class="w-full min-w-0 max-w-7xl space-y-6">
     <x-page-header
         title="Merchant Accreditation"
         eyebrow="Partner Network"
@@ -183,4 +184,5 @@
             </div>
         </x-slot:footer>
     </x-table-card>
+</div>
 @endsection

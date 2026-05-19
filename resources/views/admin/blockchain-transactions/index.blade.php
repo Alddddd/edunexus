@@ -33,7 +33,7 @@
     };
 @endphp
 
-<div class="max-w-7xl space-y-6">
+<div class="w-full min-w-0 max-w-7xl space-y-6">
     <x-page-header
         title="Morph Verification Console"
         eyebrow="Morph Proof Layer"

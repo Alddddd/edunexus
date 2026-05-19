@@ -38,41 +38,32 @@
     }
 @endphp
 
-<div class="max-w-5xl print-pass">
-
-    <div class="mb-8 flex flex-col gap-4 print:hidden lg:flex-row lg:items-end lg:justify-between">
-        <div>
-            <p class="text-sm font-semibold uppercase tracking-wider text-teal-700">
-                Digital Claim Pass
-            </p>
-
-            <h1 class="mt-2 text-3xl font-bold text-slate-800">
-                Claim Pass
-            </h1>
-
-            <p class="mt-2 max-w-3xl text-slate-500">
-                Present this QR code or reference code to an accredited merchant for assistance claim validation.
-            </p>
-        </div>
-
+<div class="w-full min-w-0 max-w-5xl space-y-6 print-pass">
+    <x-page-header
+        class="print:hidden"
+        title="Claim Pass"
+        eyebrow="Digital Claim Pass"
+        description="Present this QR code or reference code to an accredited merchant for assistance claim validation.">
+        <x-slot:actions>
         <a href="{{ route('member.claims.index') }}"
            class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ui-border bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas sm:w-fit">
             Back to My Claims
         </a>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
 
-        <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
+        <div class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
 
-            <div class="border-b border-slate-100 p-8">
+            <div class="border-b border-slate-100 p-5 sm:p-8">
                 <div class="flex flex-wrap items-start justify-between gap-4">
-                    <div>
+                    <div class="min-w-0">
                         <p class="text-sm font-semibold uppercase tracking-wider text-slate-500">
                             Assistance Program
                         </p>
 
-                        <h2 class="mt-2 text-2xl font-bold text-slate-800">
+                        <h2 class="mt-2 break-words text-2xl font-bold text-slate-800">
                             {{ $claim->program->program_name }}
                         </h2>
 
@@ -87,7 +78,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 gap-4 border-b border-slate-100 p-8 md:grid-cols-2">
+            <div class="grid grid-cols-1 gap-4 border-b border-slate-100 p-5 sm:p-8 md:grid-cols-2">
                 <div class="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                     <p class="text-sm text-slate-500">
                         Approved Amount
@@ -129,7 +120,7 @@
                 </div>
             </div>
 
-            <div class="p-8">
+            <div class="p-5 sm:p-8">
                 <div class="rounded-2xl border p-5 {{ $claimGuidanceClasses }}">
                     <p class="font-semibold">
                         {{ $claimGuidanceTitle }}
@@ -142,7 +133,7 @@
             </div>
         </div>
 
-        <div class="space-y-6">
+        <div class="min-w-0 space-y-6">
             <div class="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
                 <p class="text-sm font-semibold text-slate-700">
                     QR Claim Pass
@@ -153,7 +144,7 @@
                 </p>
 
                 @if($claim->qr_code)
-                    <div class="mt-5 inline-block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div class="mt-5 inline-block max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                         {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(220)->generate($claim->qr_code) !!}
                     </div>
 
@@ -201,7 +192,7 @@
 
 @if($claim->qr_code)
     <div id="qr-modal"
-         class="fixed inset-0 z-50 hidden items-center justify-center px-4 py-6 print:hidden"
+         class="fixed inset-0 z-50 hidden items-center justify-center overflow-hidden px-4 py-4 print:hidden"
          role="dialog"
          aria-modal="true"
          aria-labelledby="qr-modal-title">
@@ -209,15 +200,15 @@
              class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"></div>
 
         <div id="qr-modal-panel"
-             class="relative w-full max-w-lg translate-y-3 scale-[0.98] rounded-2xl border border-slate-200 bg-white p-6 opacity-0 shadow-2xl transition duration-200 ease-out sm:p-7">
-            <div class="flex items-start justify-between gap-4">
-                <div>
-                    <p class="text-sm font-semibold uppercase tracking-wider text-teal-700">
+             class="relative flex max-h-[calc(100vh-2rem)] w-full max-w-md translate-y-3 scale-[0.98] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 opacity-0 shadow-2xl transition duration-200 ease-out sm:max-w-lg sm:p-6">
+            <div class="flex shrink-0 items-start justify-between gap-4">
+                <div class="min-w-0">
+                    <p class="text-xs font-semibold uppercase tracking-wider text-teal-700 sm:text-sm">
                         Merchant Presentation
                     </p>
 
                     <h2 id="qr-modal-title"
-                        class="mt-2 text-2xl font-bold text-slate-800">
+                        class="mt-1 text-xl font-bold text-slate-800 sm:mt-2 sm:text-2xl">
                         Enlarge QR
                     </h2>
 
@@ -228,60 +219,70 @@
 
                 <button type="button"
                         id="close-qr-modal"
-                        class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
+                        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-700"
                         aria-label="Close QR modal">
                     <x-icon name="x" size="h-5 w-5" />
                 </button>
             </div>
 
-            <div class="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center">
-                <div class="inline-block rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                    {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(320)->generate($claim->qr_code) !!}
+            <div class="mt-4 min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center sm:mt-5 sm:p-5">
+                <div class="inline-block max-w-full rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                    <div class="sm:hidden">
+                        {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(220)->generate($claim->qr_code) !!}
+                    </div>
+
+                    <div class="hidden sm:block lg:hidden">
+                        {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(260)->generate($claim->qr_code) !!}
+                    </div>
+
+                    <div class="hidden lg:block">
+                        {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(300)->generate($claim->qr_code) !!}
+                    </div>
                 </div>
 
-                <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <p class="mt-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
                     Reference Code
                 </p>
 
-                <p class="mt-2 break-all rounded-xl border border-slate-200 bg-white px-4 py-3 font-mono text-sm font-semibold text-slate-800">
+                <p class="mt-2 break-all rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-xs font-semibold text-slate-800 sm:px-4 sm:py-3 sm:text-sm">
                     {{ $claim->reference_code ?? 'Pending approval' }}
                 </p>
-            </div>
 
-            <div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <div class="rounded-2xl border border-slate-100 bg-white p-4">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        Approved Amount
-                    </p>
+                <div class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <div class="rounded-xl border border-slate-100 bg-white p-3 text-left">
+                        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            Approved Amount
+                        </p>
 
-                    <p class="mt-1 font-semibold text-slate-800">
-                        ₱{{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}
-                    </p>
-                </div>
+                        <p class="mt-1 text-sm font-semibold text-slate-800">
+                            ₱{{ number_format($claim->approved_amount ?? $claim->requested_amount, 2) }}
+                        </p>
+                    </div>
 
-                <div class="rounded-2xl border border-slate-100 bg-white p-4">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        Expiration Date
-                    </p>
+                    <div class="rounded-xl border border-slate-100 bg-white p-3 text-left">
+                        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            Expiration Date
+                        </p>
 
-                    <p class="mt-1 font-semibold text-slate-800">
-                        {{ $claim->expiration_date?->format('M d, Y') ?? 'Not available' }}
-                    </p>
-                </div>
+                        <p class="mt-1 text-sm font-semibold text-slate-800">
+                            {{ $claim->expiration_date?->format('M d, Y') ?? 'Not available' }}
+                        </p>
+                    </div>
 
-                <div class="rounded-2xl border border-slate-100 bg-white p-4 sm:col-span-2">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        Claim Status
-                    </p>
+                    <div class="rounded-xl border border-slate-100 bg-white p-3 text-left sm:col-span-2">
+                        <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                            Claim Status
+                        </p>
 
-                    <div class="mt-2 flex flex-wrap items-center gap-3">
-                        <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $claimPassClasses }}">
-                            {{ $claimPassStatus }}
-                        </span>
+                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                            <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $claimPassClasses }}">
+                                {{ $claimPassStatus }}
+                            </span>
 
-                        <span class="text-sm text-slate-500">
-                            {{ $claim->is_claimed ? 'Already claimed at merchant' : ($claim->status === 'Approved' ? 'Ready for merchant validation' : $claim->status) }}
-                        </span>
+                            <span class="text-xs text-slate-500 sm:text-sm">
+                                {{ $claim->is_claimed ? 'Already claimed at merchant' : ($claim->status === 'Approved' ? 'Ready for merchant validation' : $claim->status) }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

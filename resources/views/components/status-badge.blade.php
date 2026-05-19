@@ -12,15 +12,17 @@
         'approved' => 'bg-emerald-50 text-ui-success ring-emerald-100',
         'success' => 'bg-emerald-50 text-ui-success ring-emerald-100',
         'active' => 'bg-emerald-50 text-ui-success ring-emerald-100',
+        'confirmed' => 'bg-emerald-50 text-ui-success ring-emerald-100',
         'settled' => 'bg-emerald-50 text-ui-success ring-emerald-100',
+        'completed' => 'bg-emerald-50 text-ui-success ring-emerald-100',
         'pending' => 'bg-amber-50 text-ui-warning ring-amber-100',
         'warning' => 'bg-amber-50 text-ui-warning ring-amber-100',
         'rejected' => 'bg-rose-50 text-ui-danger ring-rose-100',
         'danger' => 'bg-rose-50 text-ui-danger ring-rose-100',
         'failed' => 'bg-rose-50 text-ui-danger ring-rose-100',
         'claimed' => 'bg-cyan-50 text-ui-proof ring-cyan-100',
+        'processed' => 'bg-cyan-50 text-ui-proof ring-cyan-100',
         'proof' => 'bg-cyan-50 text-ui-proof ring-cyan-100',
-        'confirmed' => 'bg-cyan-50 text-ui-proof ring-cyan-100',
         'neutral' => 'bg-slate-100 text-slate-600 ring-slate-200',
     ];
 

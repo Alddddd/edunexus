@@ -8,7 +8,7 @@
     $hasFilters = filled($filters['status'] ?? null);
 @endphp
 
-<div class="max-w-7xl space-y-6">
+<div class="w-full min-w-0 max-w-7xl space-y-6">
     <x-page-header
         title="Merchant Settlement Console"
         eyebrow="Settlement Operations"

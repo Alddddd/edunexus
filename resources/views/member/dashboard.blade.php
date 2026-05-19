@@ -9,44 +9,44 @@
     $statusTone = fn ($request) => $request?->is_claimed ? 'claimed' : ($request?->status ?? 'neutral');
 @endphp
 
-<div class="max-w-7xl space-y-6">
+<div class="w-full min-w-0 max-w-7xl space-y-6 text-ui-anchor">
     <x-page-header
         title="Welcome to EduNexUs"
         eyebrow="Member Portal"
         description="Submit assistance requests, track approval status, and access your QR claim pass once approved.">
         <x-slot:actions>
             <a href="{{ route('member.assistance-requests.create') }}"
-               class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ui-action px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor">
+               class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ui-action px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(11,93,86,0.18)] transition hover:bg-ui-anchor">
                 Request Assistance
             </a>
 
             <a href="{{ route('member.claims.index') }}"
-               class="inline-flex min-h-11 items-center justify-center rounded-xl border border-ui-border bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas">
+               class="inline-flex min-h-11 items-center justify-center rounded-xl border border-ui-border/80 bg-ui-surface/70 px-5 py-2.5 text-sm font-semibold text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 transition hover:border-ui-action/25 hover:bg-ui-surface">
                 My Claims
             </a>
         </x-slot:actions>
     </x-page-header>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-action bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Total Requests</p>
             <p class="mt-2 text-3xl font-bold text-ui-text">{{ number_format($totalRequests) }}</p>
             <p class="mt-1 text-sm text-ui-subtext">Submitted assistance requests</p>
         </div>
 
-        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-warning bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Pending Review</p>
             <p class="mt-2 text-3xl font-bold text-ui-warning">{{ number_format($pendingRequests) }}</p>
             <p class="mt-1 text-sm text-amber-600">Waiting for cooperative approval</p>
         </div>
 
-        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-success bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Active Claim Passes</p>
             <p class="mt-2 text-3xl font-bold text-ui-success">{{ number_format($approvedClaimPasses) }}</p>
             <p class="mt-1 text-sm text-emerald-600">Ready for merchant validation</p>
         </div>
 
-        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-proof bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Claimed Assistance</p>
             <p class="mt-2 text-3xl font-bold text-ui-proof">{{ number_format($claimedRequests) }}</p>
             <p class="mt-1 text-sm text-cyan-600">Processed by merchant</p>
@@ -56,6 +56,28 @@
     <x-form-card
         title="Request Lifecycle"
         description="A compact view of where your assistance records are in the cooperative workflow.">
+        <div class="mb-6 flex flex-wrap items-center gap-2 text-sm font-semibold">
+            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full border border-ui-border/80 bg-ui-surface/85 px-3 py-2 text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 ring-1 ring-ui-border/70 sm:flex-none">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-muted text-xs">1</span>
+                <span class="min-w-0 truncate">Request</span>
+            </div>
+            <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
+            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-warning/10 px-3 py-2 text-ui-warning ring-1 ring-ui-warning/15 sm:flex-none">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-warning/15 text-xs">2</span>
+                <span class="min-w-0 truncate">Review</span>
+            </div>
+            <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
+            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-success/10 px-3 py-2 text-ui-success ring-1 ring-ui-success/15 sm:flex-none">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-success/15 text-xs">3</span>
+                <span class="min-w-0 truncate">QR Pass</span>
+            </div>
+            <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
+            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-proof/10 px-3 py-2 text-ui-proof ring-1 ring-ui-proof/15 sm:flex-none">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-proof/15 text-xs">4</span>
+                <span class="min-w-0 truncate">Claim</span>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
             <div class="rounded-2xl border border-amber-100 bg-amber-50 p-4">
                 <p class="text-xs font-semibold uppercase tracking-wider text-amber-700">Pending</p>

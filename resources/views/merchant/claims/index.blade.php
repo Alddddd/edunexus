@@ -4,14 +4,14 @@
 
 @section('content')
 
-<div class="max-w-6xl space-y-6">
+<div class="w-full min-w-0 max-w-6xl space-y-6">
     <x-page-header
         title="Merchant Claim Validation"
         eyebrow="QR Validation Terminal"
         description="Scan a QR code or enter a reference code to verify programmable cooperative assistance claims.">
         <x-slot:actions>
             <a href="{{ route('merchant.dashboard') }}"
-               class="inline-flex min-h-11 items-center justify-center rounded-xl border border-ui-border bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas">
+               class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ui-border bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas sm:w-auto">
                 Merchant Dashboard
             </a>
         </x-slot:actions>
@@ -84,7 +84,7 @@
             </form>
         </x-form-card>
 
-        <div class="space-y-4">
+        <div class="min-w-0 space-y-4">
             <x-form-card title="Validation Checks">
                 <div class="space-y-3 text-sm">
                     <div class="flex items-center gap-3 text-slate-700">

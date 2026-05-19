@@ -19,47 +19,33 @@
         : ($latestHash ?? 'No hash recorded');
 @endphp
 
-<div class="max-w-7xl space-y-5 text-ui-anchor">
+<div class="w-full min-w-0 max-w-7xl space-y-6 text-ui-anchor">
+    <x-page-header
+        title="EduNexUs Admin Dashboard"
+        eyebrow="Operational Command Center"
+        description="Monitor assistance approvals, merchant claims, settlements, Morph proof records, and live operational activity.">
+        <x-slot:actions>
+            <a href="{{ route('admin.assistance-requests.index') }}"
+               class="inline-flex items-center justify-center rounded-xl bg-ui-action px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(11,93,86,0.18)] transition hover:bg-primary-dark hover:shadow-[0_14px_28px_rgba(11,93,86,0.22)]">
+                Review Requests
+            </a>
 
-    <div class="rounded-2xl border border-ui-border/80 bg-gradient-to-br from-ui-surface via-ui-surface/90 to-ui-action/10 p-5 shadow-[0_22px_52px_rgba(15,47,44,0.10)] ring-1 ring-ui-anchor/5">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <p class="text-sm font-semibold uppercase tracking-wider text-ui-action">
-                    Operational Command Center
-                </p>
+            <a href="{{ route('admin.settlements.index') }}"
+               class="inline-flex items-center justify-center rounded-xl border border-ui-border/80 bg-ui-surface/70 px-5 py-3 text-sm font-semibold text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 transition hover:border-ui-action/25 hover:bg-ui-surface">
+                Settlements
+            </a>
 
-                <h1 class="mt-2 text-3xl font-bold text-ui-anchor">
-                    EduNexUs Admin Dashboard
-                </h1>
+            <a href="{{ route('admin.blockchain-transactions.index') }}"
+               class="inline-flex items-center justify-center rounded-xl border border-ui-border/80 bg-ui-surface/70 px-5 py-3 text-sm font-semibold text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 transition hover:border-ui-action/25 hover:bg-ui-surface">
+                Morph Proofs
+            </a>
 
-                <p class="mt-2 max-w-3xl leading-6 text-ui-subtext/90">
-                    Monitor assistance approvals, merchant claims, settlements, Morph proof records, and live operational activity.
-                </p>
-            </div>
-
-            <div class="flex flex-wrap gap-3">
-                <a href="{{ route('admin.assistance-requests.index') }}"
-                   class="inline-flex items-center justify-center rounded-xl bg-ui-action px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(11,93,86,0.18)] transition hover:bg-primary-dark hover:shadow-[0_14px_28px_rgba(11,93,86,0.22)]">
-                    Review Requests
-                </a>
-
-                <a href="{{ route('admin.settlements.index') }}"
-                   class="inline-flex items-center justify-center rounded-xl border border-ui-border/80 bg-ui-surface/70 px-5 py-3 text-sm font-semibold text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 transition hover:border-ui-action/25 hover:bg-ui-surface">
-                    Settlements
-                </a>
-
-                <a href="{{ route('admin.blockchain-transactions.index') }}"
-                   class="inline-flex items-center justify-center rounded-xl border border-ui-border/80 bg-ui-surface/70 px-5 py-3 text-sm font-semibold text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 transition hover:border-ui-action/25 hover:bg-ui-surface">
-                    Morph Proofs
-                </a>
-
-                <a href="{{ route('admin.activity-logs.index') }}"
-                   class="inline-flex items-center justify-center rounded-xl border border-ui-border/80 bg-ui-surface/70 px-5 py-3 text-sm font-semibold text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 transition hover:border-ui-action/25 hover:bg-ui-surface">
-                    Activity Timeline
-                </a>
-            </div>
-        </div>
-    </div>
+            <a href="{{ route('admin.activity-logs.index') }}"
+               class="inline-flex items-center justify-center rounded-xl border border-ui-border/80 bg-ui-surface/70 px-5 py-3 text-sm font-semibold text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 transition hover:border-ui-action/25 hover:bg-ui-surface">
+                Activity Timeline
+            </a>
+        </x-slot:actions>
+    </x-page-header>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-success bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(15,47,44,0.10)]">

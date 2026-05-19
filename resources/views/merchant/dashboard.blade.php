@@ -9,45 +9,56 @@
     $settlementTone = fn ($status) => $status === 'Settled' ? 'settled' : 'pending';
 @endphp
 
-<div class="max-w-7xl space-y-6">
-    <x-page-header
-        title="Merchant Dashboard"
-        eyebrow="Merchant Claim Terminal"
-        description="Validate member claim passes, process eligible assistance claims, and monitor cooperative settlement status.">
-        <x-slot:actions>
+<div class="w-full min-w-0 max-w-7xl space-y-5 text-ui-anchor">
+    <section class="rounded-2xl border border-ui-border/80 bg-gradient-to-br from-ui-surface via-ui-surface/90 to-ui-proof/10 p-5 shadow-[0_22px_52px_rgba(15,47,44,0.10)] ring-1 ring-ui-anchor/5">
+        <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div class="min-w-0">
+                <p class="text-sm font-semibold uppercase tracking-wider text-ui-action">
+                    Merchant Claim Terminal
+                </p>
+
+                <h1 class="mt-2 text-3xl font-bold text-ui-anchor">
+                    Merchant Dashboard
+                </h1>
+
+                <p class="mt-2 max-w-3xl leading-6 text-ui-subtext/90">
+                    Validate member claim passes, process eligible assistance claims, and monitor cooperative settlement status.
+                </p>
+            </div>
+
             <a href="{{ route('merchant.claims.index') }}"
-               class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ui-action px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor">
+               class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-action px-5 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(11,93,86,0.18)] transition hover:bg-ui-anchor sm:w-auto">
                 Validate Claim
             </a>
-        </x-slot:actions>
-    </x-page-header>
+        </div>
+    </section>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-warning bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Pending Validations</p>
             <p class="mt-2 text-3xl font-bold text-ui-warning">{{ number_format($pendingValidationCount) }}</p>
             <p class="mt-1 text-sm text-amber-600">Approved passes in your category</p>
         </div>
 
-        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-proof bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Processed Claims</p>
             <p class="mt-2 text-3xl font-bold text-ui-text">{{ number_format($processedClaims) }}</p>
             <p class="mt-1 text-sm text-cyan-600">Validated claim transactions</p>
         </div>
 
-        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-warning bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Pending Settlements</p>
             <p class="mt-2 text-3xl font-bold text-ui-warning">{{ number_format($pendingSettlements) }}</p>
             <p class="mt-1 text-sm text-amber-600">Awaiting cooperative reimbursement</p>
         </div>
 
-        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-proof bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Morph Proofs</p>
             <p class="mt-2 text-3xl font-bold text-ui-proof">{{ number_format($morphProofConfirmations) }}</p>
             <p class="mt-1 text-sm text-cyan-600">Confirmed claim proofs</p>
         </div>
 
-        <div class="rounded-2xl border border-ui-border/90 bg-ui-surface p-5 shadow-[0_14px_32px_rgba(15,47,44,0.06)]">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-success bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Settlement Value</p>
             <p class="mt-2 text-3xl font-bold text-ui-text">&#8369;{{ number_format($totalSettlementValue, 2) }}</p>
             <p class="mt-1 text-sm text-teal-600">Total merchant claim value</p>
@@ -78,7 +89,7 @@
             </div>
         </x-form-card>
 
-        <section class="rounded-2xl border border-teal-100 bg-teal-50 p-6 shadow-sm xl:col-span-2">
+        <section class="rounded-2xl border border-ui-action/15 bg-gradient-to-br from-ui-action/10 via-ui-surface/90 to-ui-proof/10 p-6 shadow-[0_20px_44px_rgba(11,93,86,0.10)] ring-1 ring-ui-anchor/5 xl:col-span-2">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                     <p class="text-sm font-semibold uppercase tracking-wider text-teal-700">
@@ -89,7 +100,7 @@
                         Validate, Process, Record Proof, Settle
                     </h2>
 
-                    <p class="mt-2 max-w-3xl text-sm leading-6 text-teal-700">
+                    <p class="mt-2 max-w-3xl text-sm leading-6 text-ui-subtext/90">
                         EduNexUs checks approval status, expiration, duplicate use, amount limits, and merchant category before processing a claim and recording Morph proof.
                     </p>
                 </div>
@@ -98,22 +109,22 @@
             </div>
 
             <div class="mt-6 grid grid-cols-1 gap-3 text-sm md:grid-cols-4">
-                <div class="rounded-2xl border border-white bg-white/80 p-4">
+                <div class="rounded-2xl border border-ui-border/70 bg-ui-surface/80 p-4 shadow-sm shadow-ui-anchor/5">
                     <p class="font-semibold text-ui-text">1. Enter Reference</p>
                     <p class="mt-1 text-ui-subtext">Scan QR or type claim code.</p>
                 </div>
 
-                <div class="rounded-2xl border border-white bg-white/80 p-4">
+                <div class="rounded-2xl border border-ui-border/70 bg-ui-surface/80 p-4 shadow-sm shadow-ui-anchor/5">
                     <p class="font-semibold text-ui-text">2. Rules Execute</p>
                     <p class="mt-1 text-ui-subtext">Program and merchant checks run.</p>
                 </div>
 
-                <div class="rounded-2xl border border-white bg-white/80 p-4">
+                <div class="rounded-2xl border border-ui-border/70 bg-ui-surface/80 p-4 shadow-sm shadow-ui-anchor/5">
                     <p class="font-semibold text-ui-text">3. Process Claim</p>
                     <p class="mt-1 text-ui-subtext">Mark used and create settlement.</p>
                 </div>
 
-                <div class="rounded-2xl border border-white bg-white/80 p-4">
+                <div class="rounded-2xl border border-ui-border/70 bg-ui-surface/80 p-4 shadow-sm shadow-ui-anchor/5">
                     <p class="font-semibold text-ui-text">4. Morph Proof</p>
                     <p class="mt-1 text-ui-subtext">Record tamper-resistant proof.</p>
                 </div>
