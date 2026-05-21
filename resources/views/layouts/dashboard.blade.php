@@ -95,14 +95,20 @@
            class="fixed inset-y-0 left-0 z-[90] flex w-[min(84vw,20rem)] flex-col bg-ui-action shadow-2xl shadow-ui-anchor/25 ring-1 ring-white/10 lg:hidden">
 
         <div class="flex h-[72px] items-center justify-between border-b border-ui-border/70 px-5">
-            <div class="min-w-0">
-                <h1 class="truncate text-xl font-bold text-ui-anchor">
-                    EduNexUs
-                </h1>
+            <div class="flex min-w-0 items-center gap-3">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-sm ring-1 ring-white/20">
+                    <x-application-logo class="h-full w-full scale-[1.22]" />
+                </span>
 
-                <p class="mt-1 truncate text-xs text-ui-subtext/90">
-                    Cooperative Assistance
-                </p>
+                <div class="min-w-0">
+                    <h1 class="truncate text-xl font-bold text-ui-anchor">
+                        EduNexUs
+                    </h1>
+
+                    <p class="mt-1 truncate text-xs text-ui-subtext/90">
+                        Assistance and Settlement Infrastructure
+                    </p>
+                </div>
             </div>
 
             <button type="button"
@@ -352,14 +358,20 @@
 
         <!-- Logo -->
         <div class="h-[68px] flex items-center px-6 border-b border-ui-border/70">
-            <div>
-                <h1 class="text-2xl font-bold text-ui-anchor">
-                    EduNexUs
-                </h1>
+            <div class="flex min-w-0 items-center gap-3">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-sm ring-1 ring-white/20">
+                    <x-application-logo class="h-full w-full scale-[1.22]" />
+                </span>
 
-                <p class="text-xs text-ui-subtext/90 mt-1">
-                    Programmable Cooperative Assistance
-                </p>
+                <div class="min-w-0">
+                    <h1 class="truncate text-2xl font-bold text-ui-anchor">
+                        EduNexUs
+                    </h1>
+
+                    <p class="mt-1 truncate text-xs text-ui-subtext/90">
+                        Programmable Assistance and Settlement
+                    </p>
+                </div>
             </div>
         </div>
 

@@ -23,7 +23,7 @@
                     </h1>
 
                     <p class="text-xs text-slate-500 mt-1">
-                        Programmable Cooperative Assistance
+                        Programmable Assistance and Settlement
                     </p>
                 </div>
             </div>

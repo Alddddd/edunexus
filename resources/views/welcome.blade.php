@@ -330,6 +330,7 @@
     @php
         $navItems = [
             ['label' => 'Lifecycle', 'href' => '#lifecycle'],
+            ['label' => 'Demo', 'href' => '#demo-portal'],
             ['label' => 'Features', 'href' => '#features'],
             ['label' => 'Roles', 'href' => '#roles'],
             ['label' => 'Verification', 'href' => '#verification'],
@@ -369,8 +370,8 @@
             <div class="rounded-2xl border border-ui-border/80 bg-white/90 px-4 py-3 shadow-lg shadow-ui-anchor/10 backdrop-blur">
                 <div class="flex items-center justify-between gap-4">
                     <a href="/" class="flex min-w-0 items-center gap-3" aria-label="EduNexUs home">
-                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ui-action text-white shadow-sm">
-                            <x-application-logo class="h-5 w-5 fill-current" />
+                        <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-sm ring-1 ring-ui-border/80">
+                            <x-application-logo class="h-full w-full scale-[1.22]" />
                         </span>
                         <span class="min-w-0">
                             <span class="block text-base font-black tracking-tight text-ui-anchor">EduNexUs</span>
@@ -456,7 +457,7 @@
                         Programmable Cooperative Assistance Infrastructure
                     </h1>
                     <p class="mt-6 max-w-2xl text-base leading-8 text-ui-subtext sm:text-lg">
-                        EduNexUs helps cooperatives move from manual assistance records to rule-enforced approvals, QR/reference claims, settlement visibility, and Morph-backed proof integrity.
+                        EduNexUs helps Philippine cooperatives move from manual assistance records to programmable approvals, QR claim validation, merchant settlement visibility, and Morph-backed proof integrity.
                     </p>
                     <div class="mt-9 flex flex-col gap-3 sm:flex-row">
                         @if (Route::has('register'))
@@ -469,6 +470,9 @@
                                 Access portal
                             </a>
                         @endif
+                        <a href="#demo-portal" class="inline-flex min-h-[3.25rem] items-center justify-center rounded-2xl border border-ui-action/15 bg-white/70 px-6 py-3 text-sm font-bold text-ui-action shadow-sm transition hover:-translate-y-0.5 hover:border-ui-action/30">
+                            View demo portals
+                        </a>
                     </div>
 
                     <div class="mt-9 grid gap-3 sm:grid-cols-3">
@@ -520,7 +524,7 @@
                     <div class="hero-dashboard overflow-hidden rounded-[1.75rem] border border-emerald-900/10 bg-[#123b34] text-white">
                         <div class="flex items-center justify-between border-b border-white/10 bg-white/[0.04] px-6 py-4">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-400/15 text-emerald-200"><x-application-logo class="h-5 w-5 fill-current" /></span>
+                                <span class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white/95 p-0.5 ring-1 ring-white/20"><x-application-logo class="h-full w-full scale-[1.22]" /></span>
                                 <div>
                                     <p class="text-sm font-black">EduNexUs Operations</p>
                                     <p class="text-xs text-emerald-50/55">Assistance lifecycle monitor</p>
@@ -564,7 +568,7 @@
                 <div class="relative max-w-3xl" data-reveal>
                     <p class="text-sm font-bold uppercase tracking-[.18em] text-ui-action">Assistance lifecycle</p>
                     <h2 class="mt-3 text-3xl font-black tracking-tight text-ui-anchor sm:text-5xl">A visible workflow from request to proof.</h2>
-                    <p class="mt-4 text-base leading-7 text-ui-subtext">From member request to merchant validation and proof recording, each stage stays connected to one operational record that can support audits and future settlement workflows.</p>
+                    <p class="mt-4 text-base leading-7 text-ui-subtext">From member request to merchant validation, payout simulation, and proof recording, each stage stays connected to one operational record that can support audits and settlement review.</p>
                 </div>
                 <div class="relative mt-8 rounded-[2rem] border border-ui-border/80 bg-white/80 p-3 shadow-[0_24px_60px_rgba(6,78,59,0.10)] ring-1 ring-white/80 backdrop-blur sm:mt-10 sm:p-4" data-reveal>
                     <div class="absolute left-10 right-10 top-[4.05rem] hidden h-1 rounded-full stage-rail lg:block"></div>
@@ -589,7 +593,7 @@
                     @endforeach
                     </div>
                     <div class="mt-4 rounded-2xl border border-ui-border/70 bg-gradient-to-r from-ui-action/10 via-cyan-50 to-ui-action/10 px-4 py-3 text-sm font-semibold text-ui-anchor">
-                        Connected workflow: member request &rarr; admin review &rarr; QR/reference &rarr; merchant validation &rarr; governance rules &rarr; settlement visibility &rarr; Morph proof.
+                        Connected workflow: member request &rarr; admin review &rarr; QR/reference &rarr; merchant validation &rarr; programmable rules &rarr; settlement visibility &rarr; Morph proof.
                     </div>
                 </div>
             </div>
@@ -723,6 +727,8 @@
             </div>
         </section>
 
+        <x-demo-portal />
+
         <section id="features" class="section-anchor landing-section bg-gradient-to-br from-white via-[#f7fbf9] to-[#eef7f3]">
             <div class="pointer-events-none absolute left-0 top-0 h-72 w-72 rounded-full bg-emerald-400/[0.07] blur-3xl"></div>
             <div class="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-cyan-400/[0.08] blur-3xl"></div>
@@ -792,7 +798,7 @@
                 <div data-reveal>
                     <p class="text-sm font-bold uppercase tracking-[.18em] text-emerald-100/70">Morph verification</p>
                     <h2 class="mt-3 text-3xl font-black tracking-tight sm:text-5xl">Blockchain-backed verification infrastructure for settlement transparency.</h2>
-                    <p class="mt-5 leading-8 text-emerald-50/70">Proof recording is audit-focused and operational. EduNexUs uses Morph-backed records to support claim integrity, settlement visibility, and future governance workflows without wallet-first complexity.</p>
+                    <p class="mt-5 leading-8 text-emerald-50/70">Proof recording is audit-focused and operational. EduNexUs uses Morph-backed records and demo-safe testnet settlement proof to support claim integrity without exposing wallet-first complexity to normal users.</p>
                     <div class="mt-7 flex flex-wrap gap-3">
                         @foreach(['Tamper-resistant records', 'Public verification', 'Settlement proof integrity', 'Audit-ready visibility'] as $tag)
                             <span class="rounded-full bg-white/[0.07] px-4 py-2 text-sm font-bold text-emerald-50 ring-1 ring-white/10">{{ $tag }}</span>
@@ -849,7 +855,7 @@
                     <div data-reveal>
                         <p class="text-sm font-bold uppercase tracking-[.18em] text-ui-action">Reporting and governance</p>
                         <h2 class="mt-3 text-3xl font-black tracking-tight text-ui-anchor sm:text-5xl">Operational visibility without visual noise.</h2>
-                        <p class="mt-4 leading-7 text-ui-subtext">Compact records show approvals, QR validation, settlement movement, proof references, and export-ready context without overstating financial automation.</p>
+                    <p class="mt-4 leading-7 text-ui-subtext">Compact records show approvals, QR validation, simulated PHP/GCash payout movement, proof references, and export-ready context without overstating financial automation.</p>
                     </div>
                     <div class="overflow-hidden rounded-2xl border border-ui-border bg-white shadow-[0_18px_44px_rgba(15,47,44,0.08)]" data-reveal>
                         <div class="border-b border-ui-border bg-gradient-to-r from-[#f8fdfb] to-ui-muted/40 px-5 py-4">
@@ -879,7 +885,7 @@
             <div class="landing-section-inner max-w-5xl text-center" data-reveal>
                 <p class="text-sm font-bold uppercase tracking-[.18em] text-emerald-100/75">Institutional assistance operations</p>
                 <h2 class="mt-4 text-3xl font-black tracking-tight sm:text-5xl">Modernize cooperative assistance operations with programmable governance and blockchain-backed verification.</h2>
-                <p class="mx-auto mt-5 max-w-3xl leading-8 text-emerald-50/80">Bring approvals, QR validation, merchant claim processing, settlement visibility, and audit proof records into one operational system designed to scale beyond a single cooperative workflow.</p>
+                <p class="mx-auto mt-5 max-w-3xl leading-8 text-emerald-50/80">Bring approvals, QR validation, merchant claim processing, settlement visibility, and blockchain-backed audit proof into one operational system designed for cooperative assistance workflows.</p>
                 <div class="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
                     @if (Route::has('register'))
                         <a href="{{ route('register') }}" class="inline-flex min-h-[3.25rem] items-center justify-center rounded-2xl bg-white px-6 py-3 text-sm font-black text-ui-action shadow-lg transition hover:bg-emerald-50">Create account</a>
@@ -896,13 +902,13 @@
         <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_auto] lg:px-8">
             <div>
                 <div class="flex items-center gap-3">
-                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-ui-action text-white"><x-application-logo class="h-5 w-5 fill-current" /></span>
+                    <span class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-sm ring-1 ring-ui-border"><x-application-logo class="h-full w-full scale-[1.22]" /></span>
                     <div>
                         <p class="font-black text-ui-anchor">EduNexUs</p>
-                        <p class="text-sm text-ui-subtext">Cooperative assistance operations platform</p>
+                        <p class="text-sm text-ui-subtext">Programmable assistance and settlement infrastructure</p>
                     </div>
                 </div>
-                <p class="mt-4 max-w-2xl text-sm leading-6 text-ui-subtext">Built for approval governance, QR claim validation, merchant reimbursement tracking, and subtle Morph-backed verification.</p>
+                <p class="mt-4 max-w-2xl text-sm leading-6 text-ui-subtext">Built for approval governance, QR claim validation, merchant reimbursement tracking, and Morph-backed settlement proof.</p>
             </div>
             <div class="flex flex-wrap items-center gap-4 text-sm font-bold text-ui-subtext lg:justify-end">
                 @foreach($navItems as $item)

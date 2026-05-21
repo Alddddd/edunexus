@@ -18,8 +18,8 @@
         <div class="flex min-h-screen flex-col items-center justify-center bg-ui-canvas px-4 py-8">
             <div class="mb-7 text-center">
                 <a href="/" class="inline-flex items-center gap-3">
-                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-ui-action text-white shadow-lg shadow-ui-anchor/15 ring-1 ring-ui-action/20">
-                        <x-application-logo class="h-7 w-7 fill-current" />
+                    <span class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-lg shadow-ui-anchor/10 ring-1 ring-ui-border/80">
+                        <x-application-logo class="h-full w-full scale-[1.22]" />
                     </span>
 
                     <span class="text-xl font-bold tracking-tight text-ui-anchor">
@@ -28,11 +28,11 @@
                 </a>
 
                 <p class="mt-2 text-sm text-ui-subtext">
-                    Cooperative assistance operations platform
+                    Programmable assistance and settlement infrastructure
                 </p>
             </div>
 
-            <div class="w-full max-w-md overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface px-6 py-6 shadow-[0_18px_44px_rgba(15,47,44,0.09)] ring-1 ring-white/80 sm:px-8 sm:py-7">
+            <div class="w-full max-w-5xl overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface px-6 py-6 shadow-[0_18px_44px_rgba(15,47,44,0.09)] ring-1 ring-white/80 sm:px-8 sm:py-7">
                 {{ $slot }}
             </div>
         </div>

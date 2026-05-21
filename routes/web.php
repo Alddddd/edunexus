@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\MerchantUserController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettlementController;
 use App\Http\Controllers\Auditor\DashboardController as AuditorDashboardController;
+use App\Http\Controllers\DemoLoginController;
 use App\Http\Controllers\Member\AssistanceRequestController as MemberAssistanceRequestController;
 use App\Http\Controllers\Member\ClaimController;
 use App\Http\Controllers\Merchant\ClaimValidationController;
@@ -25,6 +26,10 @@ use App\Http\Controllers\Admin\ActivityLogController;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/demo-login/{role}', DemoLoginController::class)
+    ->whereIn('role', ['admin', 'member', 'merchant', 'auditor'])
+    ->name('demo-login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
