@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\AssistanceProgram;
+use App\Models\MerchantCategory;
 use App\Models\MerchantProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ class MerchantController extends Controller
 {
     public function index()
     {
-        $merchants = MerchantProfile::with('user')
+        $merchants = MerchantProfile::with(['user', 'category'])
             ->latest()
             ->paginate(5)
             ->withQueryString();
@@ -28,12 +28,9 @@ class MerchantController extends Controller
             ->orderBy('name')
             ->get();
 
-        $merchantCategories = AssistanceProgram::query()
-            ->whereNotNull('merchant_category')
-            ->select('merchant_category')
-            ->distinct()
-            ->orderBy('merchant_category')
-            ->pluck('merchant_category');
+        $merchantCategories = MerchantCategory::where('status', 'Active')
+            ->orderBy('name')
+            ->get();
 
         return view('admin.merchants.create', compact('merchantUsers', 'merchantCategories'));
     }
@@ -47,7 +44,7 @@ class MerchantController extends Controller
                 Rule::unique('merchant_profiles', 'user_id'),
             ],
             'business_name' => ['required', 'string', 'max:255'],
-            'merchant_category' => ['required', 'string', 'max:255'],
+            'merchant_category_id' => ['required', Rule::exists('merchant_categories', 'id')],
             'contact_number' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
             'payout_account_name' => ['nullable', 'string', 'max:255'],
@@ -56,6 +53,9 @@ class MerchantController extends Controller
             'payout_notes' => ['nullable', 'string'],
             'status' => ['required', 'in:Active,Inactive'],
         ]);
+
+        $category = MerchantCategory::findOrFail($validated['merchant_category_id']);
+        $validated['merchant_category'] = $category->name;
 
         MerchantProfile::create($validated);
 
@@ -66,12 +66,13 @@ class MerchantController extends Controller
 
     public function edit(MerchantProfile $merchant)
     {
-        $merchantCategories = AssistanceProgram::query()
-            ->whereNotNull('merchant_category')
-            ->select('merchant_category')
-            ->distinct()
-            ->orderBy('merchant_category')
-            ->pluck('merchant_category');
+        $merchantCategories = MerchantCategory::query()
+            ->where(function ($query) use ($merchant) {
+                $query->where('status', 'Active')
+                    ->orWhereKey($merchant->merchant_category_id);
+            })
+            ->orderBy('name')
+            ->get();
 
         return view('admin.merchants.edit', compact('merchant', 'merchantCategories'));
     }
@@ -80,7 +81,7 @@ class MerchantController extends Controller
     {
         $validated = $request->validate([
             'business_name' => ['required', 'string', 'max:255'],
-            'merchant_category' => ['required', 'string', 'max:255'],
+            'merchant_category_id' => ['required', Rule::exists('merchant_categories', 'id')],
             'contact_number' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
             'payout_account_name' => ['nullable', 'string', 'max:255'],
@@ -89,6 +90,9 @@ class MerchantController extends Controller
             'payout_notes' => ['nullable', 'string'],
             'status' => ['required', 'in:Active,Inactive'],
         ]);
+
+        $category = MerchantCategory::findOrFail($validated['merchant_category_id']);
+        $validated['merchant_category'] = $category->name;
 
         $merchant->update($validated);
 

@@ -5,7 +5,22 @@
 @section('content')
 @php
     $payoutComplete = filled($merchantProfile->payout_account_name) && filled($merchantProfile->payout_account_number);
-    $currentQrUrl = $merchantProfile->payout_qr ? asset('storage/' . $merchantProfile->payout_qr) : null;
+    $qrUrl = function (?string $path) {
+        if (blank($path)) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        $normalizedPath = preg_replace('#^public/#', '', $path);
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->exists($normalizedPath)
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($normalizedPath)
+            : null;
+    };
+    $currentQrUrl = $qrUrl($merchantProfile->payout_qr);
 @endphp
 
 <div x-data="{ fileName: '', previewUrl: null, qrPreview: null }"
@@ -35,7 +50,7 @@
                     <p class="text-xs font-semibold uppercase tracking-wider text-ui-action">Current Destination</p>
                     <h2 class="mt-2 text-xl font-bold text-ui-text">GCash payout profile</h2>
                     <p class="mt-2 max-w-2xl text-sm leading-6 text-ui-subtext">
-                        These payout details are used by the cooperative when releasing simulated GCash/PHP settlement payouts.
+                        These payout details identify the GCash destination reference used during settlement release review. The QR is a payout destination reference, not the payment itself.
                     </p>
                 </div>
 
@@ -64,17 +79,17 @@
             </div>
         </div>
 
-        <div class="rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60">
+        <div class="mx-auto w-full max-w-xs rounded-2xl border border-ui-border bg-ui-surface p-5 shadow-sm shadow-slate-200/60 lg:mx-0">
             <p class="text-xs font-semibold uppercase tracking-wider text-ui-subtext">Current QR</p>
             @if($currentQrUrl)
                 <button type="button"
                         @click="qrPreview = @js($currentQrUrl)"
-                        class="mt-3 block rounded-2xl border border-ui-border bg-white p-3 transition hover:border-teal-200 hover:shadow-md">
+                        class="mt-3 inline-block max-w-fit rounded-2xl border border-ui-border bg-white p-3 transition hover:border-teal-200 hover:shadow-md">
                     <img src="{{ $currentQrUrl }}"
                          alt="Current GCash payout QR"
-                         class="h-44 w-full rounded-xl object-cover">
+                         class="h-44 w-44 rounded-xl object-contain">
                 </button>
-                <p class="mt-3 text-xs text-ui-subtext">Click the QR image to enlarge it for review.</p>
+                <p class="mt-3 text-xs text-ui-subtext">Click the GCash destination reference to enlarge it for review.</p>
             @else
                 <div class="mt-3 flex h-44 items-center justify-center rounded-2xl border border-dashed border-ui-border bg-ui-canvas/70 text-center">
                     <div>
@@ -163,7 +178,7 @@
                                 x-show="previewUrl"
                                 x-cloak
                                 @click="qrPreview = previewUrl"
-                                class="rounded-2xl border border-teal-100 bg-white p-4 text-left transition hover:shadow-md">
+                                class="w-fit rounded-2xl border border-teal-100 bg-white p-4 text-left transition hover:shadow-md">
                             <p class="text-xs font-semibold uppercase tracking-wider text-teal-700">Selected Preview</p>
                             <img :src="previewUrl"
                                  alt="Selected GCash payout QR preview"
@@ -173,7 +188,7 @@
                         @if($currentQrUrl)
                             <button type="button"
                                     @click="qrPreview = @js($currentQrUrl)"
-                                    class="rounded-2xl border border-ui-border bg-ui-canvas/70 p-4 text-left transition hover:shadow-md">
+                                    class="w-fit rounded-2xl border border-ui-border bg-ui-canvas/70 p-4 text-left transition hover:shadow-md">
                                 <p class="text-xs font-semibold uppercase tracking-wider text-ui-subtext">Saved QR</p>
                                 <img src="{{ $currentQrUrl }}"
                                      alt="Current GCash payout QR"

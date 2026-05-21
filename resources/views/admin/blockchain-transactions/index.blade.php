@@ -54,11 +54,11 @@
         ? 'Integrity Valid'
         : (filled($payload) ? 'Verification Metadata Unavailable' : 'Legacy Proof Record');
     $recordedLabel = fn ($transaction) => $transaction->recorded_at ? 'Proof Recorded' : 'Pending Timestamp';
-    $demoSafeNotice = 'Demo-safe payout layer: PHP/GCash disbursement is simulated to avoid requiring paid payout APIs or real-money transfers during judging. Settlement proof is still recorded through the Morph rail, with real EDUX ERC-20 testnet transfer metadata shown when enabled.';
+    $demoSafeNotice = 'Demo-safe payout layer: PHP/GCash disbursement is simulated to avoid requiring paid payout APIs or real-money transfers during judging. Settlement proof is still recorded through the Morph rail, with real EDUX Settlement Token metadata shown when enabled.';
     $eduxLabel = fn (array $metadata) => match ($metadata['edux_transfer_status'] ?? 'skipped') {
-        'success' => 'Real EDUX ERC-20 testnet transfer',
-        'failed' => 'EDUX transfer failed',
-        default => 'EDUX transfer skipped/not configured',
+        'success' => 'Real EDUX transfer',
+        'failed' => 'EDUX transfer failed safely',
+        default => 'EDUX transfer disabled for this payout',
     };
     $eduxTone = fn (array $metadata) => match ($metadata['edux_transfer_status'] ?? 'skipped') {
         'success' => 'success',
@@ -226,14 +226,14 @@
             <x-status-badge status="Audit-ready proofs" tone="proof" />
         </x-slot:actions>
 
-        <div class="hidden xl:block">
+        <div class="hidden">
             <table class="min-w-full divide-y divide-ui-border text-sm">
                 <thead class="bg-ui-canvas/70">
                     <tr>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Proof Type</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Reference</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Transaction Hash</th>
-                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Status</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Traceability</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Governance State</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Recorded</th>
                         <th class="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wider text-ui-subtext">Proof</th>
                     </tr>
@@ -267,7 +267,42 @@
                             $payoutChannel = $payload['payout_channel'] ?? data_get($proofBundle, 'payout_channel');
                             $settlementReference = $payload['settlement_reference'] ?? data_get($proofBundle, 'settlement_reference');
                             $network = $payload['network'] ?? data_get($proofBundle, 'network');
-                            $eduxTransfer = $payload['edux_transfer'] ?? data_get($proofBundle, 'edux_transfer', []);
+                            $linkedPayout = $settlement?->payouts?->first();
+                            $eduxTransfer = ($payload['edux_transfer'] ?? data_get($proofBundle, 'edux_transfer', [])) ?: ($linkedPayout?->metadata ?? []);
+                            $claimReference = $transaction->reference_code ?? $assistanceRequest?->reference_code ?? 'Pending reference';
+                            $linkedSettlementReference = $settlementReference ?? $linkedPayout?->settlement_reference ?? ($settlement ? 'Settlement #' . $settlement->id : null);
+                            $eduxHash = $eduxTransfer['edux_transaction_hash'] ?? null;
+                            $eduxStatus = $eduxTransfer['edux_transfer_status'] ?? null;
+                            $settlementReleased = $settlement && in_array($settlement->status, ['Released', 'Settled'], true);
+                            $settlementPendingLabel = $settlement ? 'Awaiting Settlement Release' : 'Settlement Not Generated';
+                            $settlementStageLabel = $settlementReleased ? 'Settlement Released' : $settlementPendingLabel;
+                            $eduxStageLabel = ! $settlementReleased
+                                ? 'Waiting for Settlement Release'
+                                : (($eduxStatus === 'success' || $eduxHash) ? 'EDUX Transfer Recorded' : ($eduxStatus === 'failed' ? 'EDUX Transfer Failed' : 'EDUX Transfer Skipped'));
+                            $eduxPendingCopy = ! $settlementReleased
+                                ? 'Waiting for settlement release'
+                                : (($eduxStatus === 'failed') ? ($eduxTransfer['edux_error'] ?? 'EDUX transfer failed safely') : (($eduxStatus === 'skipped' || blank($eduxHash)) ? 'EDUX transfer disabled for this payout' : $eduxHash));
+                            $workflowSteps = [
+                                ['label' => 'Request Submitted', 'state' => $assistanceRequest ? 'done' : 'pending'],
+                                ['label' => $assistanceRequest?->status === 'Approved' || $assistanceRequest?->approved_amount ? 'Approved' : 'Awaiting Approval', 'state' => $assistanceRequest?->status === 'Approved' || $assistanceRequest?->approved_amount ? 'done' : 'pending'],
+                                ['label' => $transaction->transaction_type === 'Claim' || $assistanceRequest?->is_claimed ? 'Merchant Validated' : 'Awaiting Merchant Validation', 'state' => $transaction->transaction_type === 'Claim' || $assistanceRequest?->is_claimed ? 'done' : 'pending'],
+                                ['label' => $settlement ? 'Settlement Generated' : 'Awaiting Settlement Generation', 'state' => $settlement ? 'done' : 'pending'],
+                                ['label' => $settlementStageLabel, 'state' => $settlementReleased ? 'done' : 'pending'],
+                                ['label' => $eduxStageLabel, 'state' => ($eduxStatus === 'success' || $eduxHash) ? 'done' : ($eduxStatus === 'failed' ? 'failed' : 'pending')],
+                                ['label' => $transaction->blockchain_status === 'Confirmed' ? 'Morph Proof Confirmed' : 'Morph Proof Pending', 'state' => $transaction->blockchain_status === 'Confirmed' ? 'done' : ($transaction->blockchain_status === 'Failed' ? 'failed' : 'pending')],
+                            ];
+                            $primaryReferenceLabel = $transaction->transaction_type === 'Settlement'
+                                ? ($linkedPayout?->settlement_reference ? 'Payout Reference' : 'Settlement Reference')
+                                : 'Claim Reference';
+                            $primaryReference = $transaction->transaction_type === 'Settlement'
+                                ? ($linkedSettlementReference ?? 'Settlement reference pending')
+                                : $claimReference;
+                            $eduxCanOpen = $transaction->transaction_type === 'Settlement'
+                                && filled($eduxHash)
+                                && str_starts_with((string) $eduxHash, '0x');
+                            $eduxLayerCopy = $transaction->transaction_type === 'Claim'
+                                ? 'Generated after settlement release'
+                                : $eduxPendingCopy;
                         @endphp
 
                         <tr class="transition hover:bg-ui-canvas/60">
@@ -293,7 +328,7 @@
                                                 <x-status-badge status="Validation Review" tone="warning" size="xs" />
                                             @endif
                                             @if($settlementRail)
-                                                <x-status-badge status="ERC-20-compatible rail" tone="proof" size="xs" />
+                                                <x-status-badge status="EDUX settlement rail" tone="proof" size="xs" />
                                             @endif
                                             @if($transaction->transaction_type === 'Settlement')
                                                 <x-status-badge :status="$eduxLabel($eduxTransfer)" :tone="$eduxTone($eduxTransfer)" size="xs" />
@@ -304,17 +339,25 @@
                             </td>
 
                             <td class="px-5 py-5 align-top">
-                                <p class="font-mono text-xs font-semibold text-ui-text">
-                                    {{ $transaction->reference_code ?? 'N/A' }}
-                                </p>
-
-                                <p class="mt-1 text-xs text-ui-subtext">
-                                    Reference #{{ $transaction->reference_id }}
-                                </p>
+                                <div class="rounded-xl border border-ui-border bg-gradient-to-br from-white to-ui-canvas/70 px-3 py-2 shadow-sm shadow-slate-200/50">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-ui-subtext">{{ $primaryReferenceLabel }}</p>
+                                    <p class="mt-1 break-all font-mono text-sm font-bold text-ui-text">{{ $primaryReference }}</p>
+                                    <p class="mt-1 text-xs text-ui-subtext">Reference #{{ $transaction->reference_id }}</p>
+                                </div>
 
                                 <p class="mt-2 text-xs text-ui-subtext">
                                     {{ $assistanceRequest?->member?->name ?? 'Member not linked' }}
                                 </p>
+
+                                <div class="mt-3 space-y-1 rounded-xl border border-ui-border bg-ui-canvas/60 px-3 py-2">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-ui-subtext">Linked Records</p>
+                                    <p class="break-all font-mono text-[11px] text-ui-text">Claim Reference: {{ $claimReference }}</p>
+                                    <p class="break-all font-mono text-[11px] text-ui-subtext">
+                                        {{ $linkedPayout?->settlement_reference ? 'Payout Reference' : 'Linked Settlement' }}:
+                                        {{ $linkedSettlementReference ?? 'Generated after payout release' }}
+                                    </p>
+                                    <p class="break-all font-mono text-[11px] text-ui-subtext">Linked EDUX Transfer: {{ $transaction->transaction_type === 'Settlement' ? ($eduxHash ? substr($eduxHash, 0, 12) . '...' . substr($eduxHash, -10) : $eduxPendingCopy) : 'Generated after settlement release' }}</p>
+                                </div>
                             </td>
 
                             <td class="px-5 py-5 align-top">
@@ -364,7 +407,7 @@
                                        target="_blank"
                                        rel="noopener noreferrer"
                                        class="btn-proof min-w-[8.75rem] whitespace-nowrap">
-                                        View on Morph
+                                        {{ $transaction->transaction_type === 'Settlement' ? 'View Settlement Proof' : 'View Claim Proof' }}
                                     </a>
                                 @elseif($transaction->blockchain_status === 'Pending')
                                     <form method="POST"
@@ -394,32 +437,18 @@
 
                         <tr class="border-t border-ui-border/40 bg-ui-surface">
                             <td colspan="6" class="px-5 pb-6">
-                                <div x-data="{ open: false }" class="proof-review-card rounded-2xl border border-ui-border bg-gradient-to-br from-white via-ui-canvas/80 to-cyan-50/40 p-4 shadow-sm shadow-slate-200/70">
-                                    <button type="button"
-                                            @click="open = !open"
-                                            class="flex w-full cursor-pointer flex-col gap-3 text-left sm:flex-row sm:items-center sm:justify-between">
+                                <div class="proof-review-card rounded-2xl border border-ui-border bg-gradient-to-br from-white via-ui-canvas/80 to-cyan-50/40 p-4 shadow-sm shadow-slate-200/70">
+                                    <div class="flex flex-col gap-2 border-b border-ui-border/70 pb-4 sm:flex-row sm:items-start sm:justify-between">
                                         <div>
-                                            <p class="text-sm font-semibold text-ui-text">Proof Bundle Review</p>
+                                            <p class="text-sm font-semibold text-ui-text">Institutional Proof Review</p>
                                             <p class="mt-1 text-xs text-ui-subtext">
-                                                Audit-oriented view of the recorded proof, validation summary, and reimbursement state.
+                                                Always-visible audit view of workflow state, proof layers, relationships, and Morph actions.
                                             </p>
                                         </div>
+                                        <x-status-badge status="Expanded audit view" tone="proof" size="xs" />
+                                    </div>
 
-                                        <span class="inline-flex w-fit items-center gap-2 rounded-xl border border-ui-border bg-white px-3 py-2 text-xs font-semibold text-ui-action shadow-sm transition hover:border-ui-action/20 hover:bg-ui-action/10">
-                                            <span x-text="open ? 'Collapse Proof Review' : 'Expand Proof Review'">Expand Proof Review</span>
-                                            <x-icon name="chevron-right" size="h-3.5 w-3.5 transition-transform duration-200" x-bind:class="open ? 'rotate-90' : ''" />
-                                        </span>
-                                    </button>
-
-                                    <div x-cloak
-                                         x-show="open"
-                                         x-transition:enter="transition ease-out duration-200"
-                                         x-transition:enter-start="opacity-0 -translate-y-1"
-                                         x-transition:enter-end="opacity-100 translate-y-0"
-                                         x-transition:leave="transition ease-in duration-150"
-                                         x-transition:leave-start="opacity-100 translate-y-0"
-                                         x-transition:leave-end="opacity-0 -translate-y-1"
-                                         class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1.2fr_1fr]">
+                                    <div class="mt-5 grid grid-cols-1 gap-4 lg:grid-cols-[1.15fr_.85fr]">
                                         <div class="rounded-2xl border border-ui-border bg-white/90 p-4 shadow-sm shadow-slate-200/60">
                                             <div class="flex flex-wrap gap-2">
                                                 <x-status-badge :status="$recordedLabel($transaction)" :tone="$transaction->recorded_at ? 'success' : 'warning'" />
@@ -427,7 +456,42 @@
                                                 <x-status-badge :status="$proofHash ? 'Timestamp Integrity Verified' : 'Timestamp Pending'" :tone="$proofHash ? 'success' : 'warning'" />
                                             </div>
 
+                                            <div class="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
+                                                <div class="proof-layer-card rounded-xl border p-3">
+                                                    <p class="text-xs font-bold uppercase tracking-wide text-ui-action">Claim Validation Proof</p>
+                                                    <p class="mt-1 text-xs leading-5 text-ui-subtext">Generated when the merchant validates the claim.</p>
+                                                    <p class="mt-2 break-all font-mono text-[11px] font-semibold text-ui-text">{{ $transaction->transaction_type === 'Claim' ? ($hash ?? 'No claim proof hash') : ($proofHash ? substr($proofHash, 0, 16) . '...' . substr($proofHash, -12) : 'See claim record') }}</p>
+                                                    @if($transaction->transaction_type === 'Claim' && $hasRealHash)
+                                                        <a href="{{ $explorerBaseUrl . $hash }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex rounded-lg border border-ui-action/20 bg-ui-action/10 px-2.5 py-1.5 text-[11px] font-semibold text-ui-action">View Claim Proof on Morph</a>
+                                                    @endif
+                                                </div>
+
+                                                <div class="proof-layer-card rounded-xl border p-3">
+                                                    <p class="text-xs font-bold uppercase tracking-wide text-teal-700">Settlement Release Proof</p>
+                                                    <p class="mt-1 text-xs leading-5 text-ui-subtext">Generated when the cooperative releases payout.</p>
+                                                    <p class="mt-2 break-all font-mono text-[11px] font-semibold text-teal-900">{{ $transaction->transaction_type === 'Settlement' ? ($hash ?? 'No settlement proof hash') : ($linkedSettlementReference ?? 'Generated after payout release') }}</p>
+                                                    @if($transaction->transaction_type === 'Settlement' && $hasRealHash)
+                                                        <a href="{{ $explorerBaseUrl . $hash }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex rounded-lg border border-teal-100 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-teal-700">View Settlement Proof on Morph</a>
+                                                    @endif
+                                                </div>
+
+                                                <div class="proof-layer-card rounded-xl border p-3">
+                                                    <p class="text-xs font-bold uppercase tracking-wide text-cyan-700">EDUX Settlement Token Transfer</p>
+                                                    <p class="mt-1 text-xs leading-5 text-ui-subtext">Real Morph testnet token transfer generated after payout release.</p>
+                                                    <p class="mt-2 break-all font-mono text-[11px] font-semibold text-cyan-900">{{ $eduxLayerCopy }}</p>
+                                                    @if($eduxCanOpen)
+                                                        <a href="{{ $explorerBaseUrl . $eduxTransfer['edux_transaction_hash'] }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex rounded-lg border border-cyan-100 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-cyan-700">View EDUX Transfer on Morph</a>
+                                                    @endif
+                                                </div>
+                                            </div>
+
                                             <dl class="mt-4 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+                                                <div class="md:col-span-2">
+                                                    <dt class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Relationship Anchor</dt>
+                                                    <dd class="mt-1 break-all font-mono text-xs font-semibold text-ui-text">Claim Reference: {{ $claimReference }}</dd>
+                                                    <dd class="mt-1 break-all font-mono text-xs text-ui-subtext">{{ $linkedPayout?->settlement_reference ? 'Payout Reference' : 'Linked Settlement' }}: {{ $linkedSettlementReference ?? 'Generated after payout release' }}</dd>
+                                                    <dd class="mt-1 break-all font-mono text-xs text-ui-subtext">Linked EDUX Transfer: {{ $transaction->transaction_type === 'Settlement' ? ($eduxHash ? substr($eduxHash, 0, 14) . '...' . substr($eduxHash, -12) : $eduxPendingCopy) : 'Generated after settlement release' }}</dd>
+                                                </div>
                                                 <div>
                                                     <dt class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Event Type</dt>
                                                     <dd class="mt-1 font-semibold text-ui-text">{{ str($eventType)->replace('_', ' ')->title() }}</dd>
@@ -470,7 +534,7 @@
                                                         </div>
                                                         <div>
                                                             <dt class="text-xs text-teal-700">Settlement Rail</dt>
-                                                            <dd class="font-semibold text-teal-900">{{ $settlementRail ?? 'ERC-20-compatible' }}</dd>
+                                                            <dd class="font-semibold text-teal-900">{{ $settlementRail ?? 'EDUX Settlement Token' }}</dd>
                                                         </div>
                                                         <div>
                                                             <dt class="text-xs text-teal-700">Network</dt>
@@ -487,9 +551,12 @@
                                             @if($transaction->transaction_type === 'Settlement')
                                                 <div class="mt-4 rounded-xl border border-cyan-100 bg-cyan-50 p-3">
                                                     <div class="flex flex-wrap items-center gap-2">
-                                                        <p class="text-xs font-semibold uppercase tracking-wide text-cyan-700">EDUX Transfer Proof</p>
+                                                        <p class="text-xs font-semibold uppercase tracking-wide text-cyan-700">EDUX Settlement Token Proof</p>
                                                         <x-status-badge :status="$eduxLabel($eduxTransfer)" :tone="$eduxTone($eduxTransfer)" size="xs" />
                                                     </div>
+                                                    <p class="mt-2 text-xs leading-5 text-cyan-700">
+                                                        EDUX is EduNexUs' demo settlement token used to record real settlement movement on Morph testnet while PHP/GCash payout remains operationally simulated.
+                                                    </p>
                                                     <dl class="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
                                                         <div>
                                                             <dt class="text-xs text-cyan-700">Token Amount</dt>
@@ -533,11 +600,12 @@
 
                                         <div class="space-y-4">
                                             <div class="rounded-2xl border border-ui-border bg-white/90 p-4 shadow-sm shadow-slate-200/60">
-                                                <p class="text-sm font-semibold text-ui-text">Transaction Lifecycle</p>
+                                                <p class="text-sm font-semibold text-ui-text">Linked Workflow Chain</p>
+                                                <p class="mt-1 text-xs text-ui-subtext">Claim reference stays the primary audit anchor across settlement and EDUX layers.</p>
                                                 <div class="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold">
-                                                    @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', in_array($settlement?->status, ['Released', 'Settled'], true) ? 'Settlement Released' : ($settlement?->status === 'Partially Released' ? 'Partial Payout Released' : 'Release Pending'), 'Morph Proof Recorded'] as $step)
-                                                        <span class="rounded-full px-3 py-1.5 {{ str_contains($step, 'Pending') ? 'bg-amber-50 text-ui-warning ring-1 ring-amber-100' : 'bg-emerald-50 text-ui-success ring-1 ring-emerald-100' }}">
-                                                            {{ $step }}
+                                                    @foreach($workflowSteps as $step)
+                                                        <span class="rounded-full px-3 py-1.5 {{ $step['state'] === 'done' ? 'bg-emerald-50 text-ui-success ring-1 ring-emerald-100' : ($step['state'] === 'failed' ? 'bg-rose-50 text-ui-danger ring-1 ring-rose-100' : 'bg-amber-50 text-ui-warning ring-1 ring-amber-100') }}">
+                                                            {{ $step['label'] }}
                                                         </span>
                                                     @endforeach
                                                 </div>
@@ -593,7 +661,7 @@
             </table>
         </div>
 
-        <div class="divide-y divide-ui-border/80 xl:hidden">
+        <div class="divide-y divide-ui-border/80">
             @forelse($transactions as $transaction)
                 @php
                     $hash = $transaction->transaction_hash;
@@ -621,18 +689,53 @@
                     $payoutChannel = $payload['payout_channel'] ?? data_get($proofBundle, 'payout_channel');
                     $settlementReference = $payload['settlement_reference'] ?? data_get($proofBundle, 'settlement_reference');
                     $network = $payload['network'] ?? data_get($proofBundle, 'network');
-                    $eduxTransfer = $payload['edux_transfer'] ?? data_get($proofBundle, 'edux_transfer', []);
+                    $linkedPayout = $settlement?->payouts?->first();
+                    $eduxTransfer = ($payload['edux_transfer'] ?? data_get($proofBundle, 'edux_transfer', [])) ?: ($linkedPayout?->metadata ?? []);
+                    $claimReference = $transaction->reference_code ?? $assistanceRequest?->reference_code ?? 'Pending reference';
+                    $linkedSettlementReference = $settlementReference ?? $linkedPayout?->settlement_reference ?? ($settlement ? 'Settlement #' . $settlement->id : null);
+                    $eduxHash = $eduxTransfer['edux_transaction_hash'] ?? null;
+                    $eduxStatus = $eduxTransfer['edux_transfer_status'] ?? null;
+                    $settlementReleased = $settlement && in_array($settlement->status, ['Released', 'Settled'], true);
+                    $settlementPendingLabel = $settlement ? 'Awaiting Settlement Release' : 'Settlement Not Generated';
+                    $settlementStageLabel = $settlementReleased ? 'Settlement Released' : $settlementPendingLabel;
+                    $eduxStageLabel = ! $settlementReleased
+                        ? 'Waiting for Settlement Release'
+                        : (($eduxStatus === 'success' || $eduxHash) ? 'EDUX Transfer Recorded' : ($eduxStatus === 'failed' ? 'EDUX Transfer Failed' : 'EDUX Transfer Skipped'));
+                    $eduxPendingCopy = ! $settlementReleased
+                        ? 'Waiting for settlement release'
+                        : (($eduxStatus === 'failed') ? ($eduxTransfer['edux_error'] ?? 'EDUX transfer failed safely') : (($eduxStatus === 'skipped' || blank($eduxHash)) ? 'EDUX transfer disabled for this payout' : $eduxHash));
+                    $workflowSteps = [
+                        ['label' => 'Request Submitted', 'state' => $assistanceRequest ? 'done' : 'pending'],
+                        ['label' => $assistanceRequest?->status === 'Approved' || $assistanceRequest?->approved_amount ? 'Approved' : 'Awaiting Approval', 'state' => $assistanceRequest?->status === 'Approved' || $assistanceRequest?->approved_amount ? 'done' : 'pending'],
+                        ['label' => $transaction->transaction_type === 'Claim' || $assistanceRequest?->is_claimed ? 'Merchant Validated' : 'Awaiting Merchant Validation', 'state' => $transaction->transaction_type === 'Claim' || $assistanceRequest?->is_claimed ? 'done' : 'pending'],
+                        ['label' => $settlement ? 'Settlement Generated' : 'Awaiting Settlement Generation', 'state' => $settlement ? 'done' : 'pending'],
+                        ['label' => $settlementStageLabel, 'state' => $settlementReleased ? 'done' : 'pending'],
+                        ['label' => $eduxStageLabel, 'state' => ($eduxStatus === 'success' || $eduxHash) ? 'done' : ($eduxStatus === 'failed' ? 'failed' : 'pending')],
+                        ['label' => $transaction->blockchain_status === 'Confirmed' ? 'Morph Proof Confirmed' : 'Morph Proof Pending', 'state' => $transaction->blockchain_status === 'Confirmed' ? 'done' : ($transaction->blockchain_status === 'Failed' ? 'failed' : 'pending')],
+                    ];
+                    $primaryReferenceLabel = $transaction->transaction_type === 'Settlement'
+                        ? ($linkedPayout?->settlement_reference ? 'Payout Reference' : 'Settlement Reference')
+                        : 'Claim Reference';
+                    $primaryReference = $transaction->transaction_type === 'Settlement'
+                        ? ($linkedSettlementReference ?? 'Settlement reference pending')
+                        : $claimReference;
+                    $eduxCanOpen = $transaction->transaction_type === 'Settlement'
+                        && filled($eduxHash)
+                        && str_starts_with((string) $eduxHash, '0x');
+                    $eduxLayerCopy = $transaction->transaction_type === 'Claim'
+                        ? 'Generated after settlement release'
+                        : $eduxPendingCopy;
                 @endphp
 
-                <article class="p-4 sm:p-5">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <article class="p-4">
+                    <div class="grid gap-4 rounded-2xl border border-ui-border bg-white p-4 shadow-sm shadow-slate-200/60 xl:grid-cols-[1.1fr_1.75fr_1fr] xl:items-start">
                         <div class="flex min-w-0 items-start gap-3">
                             <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-ui-canvas text-ui-action ring-1 ring-ui-border">
                                 <x-icon :name="$typeIcons($transaction->transaction_type)" size="h-5 w-5" />
                             </div>
 
                             <div class="min-w-0">
-                                <div class="flex flex-wrap gap-2">
+                                <div class="flex flex-wrap gap-1.5">
                                     <x-status-badge :status="$transaction->transaction_type" :tone="$typeTone($transaction->transaction_type)" />
                                     <x-status-badge :status="$transaction->blockchain_status" :tone="$statusTone($transaction->blockchain_status)" />
                                     <x-status-badge :status="$integrityLabel($proofHash, $payload)" :tone="$proofHash ? 'success' : 'neutral'" />
@@ -641,30 +744,104 @@
                                         <x-status-badge status="Validation Passed" tone="success" />
                                     @endif
                                     @if($settlementRail)
-                                        <x-status-badge status="ERC-20-compatible rail" tone="proof" />
+                                        <x-status-badge status="EDUX settlement rail" tone="proof" />
                                     @endif
                                     @if($transaction->transaction_type === 'Settlement')
                                         <x-status-badge :status="$eduxLabel($eduxTransfer)" :tone="$eduxTone($eduxTransfer)" />
                                     @endif
                                 </div>
 
-                                <p class="mt-2 font-mono text-xs font-semibold text-ui-text">
-                                    {{ $transaction->reference_code ?? 'N/A' }}
-                                </p>
+                                <div class="mt-3 rounded-xl border border-ui-border bg-gradient-to-br from-white to-ui-canvas/70 px-3 py-2 shadow-sm shadow-slate-200/50">
+                                    <p class="text-[11px] font-semibold uppercase tracking-wide text-ui-subtext">{{ $primaryReferenceLabel }}</p>
+                                    <p class="mt-1 break-all font-mono text-sm font-bold text-ui-text">{{ $primaryReference }}</p>
+                                    <p class="mt-1 text-xs text-ui-subtext">Reference #{{ $transaction->reference_id }}</p>
+                                </div>
 
-                                <p class="mt-1 text-xs text-ui-subtext">
-                                Reference #{{ $transaction->reference_id }}
-                            </p>
+                            <dl class="mt-3 grid grid-cols-1 gap-2 text-sm">
+                                <div>
+                                    <dt class="text-[11px] font-semibold uppercase tracking-wide text-ui-subtext">Member</dt>
+                                    <dd class="mt-0.5 font-semibold text-ui-text">{{ $assistanceRequest?->member?->name ?? 'Member not linked' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[11px] font-semibold uppercase tracking-wide text-ui-subtext">Merchant</dt>
+                                    <dd class="mt-0.5 font-semibold text-ui-text">{{ $merchantProfile?->business_name ?? $merchant?->name ?? 'Merchant not linked' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[11px] font-semibold uppercase tracking-wide text-ui-subtext">Program</dt>
+                                    <dd class="mt-0.5 font-semibold text-ui-text">{{ $assistanceRequest?->program?->program_name ?? 'Program not linked' }}</dd>
+                                </div>
+                            </dl>
 
-                            <p class="mt-1 text-xs text-ui-subtext">
-                                {{ $assistanceRequest?->member?->name ?? 'Member not linked' }}
-                            </p>
+                        </div>
+                        </div>
+
+                    <div class="space-y-3">
+                        <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
+                            <p class="text-[11px] font-semibold uppercase tracking-wide text-ui-subtext">Workflow</p>
+                            <div class="mt-2 flex flex-wrap gap-1.5 text-[11px] font-semibold">
+                                @foreach($workflowSteps as $step)
+                                    <span class="rounded-full px-2.5 py-1 {{ $step['state'] === 'done' ? 'bg-emerald-50 text-ui-success ring-1 ring-emerald-100' : ($step['state'] === 'failed' ? 'bg-rose-50 text-ui-danger ring-1 ring-rose-100' : 'bg-amber-50 text-ui-warning ring-1 ring-amber-100') }}">{{ $step['label'] }}</span>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                            <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
+                                <p class="text-[11px] font-semibold uppercase tracking-wide text-ui-subtext">Traceability</p>
+                                <dl class="mt-2 space-y-1 text-xs">
+                                    <div>
+                                        <dt class="font-semibold text-ui-subtext">Linked Claim</dt>
+                                        <dd class="break-all font-mono font-semibold text-ui-text">{{ $claimReference }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="font-semibold text-ui-subtext">Linked Settlement</dt>
+                                        <dd class="break-all font-mono text-ui-text">{{ $linkedSettlementReference ?? 'Generated after payout release' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="font-semibold text-ui-subtext">Linked EDUX Transfer</dt>
+                                        <dd class="break-all font-mono text-ui-text">{{ $transaction->transaction_type === 'Settlement' ? ($eduxHash ? substr($eduxHash, 0, 12) . '...' . substr($eduxHash, -10) : $eduxPendingCopy) : 'Generated after settlement release' }}</dd>
+                                    </div>
+                                </dl>
+                            </div>
+
+                            <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
+                                <p class="text-[11px] font-semibold uppercase tracking-wide text-ui-subtext">Validation</p>
+                                <p class="mt-2 text-sm font-bold text-ui-text">{{ $totalRules > 0 ? $passedRules . ' passed checks' : 'No checks stored' }}</p>
+                                <p class="mt-1 text-xs font-semibold {{ $failedRules > 0 ? 'text-ui-danger' : 'text-ui-success' }}">{{ $failedRules > 0 ? $failedRules . ' failed checks' : 'No failed checks' }}</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 gap-3 2xl:grid-cols-3">
+                        <div class="proof-layer-card rounded-xl border p-3 min-w-0">
+                            <p class="text-xs font-bold uppercase tracking-wide text-ui-action">Claim Validation Proof</p>
+                            <p class="mt-2 break-all font-mono text-[11px] font-semibold text-ui-text">{{ $transaction->transaction_type === 'Claim' ? ($hash ?? 'No claim proof hash') : ($proofHash ? substr($proofHash, 0, 16) . '...' . substr($proofHash, -12) : 'See claim record') }}</p>
+                            @if($transaction->transaction_type === 'Claim' && $hasRealHash)
+                                <a href="{{ $explorerBaseUrl . $hash }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex rounded-lg border border-ui-action/20 bg-ui-action/10 px-2.5 py-1.5 text-[11px] font-semibold text-ui-action">View Claim Proof</a>
+                            @endif
+                        </div>
+
+                        <div class="proof-layer-card rounded-xl border p-3 min-w-0">
+                            <p class="text-xs font-bold uppercase tracking-wide text-teal-700">Settlement Release Proof</p>
+                            <p class="mt-2 break-all font-mono text-[11px] font-semibold text-teal-900">{{ $transaction->transaction_type === 'Settlement' ? ($hash ?? 'No settlement proof hash') : ($linkedSettlementReference ?? 'Generated after payout release') }}</p>
+                            @if($transaction->transaction_type === 'Settlement' && $hasRealHash)
+                                <a href="{{ $explorerBaseUrl . $hash }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex rounded-lg border border-teal-100 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-teal-700">View Settlement Proof</a>
+                            @endif
+                        </div>
+
+                        <div class="proof-layer-card rounded-xl border p-3 min-w-0">
+                            <p class="text-xs font-bold uppercase tracking-wide text-cyan-700">EDUX Settlement Token Transfer</p>
+                            <p class="mt-2 break-all font-mono text-[11px] font-semibold text-cyan-900">{{ $eduxLayerCopy }}</p>
+                            @if($eduxCanOpen)
+                                <a href="{{ $explorerBaseUrl . $eduxTransfer['edux_transaction_hash'] }}" target="_blank" rel="noopener noreferrer" class="mt-2 inline-flex rounded-lg border border-cyan-100 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-cyan-700">View EDUX Transfer</a>
+                            @endif
                         </div>
                     </div>
+
                     </div>
 
-                    <dl class="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
-                        <div class="rounded-xl bg-ui-canvas/70 p-3 sm:col-span-2">
+                    <div class="space-y-3">
+                    <dl class="space-y-3 text-sm">
+                        <div class="rounded-xl border border-ui-border bg-ui-canvas/70 p-3">
                             <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">Transaction Hash</dt>
                             <dd class="mt-1 break-all font-mono text-xs font-semibold text-ui-text" title="{{ $hash ?? 'No transaction hash recorded' }}">
                                 {{ $shortHash }}
@@ -675,15 +852,15 @@
                         </div>
 
                         @if($proofHash)
-                            <div class="rounded-xl bg-cyan-50 p-3 sm:col-span-2">
+                            <div class="rounded-xl border border-cyan-100 bg-cyan-50 p-3">
                                 <dt class="text-xs font-medium uppercase tracking-wide text-cyan-700">Proof Bundle Hash</dt>
                                 <dd class="mt-1 break-all font-mono text-xs font-semibold text-cyan-800" title="{{ $proofHash }}">
-                                    {{ $proofHash }}
+                                    {{ substr($proofHash, 0, 18) }}...{{ substr($proofHash, -12) }}
                                 </dd>
                             </div>
                         @endif
 
-                        <div class="rounded-xl bg-ui-canvas/70 p-3">
+                        <div class="rounded-xl border border-ui-border bg-ui-canvas/70 p-3">
                             <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">Recorded</dt>
                             <dd class="mt-1 font-semibold text-ui-text">
                                 {{ $transaction->recorded_at?->format('M d, Y') ?? 'Not recorded' }}
@@ -693,7 +870,7 @@
                             </dd>
                         </div>
 
-                        <div class="rounded-xl bg-ui-canvas/70 p-3">
+                        <div class="hidden">
                             <dt class="text-xs font-medium uppercase tracking-wide text-ui-subtext">Proof Layer</dt>
                             <dd class="mt-1 font-semibold text-ui-text">
                                 {{ str($eventType)->replace('_', ' ')->title() }}
@@ -704,18 +881,19 @@
                         </div>
 
                         @if($settlementRail || $payoutChannel)
-                            <div class="rounded-xl bg-teal-50 p-3 sm:col-span-2">
+                            <div class="hidden">
                                 <dt class="text-xs font-medium uppercase tracking-wide text-teal-700">Settlement Rail</dt>
                                 <dd class="mt-1 font-semibold text-teal-900">&#8369;{{ number_format((float) ($payload['peso_amount'] ?? $approvedAmount), 2) }} via {{ $payoutChannel ?? 'GCash/PHP simulation' }}</dd>
-                                <dd class="mt-1 text-xs text-teal-700">{{ $settlementRail ?? 'ERC-20-compatible' }} · {{ $network ?? 'Morph testnet' }}</dd>
+                                <dd class="mt-1 text-xs text-teal-700">{{ $settlementRail ?? 'EDUX Settlement Token' }} · {{ $network ?? 'Morph testnet' }}</dd>
                                 <dd class="mt-1 break-all font-mono text-xs font-semibold text-teal-900">{{ $settlementReference ?? 'Reference unavailable' }}</dd>
                             </div>
                         @endif
 
                         @if($transaction->transaction_type === 'Settlement')
-                            <div class="rounded-xl bg-cyan-50 p-3 sm:col-span-2">
-                                <dt class="text-xs font-medium uppercase tracking-wide text-cyan-700">EDUX Transfer Proof</dt>
+                            <div class="hidden">
+                                <dt class="text-xs font-medium uppercase tracking-wide text-cyan-700">EDUX Settlement Token Proof</dt>
                                 <dd class="mt-1 font-semibold text-cyan-900">{{ $eduxLabel($eduxTransfer) }}</dd>
+                                <dd class="mt-1 text-xs text-cyan-700">EDUX records real settlement movement on Morph testnet while PHP/GCash payout remains operationally simulated.</dd>
                                 <dd class="mt-1 text-xs text-cyan-700">{{ $eduxTransfer['edux_amount'] ?? '1' }} {{ $eduxTransfer['edux_token_symbol'] ?? 'EDUX' }} to Morph testnet recipient</dd>
                                 <dd class="mt-1 break-all font-mono text-xs font-semibold text-cyan-900">{{ $eduxTransfer['edux_transaction_hash'] ?? ($eduxTransfer['edux_error'] ?? 'No EDUX transfer hash recorded') }}</dd>
                                 @if($eduxTransfer['edux_to'] ?? null)
@@ -725,84 +903,13 @@
                         @endif
                     </dl>
 
-                    <div x-data="{ open: false }" class="proof-review-card mt-4 rounded-2xl border border-ui-border bg-gradient-to-br from-white via-ui-canvas/80 to-cyan-50/40 p-4 shadow-sm shadow-slate-200/70">
-                        <button type="button"
-                                @click="open = !open"
-                                class="flex w-full items-center justify-between gap-3 text-left text-sm font-semibold text-ui-action">
-                            <span x-text="open ? 'Collapse Proof Review' : 'Expand Proof Review'">Expand Proof Review</span>
-                            <x-icon name="chevron-right" size="h-4 w-4 transition-transform duration-200" x-bind:class="open ? 'rotate-90' : ''" />
-                        </button>
-
-                        <div x-cloak
-                             x-show="open"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 -translate-y-1"
-                             x-transition:enter-end="opacity-100 translate-y-0"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 translate-y-0"
-                             x-transition:leave-end="opacity-0 -translate-y-1"
-                             class="mt-4 space-y-4">
-                            <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
-                                <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Audit Summary</p>
-                                <dl class="mt-3 grid grid-cols-1 gap-3 text-sm">
-                                    <div>
-                                        <dt class="text-xs text-ui-subtext">Member</dt>
-                                        <dd class="font-semibold text-ui-text">{{ $assistanceRequest?->member?->name ?? 'Not linked' }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-xs text-ui-subtext">Merchant</dt>
-                                        <dd class="font-semibold text-ui-text">{{ $merchantProfile?->business_name ?? $merchant?->name ?? 'Not linked' }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-xs text-ui-subtext">Approved Amount</dt>
-                                        <dd class="font-semibold text-ui-text">&#8369;{{ number_format((float) $approvedAmount, 2) }}</dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-xs text-ui-subtext">Settlement</dt>
-                                        <dd class="mt-1"><x-status-badge :status="$settlementLabel($settlement)" :tone="$settlementTone($settlement)" size="xs" /></dd>
-                                    </div>
-                                </dl>
-                            </div>
-
-                            <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
-                                <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Lifecycle</p>
-                                <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                                    @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', in_array($settlement?->status, ['Released', 'Settled'], true) ? 'Settlement Released' : ($settlement?->status === 'Partially Released' ? 'Partial Payout Released' : 'Release Pending'), 'Morph Proof Recorded'] as $step)
-                                        <span class="rounded-full px-3 py-1.5 {{ str_contains($step, 'Pending') ? 'bg-amber-50 text-ui-warning ring-1 ring-amber-100' : 'bg-emerald-50 text-ui-success ring-1 ring-emerald-100' }}">{{ $step }}</span>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            @if($proofHash)
-                                <div class="rounded-xl border border-cyan-100 bg-cyan-50 p-3">
-                                    <p class="text-xs font-semibold uppercase tracking-wide text-cyan-700">Verified Proof Hash</p>
-                                    <p class="mt-1 break-all font-mono text-xs font-semibold text-cyan-900">{{ $proofHash }}</p>
-                                </div>
-                            @endif
-
-                            @if(count($validationRules) > 0)
-                                <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
-                                    <p class="text-sm font-semibold text-ui-text">{{ $passedRules }} of {{ $totalRules }} governance checks passed</p>
-                                    <div class="mt-3 space-y-2">
-                                        @foreach($validationRules as $rule)
-                                            <div class="rounded-lg {{ ($rule['passed'] ?? false) ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800' }} px-3 py-2">
-                                                <p class="text-xs font-semibold">{{ $rule['label'] ?? 'Governance check' }}</p>
-                                                <p class="mt-1 text-xs">{{ $rule['message'] ?? 'No message stored.' }}</p>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="mt-4 flex justify-center sm:justify-start">
+                    <div class="mt-3 flex justify-center sm:justify-start xl:justify-end">
                         @if($hasRealHash)
                             <a href="{{ $explorerBaseUrl . $hash }}"
                                target="_blank"
                                rel="noopener noreferrer"
-                               class="btn-proof w-full max-w-[10rem] whitespace-nowrap sm:w-auto sm:min-w-[8.75rem]">
-                                View on Morph
+                               class="btn-proof w-full justify-center whitespace-nowrap sm:w-auto sm:min-w-[8.75rem]">
+                                {{ $transaction->transaction_type === 'Settlement' ? 'View Settlement Proof' : 'View Claim Proof' }}
                             </a>
                         @elseif($transaction->blockchain_status === 'Pending')
                             <form method="POST"
@@ -827,6 +934,8 @@
                                 No proof link
                             </span>
                         @endif
+                    </div>
+                    </div>
                     </div>
                 </article>
             @empty

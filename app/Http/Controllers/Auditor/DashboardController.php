@@ -14,7 +14,7 @@ class DashboardController extends Controller
             'totalClaims' => AssistanceRequest::where('is_claimed', true)->count(),
             'confirmedProofs' => BlockchainTransaction::where('blockchain_status', 'Confirmed')->count(),
             'pendingProofs' => BlockchainTransaction::where('blockchain_status', 'Pending')->count(),
-            'recentTransactions' => BlockchainTransaction::latest()->take(10)->get(),
+            'recentTransactions' => BlockchainTransaction::latest()->take(5)->get(),
         ]);
     }
 }

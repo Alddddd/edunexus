@@ -28,16 +28,24 @@
             return null;
         }
 
-        return str_starts_with($path, 'http://') || str_starts_with($path, 'https://')
-            ? $path
-            : asset('storage/' . $path);
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        $normalizedPath = preg_replace('#^public/#', '', $path);
+
+        return \Illuminate\Support\Facades\Storage::disk('public')->exists($normalizedPath)
+            ? \Illuminate\Support\Facades\Storage::disk('public')->url($normalizedPath)
+            : null;
     };
+    $explorerBaseUrl = 'https://explorer-hoodi.morph.network/tx/';
+    $canOpenExplorer = fn (?string $hash) => filled($hash) && str_starts_with((string) $hash, '0x');
 
     $demoSafeNotice = 'Demo-safe payout layer: PHP/GCash disbursement is simulated to avoid requiring paid payout APIs or real-money transfers during judging. When enabled, a real EDUX ERC-20 testnet transfer is recorded as settlement proof on Morph.';
     $eduxLabel = fn (?array $metadata) => match ($metadata['edux_transfer_status'] ?? 'skipped') {
         'success' => 'Real ERC-20 testnet transfer',
-        'failed' => 'EDUX transfer failed',
-        default => 'EDUX transfer skipped/not configured',
+        'failed' => 'EDUX transfer failed safely',
+        default => 'EDUX transfer disabled for this payout',
     };
     $eduxTone = fn (?array $metadata) => match ($metadata['edux_transfer_status'] ?? 'skipped') {
         'success' => 'success',
@@ -165,9 +173,10 @@
                     $payoutReady = filled($merchantProfile?->payout_account_name) && filled($merchantProfile?->payout_account_number);
                     $latestPayout = $settlement->payouts->first();
                     $latestPayoutMetadata = $latestPayout?->metadata ?? [];
+                    $payoutQrPreview = $payoutQrUrl($merchantProfile?->payout_qr);
                 @endphp
 
-                <article x-data="{ payoutOpen: false, qrPreview: null }"
+                <article x-data="{ payoutOpen: false, qrPreview: null, payoutType: 'full' }"
                          class="overflow-hidden rounded-2xl border border-ui-border bg-white shadow-sm shadow-slate-200/60">
                     <div class="grid gap-4 p-4 lg:grid-cols-[1.15fr_.9fr_.85fr_auto] lg:items-center">
                         <div class="min-w-0">
@@ -254,9 +263,9 @@
 
                     <div class="grid gap-0 border-t border-ui-border bg-slate-50/60 text-sm lg:grid-cols-3">
                         <div class="border-b border-ui-border p-4 lg:border-b-0 lg:border-r">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Settlement Rail</p>
+                            <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Payout Details</p>
                             <p class="mt-2 font-semibold text-ui-text">GCash/PHP simulation</p>
-                            <p class="mt-1 text-xs leading-5 text-ui-subtext">Morph testnet proof with optional EDUX transfer</p>
+                            <p class="mt-1 text-xs leading-5 text-ui-subtext">GCash QR identifies the payout destination reference; it is not the payment itself.</p>
                             @if($latestPayout)
                                 <div class="mt-2">
                                     <x-status-badge :status="$eduxLabel($latestPayoutMetadata)" :tone="$eduxTone($latestPayoutMetadata)" size="xs" />
@@ -268,17 +277,44 @@
                         </div>
 
                         <div class="border-b border-ui-border p-4 lg:border-b-0 lg:border-r">
-                            <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Proof Metadata</p>
-                            @if($settlementProofRecord)
-                                <p class="mt-2 truncate font-mono text-xs font-semibold text-teal-800">{{ $settlementProofData['settlement_reference'] ?? 'Settlement reference recorded' }}</p>
-                                @if($settlementProofData['proof_hash'] ?? null)
-                                    <p class="mt-1 break-all font-mono text-[11px] text-ui-subtext">{{ substr($settlementProofData['proof_hash'], 0, 16) }}...{{ substr($settlementProofData['proof_hash'], -12) }}</p>
-                                @endif
-                            @elseif($proofHash)
-                                <p class="mt-2 break-all font-mono text-[11px] text-ui-subtext">{{ substr($proofHash, 0, 16) }}...{{ substr($proofHash, -12) }}</p>
-                            @else
-                                <p class="mt-2 text-xs text-ui-subtext">Proof metadata appears after payout release.</p>
-                            @endif
+                            <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Blockchain Proof</p>
+                            <div class="mt-3 space-y-2">
+                                <div class="rounded-xl border border-cyan-100 bg-cyan-50 px-3 py-2">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-bold text-cyan-900">Claim Proof</p>
+                                            <p class="mt-1 break-all font-mono text-[11px] text-cyan-800">{{ $proofRecord?->transaction_hash ?: 'Pending Morph proof' }}</p>
+                                        </div>
+                                        @if($canOpenExplorer($proofRecord?->transaction_hash))
+                                            <a href="{{ $explorerBaseUrl . $proofRecord->transaction_hash }}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-xs font-semibold text-cyan-700 underline">View Morph</a>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-teal-100 bg-teal-50 px-3 py-2">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-bold text-teal-900">Settlement Proof</p>
+                                            <p class="mt-1 break-all font-mono text-[11px] text-teal-800">{{ $settlementProofRecord?->transaction_hash ?: 'Generated after payout release' }}</p>
+                                        </div>
+                                        @if($canOpenExplorer($settlementProofRecord?->transaction_hash))
+                                            <a href="{{ $explorerBaseUrl . $settlementProofRecord->transaction_hash }}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-xs font-semibold text-teal-700 underline">View Morph</a>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="rounded-xl border border-slate-200 bg-white px-3 py-2">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-bold text-slate-800">EDUX Transfer</p>
+                                            <p class="mt-1 break-all font-mono text-[11px] text-slate-600">{{ $latestPayoutMetadata['edux_transaction_hash'] ?? ($latestPayout ? $eduxLabel($latestPayoutMetadata) : 'Waiting for settlement release') }}</p>
+                                        </div>
+                                        @if($canOpenExplorer($latestPayoutMetadata['edux_transaction_hash'] ?? null))
+                                            <a href="{{ $explorerBaseUrl . $latestPayoutMetadata['edux_transaction_hash'] }}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-xs font-semibold text-slate-700 underline">View Morph</a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="p-4">
@@ -346,15 +382,17 @@
                                                         <dd class="mt-1 font-mono font-semibold text-teal-950">{{ $merchantProfile->payout_account_number }}</dd>
                                                     </div>
                                                     <div class="sm:text-right">
-                                                        @if($merchantProfile->payout_qr)
+                                                        @if($payoutQrPreview)
                                                             <button type="button"
-                                                                    @click="qrPreview = @js($payoutQrUrl($merchantProfile->payout_qr))"
-                                                                    class="rounded-xl border border-teal-200 bg-white p-1 transition hover:shadow-md sm:ml-auto">
-                                                                <img src="{{ $payoutQrUrl($merchantProfile->payout_qr) }}"
+                                                                    @click="qrPreview = @js($payoutQrPreview)"
+                                                                    class="inline-block max-w-fit rounded-xl border border-teal-200 bg-white p-1 transition hover:shadow-md sm:ml-auto">
+                                                                <img src="{{ $payoutQrPreview }}"
                                                                      alt="GCash payout QR for {{ $merchantProfile->business_name ?? 'merchant' }}"
-                                                                     class="h-24 w-24 rounded-lg bg-white object-cover">
+                                                                     class="h-24 w-24 rounded-lg bg-white object-contain">
                                                             </button>
-                                                            <p class="mt-2 text-xs font-semibold text-teal-700">QR available</p>
+                                                            <p class="mt-2 text-xs font-semibold text-teal-700">Destination QR reference</p>
+                                                        @elseif($merchantProfile->payout_qr)
+                                                            <p class="rounded-xl bg-white/70 px-3 py-2 text-xs font-semibold text-teal-700 ring-1 ring-teal-100">QR reference saved</p>
                                                         @else
                                                             <p class="rounded-xl bg-white/70 px-3 py-2 text-xs font-semibold text-teal-700 ring-1 ring-teal-100">No QR uploaded</p>
                                                         @endif
@@ -445,30 +483,47 @@
                                           data-loader-message="Updating the reimbursement lifecycle and notifying the merchant.">
                                         @csrf
 
-                                        <div class="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_12rem_auto] sm:items-end">
+                                        <input type="hidden" name="payout_type" :value="payoutType">
+
+                                        <div class="space-y-4">
                                             <div>
                                                 <label class="block text-xs font-semibold uppercase tracking-wide text-ui-subtext">Payout Mode</label>
-                                                <select name="payout_type" class="mt-1 w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500">
-                                                    <option value="full">Full payout - remaining balance</option>
-                                                    <option value="partial">Partial payout</option>
-                                                </select>
+                                                <div class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                                    <button type="button"
+                                                            @click="payoutType = 'full'"
+                                                            :class="payoutType === 'full' ? 'border-teal-300 bg-teal-50 ring-2 ring-teal-200' : 'border-ui-border bg-white'"
+                                                            class="rounded-2xl border p-4 text-left transition">
+                                                        <span class="block text-sm font-bold text-ui-text">Full Release</span>
+                                                        <span class="mt-1 block text-xs leading-5 text-ui-subtext">Release the remaining balance of &#8369;{{ number_format($remainingBalance, 2) }}.</span>
+                                                    </button>
+
+                                                    <button type="button"
+                                                            @click="payoutType = 'partial'"
+                                                            :class="payoutType === 'partial' ? 'border-teal-300 bg-teal-50 ring-2 ring-teal-200' : 'border-ui-border bg-white'"
+                                                            class="rounded-2xl border p-4 text-left transition">
+                                                        <span class="block text-sm font-bold text-ui-text">Partial Release</span>
+                                                        <span class="mt-1 block text-xs leading-5 text-ui-subtext">Release a controlled amount and keep the remaining balance open.</span>
+                                                    </button>
+                                                </div>
                                             </div>
 
-                                            <div>
+                                            <div x-show="payoutType === 'partial'" x-transition>
                                                 <label class="block text-xs font-semibold uppercase tracking-wide text-ui-subtext">Partial Amount</label>
                                                 <input type="number"
                                                        name="partial_amount"
                                                        min="0.01"
                                                        max="{{ $remainingBalance }}"
                                                        step="0.01"
-                                                       placeholder="Optional"
+                                                       placeholder="Enter amount up to {{ number_format($remainingBalance, 2) }}"
                                                        class="mt-1 w-full rounded-xl border-slate-200 text-sm focus:border-teal-500 focus:ring-teal-500">
                                             </div>
 
-                                            <button type="submit"
-                                                    class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-action px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor sm:w-auto">
-                                                Confirm Payout
-                                            </button>
+                                            <div class="flex justify-end">
+                                                <button type="submit"
+                                                        class="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-ui-action px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor sm:w-auto">
+                                                    Confirm Payout
+                                                </button>
+                                            </div>
                                         </div>
                                     </form>
                                 @endif

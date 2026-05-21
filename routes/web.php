@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\AssistanceProgramController;
 use App\Http\Controllers\Admin\AssistanceRequestController;
 use App\Http\Controllers\Admin\BlockchainTransactionController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\MerchantCategoryController;
 use App\Http\Controllers\Admin\MerchantController;
 use App\Http\Controllers\Admin\MerchantUserController;
 use App\Http\Controllers\Admin\ReportController;
@@ -52,6 +53,10 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
 
         Route::resource('/admin/assistance-programs', AssistanceProgramController::class)
             ->names('admin.assistance-programs');
+
+        Route::resource('/admin/merchant-categories', MerchantCategoryController::class)
+            ->except(['show'])
+            ->names('admin.merchant-categories');
 
         Route::resource('/admin/assistance-requests', AssistanceRequestController::class)
             ->only(['index', 'show'])
@@ -158,7 +163,13 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
                     ->where('status', 'Approved')
                     ->where('is_claimed', false)
                     ->whereHas('program', function ($query) use ($merchantProfile) {
-                        $query->where('merchant_category', $merchantProfile->merchant_category);
+                        $query->where(function ($query) use ($merchantProfile) {
+                            if ($merchantProfile->merchant_category_id) {
+                                $query->where('merchant_category_id', $merchantProfile->merchant_category_id);
+                            }
+
+                            $query->orWhere('merchant_category', $merchantProfile->merchant_category);
+                        });
                     })
                     ->latest()
                     ->take(5)
@@ -201,7 +212,7 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
                 ])
                 ->where('merchant_id', $merchantId)
                 ->latest()
-                ->paginate(8)
+                ->paginate(5)
                 ->withQueryString();
 
             $requestIds = $settlements->pluck('assistance_request_id')->filter();

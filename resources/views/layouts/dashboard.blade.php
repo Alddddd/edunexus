@@ -168,6 +168,15 @@
                             <span>Programs</span>
                         </a>
 
+                        <a href="{{ route('admin.merchant-categories.index') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+                           {{ request()->routeIs('admin.merchant-categories.*')
+                                ? 'bg-ui-action/10 text-ui-anchor shadow-sm ring-1 ring-ui-action/15'
+                                : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
+                            <x-icon name="list-checks" size="h-5 w-5 shrink-0" />
+                            <span>Categories</span>
+                        </a>
+
                         <a href="{{ route('admin.assistance-requests.index') }}"
                            class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
                            {{ request()->routeIs('admin.assistance-requests.*')
@@ -410,6 +419,15 @@
                                 : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
                             <x-icon name="lifebuoy" size="h-5 w-5 shrink-0" />
                             <span>Programs</span>
+                        </a>
+
+                        <a href="{{ route('admin.merchant-categories.index') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+                           {{ request()->routeIs('admin.merchant-categories.*')
+                                ? 'bg-ui-action/10 text-ui-anchor shadow-sm ring-1 ring-ui-action/15'
+                                : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
+                            <x-icon name="list-checks" size="h-5 w-5 shrink-0" />
+                            <span>Categories</span>
                         </a>
 
                         <a href="{{ route('admin.assistance-requests.index') }}"
@@ -684,7 +702,7 @@
                         </div>
 
                         <div class="max-h-[min(420px,calc(100vh-14rem))] divide-y divide-ui-border/70 overflow-y-auto">
-                            @forelse(auth()->user()->notifications->take(8) as $notification)
+                            @forelse(auth()->user()->notifications->take(5) as $notification)
                                 <div class="px-4 py-4 transition hover:bg-ui-canvas sm:px-5">
                                     <div class="flex items-start gap-3">
                                         <div class="mt-1 h-3 w-3 shrink-0 rounded-full
@@ -741,9 +759,10 @@
                 </div>
 
                 <!-- User Menu -->
-                <div class="relative min-w-0">
+                <div class="relative min-w-0" x-data="{ userMenuOpen: false }" @keydown.escape.window="userMenuOpen = false">
                     <button type="button"
                             id="user-menu-button"
+                            @click="userMenuOpen = !userMenuOpen"
                             class="flex max-w-[13rem] items-center gap-2 bg-ui-surface/85 rounded-xl border border-ui-border/80 px-2 py-2 shadow-sm shadow-ui-anchor/5 hover:bg-ui-surface transition sm:max-w-[17rem] sm:gap-3 sm:px-4 lg:max-w-[20rem]">
 
                         <div class="w-10 h-10 shrink-0 rounded-full bg-ui-action/10 flex items-center justify-center text-ui-action font-semibold ring-1 ring-ui-action/15">
@@ -767,7 +786,16 @@
 
                     <!-- Dropdown -->
                     <div id="user-dropdown"
-                         class="hidden absolute right-0 mt-3 w-72 max-w-[calc(100vw-2rem)] bg-ui-surface/95 rounded-2xl border border-ui-border shadow-lg shadow-ui-anchor/10 backdrop-blur-xl overflow-hidden z-50">
+                         x-cloak
+                         x-show="userMenuOpen"
+                         @click.away="userMenuOpen = false"
+                         x-transition:enter="transition ease-out duration-180"
+                         x-transition:enter-start="opacity-0 -translate-y-1 scale-[0.98]"
+                         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave="transition ease-in duration-120"
+                         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+                         x-transition:leave-end="opacity-0 -translate-y-1 scale-[0.98]"
+                         class="absolute right-0 mt-3 w-72 max-w-[calc(100vw-2rem)] origin-top-right overflow-hidden rounded-2xl border border-ui-border bg-ui-surface/95 shadow-xl shadow-ui-anchor/10 backdrop-blur-xl z-50">
 
                         <div class="px-5 py-4 border-b border-ui-border/70">
                             <p class="truncate font-semibold text-ui-text" title="{{ auth()->user()->name }}">
@@ -893,24 +921,6 @@
 </div>
 
 <script>
-    const userMenuButton = document.getElementById('user-menu-button');
-    const userDropdown = document.getElementById('user-dropdown');
-
-    userMenuButton?.addEventListener('click', () => {
-        userDropdown.classList.toggle('hidden');
-    });
-
-    window.addEventListener('click', function (e) {
-        if (
-            userMenuButton &&
-            userDropdown &&
-            !userMenuButton.contains(e.target) &&
-            !userDropdown.contains(e.target)
-        ) {
-            userDropdown.classList.add('hidden');
-        }
-    });
-
     document.querySelectorAll('[data-toast]').forEach((toast) => {
         const closeButton = toast.querySelector('[data-toast-close]');
         let dismissTimer;

@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\MerchantProfile;
+use App\Models\MerchantCategory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class MerchantSeeder extends Seeder
 {
@@ -72,11 +74,19 @@ class MerchantSeeder extends Seeder
         ?string $notes
     ): void {
         $user = $this->demoUser($email, $name, 'merchant');
+        $categoryRecord = MerchantCategory::firstOrCreate(
+            ['name' => $category],
+            [
+                'slug' => Str::slug($category),
+                'status' => 'Active',
+            ]
+        );
 
         MerchantProfile::updateOrCreate(
             ['user_id' => $user->id],
             [
                 'business_name' => $businessName,
+                'merchant_category_id' => $categoryRecord->id,
                 'merchant_category' => $category,
                 'contact_number' => $contactNumber,
                 'address' => $address,

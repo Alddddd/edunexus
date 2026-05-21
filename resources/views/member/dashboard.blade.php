@@ -9,7 +9,7 @@
     $statusTone = fn ($request) => $request?->is_claimed ? 'claimed' : ($request?->status ?? 'neutral');
 @endphp
 
-<div class="w-full min-w-0 max-w-7xl space-y-6 text-ui-anchor">
+<div class="w-full min-w-0 max-w-7xl space-y-5 text-ui-anchor">
     <x-page-header
         title="Welcome to EduNexUs"
         eyebrow="Member Portal"
@@ -28,25 +28,25 @@
     </x-page-header>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-action bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-action bg-ui-surface/95 p-5 shadow-[0_16px_38px_rgba(15,47,44,0.08)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Total Requests</p>
             <p class="mt-2 text-3xl font-bold text-ui-text">{{ number_format($totalRequests) }}</p>
             <p class="mt-1 text-sm text-ui-subtext">Submitted assistance requests</p>
         </div>
 
-        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-warning bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-warning bg-ui-surface/95 p-5 shadow-[0_16px_38px_rgba(15,47,44,0.08)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Pending Review</p>
             <p class="mt-2 text-3xl font-bold text-ui-warning">{{ number_format($pendingRequests) }}</p>
             <p class="mt-1 text-sm text-amber-600">Waiting for cooperative approval</p>
         </div>
 
-        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-success bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-success bg-ui-surface/95 p-5 shadow-[0_16px_38px_rgba(15,47,44,0.08)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Active Claim Passes</p>
             <p class="mt-2 text-3xl font-bold text-ui-success">{{ number_format($approvedClaimPasses) }}</p>
             <p class="mt-1 text-sm text-emerald-600">Ready for merchant validation</p>
         </div>
 
-        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-proof bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
+        <div class="min-w-0 rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-proof bg-ui-surface/95 p-5 shadow-[0_16px_38px_rgba(15,47,44,0.08)] ring-1 ring-ui-anchor/5">
             <p class="text-sm text-ui-subtext">Claimed Assistance</p>
             <p class="mt-2 text-3xl font-bold text-ui-proof">{{ number_format($claimedRequests) }}</p>
             <p class="mt-1 text-sm text-cyan-600">Processed by merchant</p>
@@ -57,7 +57,7 @@
         class="demo-surface-card"
         title="Request Lifecycle"
         description="A compact view of where your assistance records are in the cooperative workflow.">
-        <div class="mb-6 flex flex-wrap items-center gap-2 text-sm font-semibold">
+        <div class="mb-5 flex flex-wrap items-center gap-2 text-sm font-semibold">
             <div class="flex min-w-[7.5rem] flex-1 items-center justify-center rounded-full border border-ui-border/80 bg-ui-surface/85 px-3 py-2 text-center text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 ring-1 ring-ui-border/70 sm:flex-none">
                 <span class="min-w-0 truncate">Request</span>
             </div>
@@ -76,25 +76,25 @@
         </div>
 
         <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
-            <div class="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
+            <div class="rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wider text-amber-700">Pending</p>
                 <p class="mt-2 text-2xl font-bold text-amber-800">{{ number_format($pendingRequests) }}</p>
                 <p class="mt-1 text-xs text-amber-700">Editable until reviewed</p>
             </div>
 
-            <div class="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 shadow-sm">
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3.5 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700">Approved</p>
                 <p class="mt-2 text-2xl font-bold text-emerald-800">{{ number_format($approvedRequests) }}</p>
                 <p class="mt-1 text-xs text-emerald-700">QR/reference generated</p>
             </div>
 
-            <div class="rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 shadow-sm">
+            <div class="rounded-2xl border border-cyan-200 bg-cyan-50/80 p-3.5 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wider text-cyan-700">Claimed</p>
                 <p class="mt-2 text-2xl font-bold text-cyan-800">{{ number_format($claimedRequests) }}</p>
                 <p class="mt-1 text-xs text-cyan-700">Merchant validated</p>
             </div>
 
-            <div class="rounded-2xl border border-rose-200 bg-rose-50/80 p-4 shadow-sm">
+            <div class="rounded-2xl border border-rose-200 bg-rose-50/80 p-3.5 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wider text-rose-700">Rejected</p>
                 <p class="mt-2 text-2xl font-bold text-rose-800">{{ number_format($rejectedRequests) }}</p>
                 <p class="mt-1 text-xs text-rose-700">Closed after review</p>
@@ -115,23 +115,23 @@
 
             @if($latestRequest)
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div class="rounded-xl bg-ui-canvas/70 p-4">
+                    <div class="rounded-xl bg-ui-canvas/70 p-3.5">
                         <p class="text-xs font-semibold uppercase tracking-wider text-ui-subtext">Program</p>
                         <p class="mt-2 font-semibold text-ui-text">{{ $latestRequest->program->program_name ?? 'Assistance program' }}</p>
                     </div>
 
-                    <div class="rounded-xl bg-ui-canvas/70 p-4">
+                    <div class="rounded-xl bg-ui-canvas/70 p-3.5">
                         <p class="text-xs font-semibold uppercase tracking-wider text-ui-subtext">Amount</p>
                         <p class="mt-2 font-semibold text-ui-text">&#8369;{{ number_format($latestRequest->approved_amount ?? $latestRequest->requested_amount, 2) }}</p>
                     </div>
 
-                    <div class="rounded-xl bg-ui-canvas/70 p-4">
+                    <div class="rounded-xl bg-ui-canvas/70 p-3.5">
                         <p class="text-xs font-semibold uppercase tracking-wider text-ui-subtext">Reference</p>
                         <p class="mt-2 break-all font-mono text-xs font-semibold text-ui-text">{{ $latestRequest->reference_code ?? 'Pending approval' }}</p>
                     </div>
                 </div>
 
-                <div class="mt-5 rounded-2xl border border-teal-100 bg-teal-50 p-5">
+                <div class="mt-4 rounded-2xl border border-teal-100 bg-teal-50 p-4">
                     @if($latestRequest->is_claimed)
                         <p class="font-semibold text-cyan-800">Claim processed</p>
                         <p class="mt-1 text-sm text-cyan-700">This assistance has already been validated and processed by a merchant.</p>
@@ -219,7 +219,7 @@
             description="Track your latest assistance activity and claim pass status.">
             <div class="divide-y divide-ui-border/80">
                 @forelse($recentClaims as $claim)
-                    <div class="px-5 py-4 transition hover:bg-ui-canvas/70">
+                    <div class="px-5 py-3 transition hover:bg-ui-canvas/70">
                         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                             <div>
                                 <p class="font-semibold text-ui-text">{{ $claim->program->program_name ?? 'Assistance program' }}</p>
@@ -259,7 +259,7 @@
             <div class="space-y-3">
                 @forelse($recentNotifications as $notification)
                     <a href="{{ route('notifications.read', $notification->id) }}"
-                       class="block rounded-xl border border-ui-border bg-ui-canvas/60 p-4 transition hover:bg-ui-canvas">
+                       class="block rounded-xl border border-ui-border bg-ui-canvas/60 p-3.5 transition hover:bg-ui-canvas">
                         <div class="flex items-start justify-between gap-3">
                             <p class="font-semibold text-ui-text">{{ $notification->data['title'] ?? 'Notification' }}</p>
                             <x-status-badge :status="$notification->read_at ? 'Read' : 'Unread'" :tone="$notification->read_at ? 'neutral' : 'warning'" size="xs" />

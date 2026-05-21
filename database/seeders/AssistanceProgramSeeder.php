@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\AssistanceProgram;
+use App\Models\MerchantCategory;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class AssistanceProgramSeeder extends Seeder
 {
@@ -38,9 +40,18 @@ class AssistanceProgramSeeder extends Seeder
         ];
 
         foreach ($programs as $program) {
+            $category = MerchantCategory::firstOrCreate(
+                ['name' => $program['merchant_category']],
+                [
+                    'slug' => Str::slug($program['merchant_category']),
+                    'status' => 'Active',
+                ]
+            );
+
             AssistanceProgram::updateOrCreate(
                 ['program_name' => $program['program_name']],
                 $program + [
+                    'merchant_category_id' => $category->id,
                     'status' => 'Active',
                     'created_by' => $admin->id,
                 ]

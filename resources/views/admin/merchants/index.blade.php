@@ -66,7 +66,7 @@
                             </td>
 
                             <td class="px-5 py-4">
-                                <x-status-badge :status="$merchant->merchant_category" tone="proof" />
+                                <x-status-badge :status="$merchant->category?->name ?? $merchant->merchant_category" tone="proof" />
                             </td>
 
                             <td class="px-5 py-4">
@@ -124,7 +124,7 @@
                         </div>
 
                         <div class="flex flex-wrap gap-2 sm:justify-end">
-                            <x-status-badge :status="$merchant->merchant_category" tone="proof" />
+                            <x-status-badge :status="$merchant->category?->name ?? $merchant->merchant_category" tone="proof" />
                             <x-status-badge :status="$merchant->status" :tone="$merchant->status === 'Active' ? 'active' : 'neutral'" />
                         </div>
                     </div>

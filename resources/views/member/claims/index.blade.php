@@ -129,7 +129,7 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                             Expiration
                         </th>
-                        <th class="w-[27rem] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                        <th class="w-[18rem] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                             Action
                         </th>
                     </tr>
@@ -183,16 +183,16 @@
                             </td>
 
                             <td class="px-6 py-5 align-top">
-                                <div class="flex min-w-[25rem] items-center gap-2">
+                                <div class="flex flex-wrap items-center gap-2">
                                     @if($claim->status === 'Pending' && ! $claim->is_claimed)
                                         <a href="{{ route('member.assistance-requests.edit', $claim) }}"
-                                           class="inline-flex h-11 w-32 flex-none items-center justify-center rounded-xl bg-ui-anchor px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-ui-action">
+                                           class="inline-flex h-11 w-28 flex-none items-center justify-center rounded-xl bg-ui-anchor px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-ui-action">
                                             Edit
                                         </a>
 
                                         <form method="POST"
                                             action="{{ route('member.assistance-requests.destroy', $claim) }}"
-                                            class="w-32 flex-none"
+                                            class="w-28 flex-none"
                                             data-confirm
                                             data-confirm-title="Cancel this pending request?"
                                             data-confirm-message="This will delete the pending request before admin review."
@@ -212,7 +212,7 @@
                                     @endif
 
                                     <a href="{{ route('member.claims.show', $claim) }}"
-                                       class="inline-flex h-11 w-32 flex-none items-center justify-center rounded-xl bg-ui-action px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-ui-anchor">
+                                       class="inline-flex h-11 w-28 flex-none items-center justify-center rounded-xl bg-ui-action px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-ui-anchor">
                                         View Claim
                                     </a>
                                 </div>

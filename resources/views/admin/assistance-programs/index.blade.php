@@ -28,6 +28,7 @@
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Maximum Amount</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Expiration</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Status</th>
+                        <th class="px-5 py-4 text-right text-xs font-semibold uppercase tracking-wider text-ui-subtext">Actions</th>
                     </tr>
                 </thead>
 
@@ -41,7 +42,7 @@
                             </td>
 
                             <td class="px-5 py-4">
-                                <x-status-badge :status="$program->merchant_category" tone="proof" />
+                                <x-status-badge :status="$program->category?->name ?? $program->merchant_category" tone="proof" />
                             </td>
 
                             <td class="px-5 py-4 font-semibold text-ui-text">
@@ -55,10 +56,16 @@
                             <td class="px-5 py-4">
                                 <x-status-badge :status="$program->status" :tone="$program->status === 'Active' ? 'active' : 'neutral'" />
                             </td>
+                            <td class="px-5 py-4 text-right">
+                                <a href="{{ route('admin.assistance-programs.edit', $program) }}"
+                                   class="inline-flex min-h-10 items-center rounded-xl border border-ui-border bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas">
+                                    Edit
+                                </a>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center">
+                            <td colspan="6" class="px-6 py-12 text-center">
                                 <p class="font-medium text-ui-text">
                                     No assistance programs created yet.
                                 </p>
@@ -83,10 +90,14 @@
                             </p>
 
                             <div class="mt-2 flex flex-wrap gap-2">
-                                <x-status-badge :status="$program->merchant_category" tone="proof" />
+                                <x-status-badge :status="$program->category?->name ?? $program->merchant_category" tone="proof" />
                                 <x-status-badge :status="$program->status" :tone="$program->status === 'Active' ? 'active' : 'neutral'" />
                             </div>
                         </div>
+                        <a href="{{ route('admin.assistance-programs.edit', $program) }}"
+                           class="shrink-0 rounded-xl border border-ui-border bg-white px-3 py-2 text-xs font-semibold text-slate-700">
+                            Edit
+                        </a>
                     </div>
 
                     <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">

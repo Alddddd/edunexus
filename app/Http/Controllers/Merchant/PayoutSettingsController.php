@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Merchant;
 use App\Http\Controllers\Controller;
 use App\Models\MerchantProfile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PayoutSettingsController extends Controller
 {
@@ -27,6 +28,7 @@ class PayoutSettingsController extends Controller
         $merchantProfile = $this->merchantProfile();
 
         if ($request->hasFile('payout_qr')) {
+            $this->deletePublicQr($merchantProfile->payout_qr);
             $validated['payout_qr'] = $request->file('payout_qr')->store('merchant-payout-qr', 'public');
         } else {
             unset($validated['payout_qr']);
@@ -42,5 +44,14 @@ class PayoutSettingsController extends Controller
     private function merchantProfile(): MerchantProfile
     {
         return MerchantProfile::where('user_id', auth()->id())->firstOrFail();
+    }
+
+    private function deletePublicQr(?string $path): void
+    {
+        if (blank($path) || str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return;
+        }
+
+        Storage::disk('public')->delete(preg_replace('#^public/#', '', $path));
     }
 }

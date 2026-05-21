@@ -11,16 +11,20 @@ class ClaimValidationRuleService
     {
         $assistanceRequest->loadMissing('program');
 
-        $merchantCategoryAllowed =
-            $merchantProfile &&
-            $merchantProfile->status === 'Active' &&
-            strtolower($merchantProfile->merchant_category) === strtolower($assistanceRequest->program->merchant_category);
+        $program = $assistanceRequest->program;
+        $merchantCategoryAllowed = false;
+
+        if ($merchantProfile && $merchantProfile->status === 'Active' && $program) {
+            $merchantCategoryAllowed = $merchantProfile->merchant_category_id && $program->merchant_category_id
+                ? (int) $merchantProfile->merchant_category_id === (int) $program->merchant_category_id
+                : strtolower((string) $merchantProfile->merchant_category) === strtolower((string) $program->merchant_category);
+        }
 
         $amountWithinLimit =
             $assistanceRequest->approved_amount !== null &&
             (float) $assistanceRequest->approved_amount > 0 &&
             (float) $assistanceRequest->approved_amount <= (float) $assistanceRequest->requested_amount &&
-            (float) $assistanceRequest->approved_amount <= (float) $assistanceRequest->program->maximum_amount;
+            (float) $assistanceRequest->approved_amount <= (float) $program->maximum_amount;
 
         return [
             [

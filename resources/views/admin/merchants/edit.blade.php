@@ -60,65 +60,27 @@
                         @enderror
                     </div>
 
-                    <div x-data="merchantCategorySelector(@js(old('merchant_category', $merchant->merchant_category)))" @click.outside="closeSuggestions()">
+                    <div>
                         <label class="mb-2 block text-sm font-medium text-slate-700">
                             Merchant Category
                         </label>
 
-                        <div class="relative">
-                            <input type="text"
-                                   name="merchant_category"
-                                   x-model="query"
-                                   @focus="open = true"
-                                   @click="open = true"
-                                   @input="open = true"
-                                   @keydown.escape="open = false"
-                                   placeholder="Search or type a custom category"
-                                   autocomplete="off"
-                                   class="w-full rounded-xl border-slate-300 pr-11 focus:border-teal-500 focus:ring-teal-500"
-                                   required>
-
-                            <button type="button"
-                                    @mousedown.prevent
-                                    @click="toggleSuggestions()"
-                                    class="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-ui-subtext transition hover:text-ui-action"
-                                    aria-label="Toggle category suggestions">
-                                <x-icon name="chevron-down" size="h-4 w-4" />
-                            </button>
-
-                            <div x-cloak
-                                 x-show="open && filteredCategories().length"
-                                 x-transition.origin.top
-                                 class="absolute z-30 mt-2 max-h-56 w-full overflow-y-auto rounded-2xl border border-ui-border bg-ui-surface p-2 shadow-xl shadow-ui-anchor/10">
-                                <template x-for="category in filteredCategories()" :key="category">
-                                    <button type="button"
-                                            @mousedown.prevent
-                                            @click="selectCategory(category)"
-                                            class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-ui-text transition hover:bg-ui-canvas">
-                                        <span x-text="category"></span>
-                                        <x-icon name="check" size="h-4 w-4 text-ui-action" />
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
+                        <select name="merchant_category_id"
+                                class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500"
+                                required>
+                            <option value="">Select merchant category</option>
+                            @foreach($merchantCategories as $category)
+                                <option value="{{ $category->id }}" @selected((string) old('merchant_category_id', $merchant->merchant_category_id) === (string) $category->id)>
+                                    {{ $category->name }}
+                                </option>
+                            @endforeach
+                        </select>
 
                         <p class="mt-2 text-xs leading-5 text-ui-subtext">
-                            Search existing assistance program categories or type a custom category.
+                            Merchants validate claims only when this category is allowed by the selected assistance program.
                         </p>
 
-                        @if($merchantCategories->isNotEmpty())
-                            <div class="mt-3 flex flex-wrap gap-2">
-                                @foreach($merchantCategories->take(6) as $category)
-                                    <button type="button"
-                                            @click="selectCategory(@js($category))"
-                                            class="rounded-full bg-ui-canvas px-3 py-1 text-xs font-semibold text-ui-subtext ring-1 ring-ui-border transition hover:bg-ui-action hover:text-white">
-                                        {{ $category }}
-                                    </button>
-                                @endforeach
-                            </div>
-                        @endif
-
-                        @error('merchant_category')
+                        @error('merchant_category_id')
                             <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
@@ -262,34 +224,4 @@
         </x-form-card>
     </div>
 
-    <script>
-        window.merchantCategorySelector = function (initialValue = '') {
-            return {
-                open: false,
-                query: initialValue || '',
-                categories: @json($merchantCategories->values()),
-                filteredCategories() {
-                    const search = this.query.toLowerCase().trim();
-
-                    if (!search) {
-                        return this.categories;
-                    }
-
-                    return this.categories.filter((category) =>
-                        category.toLowerCase().includes(search)
-                    );
-                },
-                selectCategory(category) {
-                    this.query = category;
-                    this.open = false;
-                },
-                toggleSuggestions() {
-                    this.open = !this.open;
-                },
-                closeSuggestions() {
-                    this.open = false;
-                },
-            };
-        };
-    </script>
 @endsection

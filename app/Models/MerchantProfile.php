@@ -9,6 +9,7 @@ class MerchantProfile extends Model
     protected $fillable = [
         'user_id',
         'business_name',
+        'merchant_category_id',
         'merchant_category',
         'contact_number',
         'address',
@@ -22,5 +23,10 @@ class MerchantProfile extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(MerchantCategory::class, 'merchant_category_id');
     }
 }

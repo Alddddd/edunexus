@@ -86,7 +86,7 @@
 
             @if($request->status === 'Pending')
                 <div class="pt-6">
-                    <div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                    <div class="mb-6 max-w-2xl rounded-2xl border border-amber-200 bg-amber-50 p-5">
                         <p class="font-semibold text-amber-800">
                             Pending Admin Decision
                         </p>
@@ -117,7 +117,7 @@
                                name="approved_amount"
                                value="{{ $request->requested_amount }}"
                                max="{{ min($request->requested_amount, $request->program->maximum_amount) }}"
-                               class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500"
+                               class="w-full max-w-sm rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500"
                                required>
 
                         <p class="mt-2 text-sm text-ui-subtext">
@@ -200,7 +200,7 @@
                     title="QR Claim Code"
                     description="Member can present this code to a partner merchant for validation.">
                     @if($request->qr_code)
-                        <div class="inline-block rounded-2xl border border-ui-border bg-white p-4 shadow-sm">
+                        <div class="mx-auto inline-block max-w-fit rounded-2xl border border-ui-border bg-white p-4 shadow-sm">
                             {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(190)->generate($request->qr_code) !!}
                         </div>
 

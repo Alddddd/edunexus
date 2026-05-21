@@ -6,12 +6,14 @@ use App\Models\ActivityLog;
 use App\Models\AssistanceProgram;
 use App\Models\AssistanceRequest;
 use App\Models\BlockchainTransaction;
+use App\Models\MerchantCategory;
 use App\Models\MerchantProfile;
 use App\Models\Settlement;
 use App\Models\User;
 use App\Services\ClaimValidationRuleService;
 use App\Services\ProofBundleService;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class FullFlowDemoSeeder extends Seeder
 {
@@ -26,11 +28,19 @@ class FullFlowDemoSeeder extends Seeder
         $member = $this->user('maria.santos@edunexus.test', 'Maria Santos', 'member');
         $merchantUser = $this->user('bookstore.partner@edunexus.test', 'Bookstore Partner User', 'merchant');
         $auditor = $this->user('demo.auditor@edunexus.test', 'Demo Cooperative Auditor', 'auditor');
+        $merchantCategory = MerchantCategory::firstOrCreate(
+            ['name' => self::MERCHANT_CATEGORY],
+            [
+                'slug' => Str::slug(self::MERCHANT_CATEGORY),
+                'status' => 'Active',
+            ]
+        );
 
         $merchantProfile = MerchantProfile::updateOrCreate(
             ['user_id' => $merchantUser->id],
             [
                 'business_name' => 'Lipa School Supplies Center',
+                'merchant_category_id' => $merchantCategory->id,
                 'merchant_category' => self::MERCHANT_CATEGORY,
                 'contact_number' => '0917-555-0198',
                 'address' => 'CM Recto Avenue, Lipa City, Batangas',
@@ -46,6 +56,7 @@ class FullFlowDemoSeeder extends Seeder
             ['program_name' => 'Teaching Materials Assistance'],
             [
                 'description' => 'Cooperative assistance for teacher classroom materials, books, and school supplies.',
+                'merchant_category_id' => $merchantCategory->id,
                 'merchant_category' => self::MERCHANT_CATEGORY,
                 'maximum_amount' => 5000,
                 'expiration_days' => 30,

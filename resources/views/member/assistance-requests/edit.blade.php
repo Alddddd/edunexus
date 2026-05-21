@@ -146,7 +146,7 @@
                     Update Request
                 </button>
 
-                <a href="{{ route('member.dashboard') }}"
+                <a href="{{ route('member.claims.index') }}"
                    class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ui-border bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas sm:w-auto">
                     Cancel
                 </a>

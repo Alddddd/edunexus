@@ -94,7 +94,9 @@ class BlockchainTransactionController extends Controller
             ->get()
             ->keyBy('id');
 
-        $settlements = Settlement::query()
+        $settlements = Settlement::with([
+                'payouts' => fn ($query) => $query->latest('released_at')->latest('id'),
+            ])
             ->whereIn('assistance_request_id', $requestIds)
             ->get()
             ->keyBy('assistance_request_id');

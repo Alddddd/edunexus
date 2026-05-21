@@ -28,7 +28,7 @@
     } elseif ($claim->status === 'Approved') {
         $claimPassStatus = 'Valid Claim Pass';
         $claimGuidanceTitle = 'Claim Ready';
-        $claimGuidanceCopy = 'Present this QR code or reference code to an accredited merchant to redeem your approved assistance.';
+        $claimGuidanceCopy = 'Present this claim QR or reference code to an accredited merchant to validate your approved assistance.';
         $claimGuidanceClasses = 'border-emerald-200 bg-emerald-50 text-emerald-800';
     }
 @endphp
@@ -38,7 +38,7 @@
         class="print:hidden"
         title="Claim Pass"
         eyebrow="Digital Claim Pass"
-        description="Present this QR code or reference code to an accredited merchant for assistance claim validation.">
+        description="Present this authorization and validation pass to an accredited merchant for assistance claim validation.">
         <x-slot:actions>
         <a href="{{ route('member.claims.index') }}"
            class="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-ui-border bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-ui-canvas sm:w-fit">
@@ -127,17 +127,17 @@
         </div>
 
         <div class="min-w-0 space-y-6">
-            <div class="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+            <div class="mx-auto w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm xl:mx-0">
                 <p class="text-sm font-semibold text-slate-700">
                     QR Claim Pass
                 </p>
 
                 <p class="mt-1 text-sm text-slate-500">
-                    Merchant will scan this code to validate your claim.
+                    Authorization pass for merchant validation.
                 </p>
 
                 @if($claim->qr_code)
-                    <div class="mt-5 inline-block max-w-full overflow-x-auto rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div class="mt-5 inline-block max-w-fit rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                         {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(220)->generate($claim->qr_code) !!}
                     </div>
 
@@ -168,7 +168,7 @@
                 @endif
             </div>
 
-            <div class="rounded-2xl border border-teal-100 bg-teal-50 p-6">
+            <div class="mx-auto w-full max-w-sm rounded-2xl border border-teal-100 bg-teal-50 p-5 xl:mx-0">
                 <p class="text-sm font-semibold text-teal-800">
                     Important Reminder
                 </p>
@@ -206,7 +206,7 @@
                     </h2>
 
                     <p class="mt-1 text-sm text-slate-500">
-                        Present this code at the merchant validation terminal.
+                        Present this authorization pass at the merchant validation terminal.
                     </p>
                 </div>
 
