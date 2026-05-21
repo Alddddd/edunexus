@@ -61,6 +61,12 @@ class ReportController extends Controller
                     $row['status'],
                     $row['proof_hash'],
                     $row['transaction_hash'],
+                    $row['settlement_reference'],
+                    $row['payout_channel'],
+                    $row['settlement_rail'],
+                    $row['network'],
+                    $row['edux_transfer_status'],
+                    $row['edux_transaction_hash'],
                 ])), $search))
                 ->values();
         }
@@ -72,9 +78,10 @@ class ReportController extends Controller
                 'approved_requests' => AssistanceRequest::where('status', 'Approved')->count(),
                 'rejected_requests' => AssistanceRequest::where('status', 'Rejected')->count(),
                 'claimed_requests' => AssistanceRequest::where('is_claimed', true)->count(),
-                'pending_settlements' => Settlement::where('status', 'Pending')->count(),
-                'released_settlements' => Settlement::where('status', 'Settled')->count(),
+                'pending_settlements' => Settlement::whereIn('status', ['Pending', 'Partially Released'])->count(),
+                'released_settlements' => Settlement::whereIn('status', ['Released', 'Settled'])->count(),
                 'total_reimbursement_value' => Settlement::sum('amount'),
+                'settlement_rail_records' => $proofRecords->where('transaction_type', 'Settlement')->count(),
                 'total_proof_records' => $proofRecords->count(),
                 'successful_proof_records' => $proofRecords->where('blockchain_status', 'Confirmed')->count(),
                 'governance_passed' => $governanceSummary['passed'],
@@ -133,6 +140,16 @@ class ReportController extends Controller
                 'blockchain_status',
                 'proof_hash',
                 'transaction_hash',
+                'settlement_reference',
+                'payout_channel',
+                'settlement_rail',
+                'network',
+                'edux_transfer_status',
+                'edux_transaction_hash',
+                'edux_token_symbol',
+                'edux_amount',
+                'edux_recipient_wallet',
+                'edux_token_contract',
                 'recorded_at',
             ]);
 
@@ -149,6 +166,16 @@ class ReportController extends Controller
                             $transaction->blockchain_status,
                             $payload['proof_hash'] ?? '',
                             $transaction->transaction_hash ?? '',
+                            $payload['settlement_reference'] ?? data_get($payload, 'proof_bundle.settlement_reference', ''),
+                            $payload['payout_channel'] ?? data_get($payload, 'proof_bundle.payout_channel', ''),
+                            $payload['settlement_rail'] ?? data_get($payload, 'proof_bundle.settlement_rail', ''),
+                            $payload['network'] ?? data_get($payload, 'proof_bundle.network', ''),
+                            data_get($payload, 'edux_transfer.edux_transfer_status', data_get($payload, 'proof_bundle.edux_transfer.edux_transfer_status', '')),
+                            data_get($payload, 'edux_transfer.edux_transaction_hash', data_get($payload, 'proof_bundle.edux_transfer.edux_transaction_hash', '')),
+                            data_get($payload, 'edux_transfer.edux_token_symbol', data_get($payload, 'proof_bundle.edux_transfer.edux_token_symbol', '')),
+                            data_get($payload, 'edux_transfer.edux_amount', data_get($payload, 'proof_bundle.edux_transfer.edux_amount', '')),
+                            data_get($payload, 'edux_transfer.edux_to', data_get($payload, 'proof_bundle.edux_transfer.edux_to', '')),
+                            data_get($payload, 'edux_transfer.edux_token_contract', data_get($payload, 'proof_bundle.edux_transfer.edux_token_contract', '')),
                             optional($transaction->recorded_at)->format('Y-m-d H:i:s') ?: '',
                         ]);
                     }
@@ -173,8 +200,8 @@ class ReportController extends Controller
                 return (object) [
                     'merchant_name' => $merchant?->merchantProfile?->business_name ?? $merchant?->name ?? 'Unassigned merchant',
                     'settlements_count' => $merchantSettlements->count(),
-                    'pending_amount' => $merchantSettlements->where('status', 'Pending')->sum('amount'),
-                    'released_amount' => $merchantSettlements->where('status', 'Settled')->sum('amount'),
+                    'pending_amount' => $merchantSettlements->whereIn('status', ['Pending', 'Partially Released'])->sum('remaining_balance'),
+                    'released_amount' => $merchantSettlements->sum('total_released'),
                     'latest_status' => $latest?->status ?? 'No status',
                 ];
             })
@@ -216,6 +243,7 @@ class ReportController extends Controller
     {
         return $proofRecords->map(function (BlockchainTransaction $transaction) {
             $payload = $this->payload($transaction);
+            $eduxTransfer = $payload['edux_transfer'] ?? data_get($payload, 'proof_bundle.edux_transfer', []);
 
             return [
                 'reference_code' => $transaction->reference_code ?: 'N/A',
@@ -223,6 +251,16 @@ class ReportController extends Controller
                 'status' => $transaction->blockchain_status,
                 'proof_hash' => $payload['proof_hash'] ?? null,
                 'transaction_hash' => $transaction->transaction_hash,
+                'settlement_reference' => $payload['settlement_reference'] ?? data_get($payload, 'proof_bundle.settlement_reference'),
+                'payout_channel' => $payload['payout_channel'] ?? data_get($payload, 'proof_bundle.payout_channel'),
+                'settlement_rail' => $payload['settlement_rail'] ?? data_get($payload, 'proof_bundle.settlement_rail'),
+                'network' => $payload['network'] ?? data_get($payload, 'proof_bundle.network'),
+                'edux_transfer_status' => $eduxTransfer['edux_transfer_status'] ?? null,
+                'edux_transaction_hash' => $eduxTransfer['edux_transaction_hash'] ?? null,
+                'edux_token_symbol' => $eduxTransfer['edux_token_symbol'] ?? 'EDUX',
+                'edux_amount' => $eduxTransfer['edux_amount'] ?? null,
+                'edux_to' => $eduxTransfer['edux_to'] ?? null,
+                'edux_token_contract' => $eduxTransfer['edux_token_contract'] ?? null,
                 'recorded_at' => $transaction->recorded_at,
             ];
         });

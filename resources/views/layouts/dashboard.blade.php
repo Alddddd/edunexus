@@ -290,6 +290,24 @@
                             <x-icon name="check-circle" size="h-5 w-5 shrink-0" />
                             <span>Validate Claim</span>
                         </a>
+
+                        <a href="{{ route('merchant.settlements.index') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+                           {{ request()->routeIs('merchant.settlements.*')
+                                ? 'bg-ui-action/10 text-ui-anchor shadow-sm ring-1 ring-ui-action/15'
+                                : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
+                            <x-icon name="credit-card" size="h-5 w-5 shrink-0" />
+                            <span>Settlements</span>
+                        </a>
+
+                        <a href="{{ route('merchant.payout-settings.edit') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+                           {{ request()->routeIs('merchant.payout-settings.*')
+                                ? 'bg-ui-action/10 text-ui-anchor shadow-sm ring-1 ring-ui-action/15'
+                                : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
+                            <x-icon name="credit-card" size="h-5 w-5 shrink-0" />
+                            <span>Payout Settings</span>
+                        </a>
                     </div>
                 </div>
 
@@ -518,6 +536,24 @@
                             <x-icon name="check-circle" size="h-5 w-5 shrink-0" />
                             <span>Validate Claim</span>
                         </a>
+
+                        <a href="{{ route('merchant.settlements.index') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+                           {{ request()->routeIs('merchant.settlements.*')
+                                ? 'bg-ui-action/10 text-ui-anchor shadow-sm ring-1 ring-ui-action/15'
+                                : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
+                            <x-icon name="credit-card" size="h-5 w-5 shrink-0" />
+                            <span>Settlements</span>
+                        </a>
+
+                        <a href="{{ route('merchant.payout-settings.edit') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition
+                           {{ request()->routeIs('merchant.payout-settings.*')
+                                ? 'bg-ui-action/10 text-ui-anchor shadow-sm ring-1 ring-ui-action/15'
+                                : 'text-ui-anchor/80 hover:bg-ui-muted/70 hover:text-ui-anchor' }}">
+                            <x-icon name="credit-card" size="h-5 w-5 shrink-0" />
+                            <span>Payout Settings</span>
+                        </a>
                     </div>
                 </div>
 
@@ -705,24 +741,24 @@
                 </div>
 
                 <!-- User Menu -->
-                <div class="relative">
+                <div class="relative min-w-0">
                     <button type="button"
                             id="user-menu-button"
-                            class="flex items-center gap-2 bg-ui-surface/85 rounded-xl border border-ui-border/80 px-2 py-2 shadow-sm shadow-ui-anchor/5 hover:bg-ui-surface transition sm:gap-3 sm:px-4">
+                            class="flex max-w-[13rem] items-center gap-2 bg-ui-surface/85 rounded-xl border border-ui-border/80 px-2 py-2 shadow-sm shadow-ui-anchor/5 hover:bg-ui-surface transition sm:max-w-[17rem] sm:gap-3 sm:px-4 lg:max-w-[20rem]">
 
-                        <div class="w-10 h-10 rounded-full bg-ui-action/10 flex items-center justify-center text-ui-action font-semibold ring-1 ring-ui-action/15">
+                        <div class="w-10 h-10 shrink-0 rounded-full bg-ui-action/10 flex items-center justify-center text-ui-action font-semibold ring-1 ring-ui-action/15">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                         </div>
 
-                        <div class="hidden sm:block text-left">
-                            <p class="text-sm font-semibold text-ui-text">
+                        <div class="hidden min-w-0 sm:block text-left">
+                            <p class="truncate text-sm font-semibold text-ui-text" title="{{ auth()->user()->name }}">
                                 {{ auth()->user()->name }}
                             </p>
 
                             <div class="flex items-center gap-2">
                                 <span class="w-2 h-2 rounded-full bg-ui-success"></span>
 
-                                <p class="text-xs text-ui-subtext">
+                                <p class="truncate text-xs text-ui-subtext">
                                     {{ ucfirst(auth()->user()->role) }}
                                 </p>
                             </div>
@@ -731,24 +767,19 @@
 
                     <!-- Dropdown -->
                     <div id="user-dropdown"
-                         class="hidden absolute right-0 mt-3 w-56 bg-ui-surface/95 rounded-2xl border border-ui-border shadow-lg shadow-ui-anchor/10 backdrop-blur-xl overflow-hidden z-50">
+                         class="hidden absolute right-0 mt-3 w-72 max-w-[calc(100vw-2rem)] bg-ui-surface/95 rounded-2xl border border-ui-border shadow-lg shadow-ui-anchor/10 backdrop-blur-xl overflow-hidden z-50">
 
                         <div class="px-5 py-4 border-b border-ui-border/70">
-                            <p class="font-semibold text-ui-text">
+                            <p class="truncate font-semibold text-ui-text" title="{{ auth()->user()->name }}">
                                 {{ auth()->user()->name }}
                             </p>
 
-                            <p class="text-sm text-ui-subtext/90 mt-1">
+                            <p class="mt-1 break-all text-sm text-ui-subtext/90">
                                 {{ auth()->user()->email }}
                             </p>
                         </div>
 
                         <div class="py-2">
-                            <a href="{{ route('profile.edit') }}"
-                               class="flex items-center px-5 py-3 text-sm text-ui-subtext hover:bg-ui-canvas transition">
-                                Profile Settings
-                            </a>
-
                             <form method="POST"
                                   action="{{ route('logout') }}"
                                   data-confirm

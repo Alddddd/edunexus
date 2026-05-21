@@ -25,7 +25,7 @@
                 @csrf
 
                 <button type="submit"
-                        class="px-5 py-3 rounded-xl bg-teal-600 text-white font-medium hover:bg-teal-700 transition">
+                        class="btn-primary">
                     Mark All as Read
                 </button>
             </form>
@@ -75,20 +75,7 @@
 
                                     @if(isset($notification->data['status']))
 
-                                        <span class="px-3 py-1 rounded-full text-xs font-semibold
-                                            {{ $notification->data['status'] === 'Approved'
-                                                ? 'bg-emerald-100 text-emerald-700'
-                                                : ($notification->data['status'] === 'Rejected'
-                                                    ? 'bg-rose-100 text-rose-700'
-                                                    : ($notification->data['status'] === 'Claimed'
-                                                        ? 'bg-cyan-100 text-cyan-700'
-                                                        : ($notification->data['status'] === 'Settled'
-                                                            ? 'bg-teal-100 text-teal-700'
-                                                            : 'bg-slate-100 text-slate-700'))) }}">
-
-                                            {{ $notification->data['status'] }}
-
-                                        </span>
+                                        <x-status-badge :status="$notification->data['status']" :tone="$notification->data['status']" size="xs" />
 
                                     @endif
 
@@ -104,20 +91,15 @@
 
                                 <div class="flex items-center gap-2">
 
-                                    @if(is_null($notification->read_at))
-                                        <span class="px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
-                                            Unread
-                                        </span>
-                                    @else
-                                        <span class="px-2 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
-                                            Read
-                                        </span>
-                                    @endif
+                                    <x-status-badge
+                                        :status="is_null($notification->read_at) ? 'Unread' : 'Read'"
+                                        :tone="is_null($notification->read_at) ? 'warning' : 'neutral'"
+                                        size="xs" />
 
                                 </div>
 
                                 <a href="{{ route('notifications.read', $notification->id) }}"
-                                   class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
+                                   class="btn-outline min-h-10 px-4 py-2">
                                     Open
                                 </a>
 
@@ -157,7 +139,7 @@
                     Showing {{ $notifications->firstItem() ?? 0 }} to {{ $notifications->lastItem() ?? 0 }} of {{ $notifications->total() }} notifications
                 </p>
 
-                <div class="flex justify-center">
+                <div class="flex max-w-full justify-center overflow-x-auto">
                     {{ $notifications->links() }}
                 </div>
             </div>

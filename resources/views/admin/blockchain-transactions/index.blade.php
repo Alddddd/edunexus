@@ -34,7 +34,8 @@
 
     $settlementLabel = function ($settlement) {
         return match ($settlement?->status) {
-            'Settled' => 'Settlement Released',
+            'Released', 'Settled' => 'Settlement Released',
+            'Partially Released' => 'Partial Payout Released',
             'Pending' => 'Settlement Generated',
             default => 'No settlement record',
         };
@@ -42,7 +43,8 @@
 
     $settlementTone = function ($settlement) {
         return match ($settlement?->status) {
-            'Settled' => 'success',
+            'Released', 'Settled' => 'success',
+            'Partially Released' => 'proof',
             'Pending' => 'warning',
             default => 'neutral',
         };
@@ -52,6 +54,17 @@
         ? 'Integrity Valid'
         : (filled($payload) ? 'Verification Metadata Unavailable' : 'Legacy Proof Record');
     $recordedLabel = fn ($transaction) => $transaction->recorded_at ? 'Proof Recorded' : 'Pending Timestamp';
+    $demoSafeNotice = 'Demo-safe payout layer: PHP/GCash disbursement is simulated to avoid requiring paid payout APIs or real-money transfers during judging. Settlement proof is still recorded through the Morph rail, with real EDUX ERC-20 testnet transfer metadata shown when enabled.';
+    $eduxLabel = fn (array $metadata) => match ($metadata['edux_transfer_status'] ?? 'skipped') {
+        'success' => 'Real EDUX ERC-20 testnet transfer',
+        'failed' => 'EDUX transfer failed',
+        default => 'EDUX transfer skipped/not configured',
+    };
+    $eduxTone = fn (array $metadata) => match ($metadata['edux_transfer_status'] ?? 'skipped') {
+        'success' => 'success',
+        'failed' => 'danger',
+        default => 'neutral',
+    };
 @endphp
 
 <div class="w-full min-w-0 max-w-7xl space-y-6">
@@ -60,16 +73,16 @@
         eyebrow="Morph Proof Layer"
         description="Monitor Morph blockchain proof records generated from cooperative assistance validation and settlement workflows.">
         <x-slot:actions>
-            <div class="rounded-2xl border border-cyan-100 bg-cyan-50 px-5 py-4">
-                <p class="text-xs font-semibold uppercase tracking-wider text-cyan-700">
+            <div class="metric-current-view rounded-2xl border px-5 py-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-ui-proof">
                     Current View
                 </p>
 
-                <p class="mt-1 text-2xl font-bold text-cyan-800">
+                <p class="mt-1 text-2xl font-bold text-ui-anchor">
                     {{ number_format($transactions->total()) }}
                 </p>
 
-                <p class="text-xs text-cyan-700">
+                <p class="text-xs text-ui-subtext">
                     {{ $hasFilters ? 'Filtered proof records' : 'All proof records' }}
                 </p>
             </div>
@@ -116,7 +129,7 @@
                 </p>
 
                 <p class="mt-1 max-w-3xl text-sm leading-6 text-cyan-700">
-                    Morph records tamper-resistant proof receipts for assistance validation and settlement events, giving auditors a stable reference without exposing wallet complexity to normal users.
+                    Morph records tamper-resistant proof receipts for assistance validation and settlement events, giving auditors a stable reference without exposing wallet complexity to normal users. {{ $demoSafeNotice }}
                 </p>
             </div>
 
@@ -250,6 +263,11 @@
                             $ruleValidationPassed = (bool) ($validationSummary['all_passed'] ?? ($totalRules > 0 && $failedRules === 0));
                             $eventType = $payload['event_type'] ?? data_get($proofBundle, 'event_type', $transaction->transaction_type);
                             $approvedAmount = $payload['claim_amount'] ?? data_get($proofBundle, 'approved_amount') ?? $assistanceRequest?->approved_amount;
+                            $settlementRail = $payload['settlement_rail'] ?? data_get($proofBundle, 'settlement_rail');
+                            $payoutChannel = $payload['payout_channel'] ?? data_get($proofBundle, 'payout_channel');
+                            $settlementReference = $payload['settlement_reference'] ?? data_get($proofBundle, 'settlement_reference');
+                            $network = $payload['network'] ?? data_get($proofBundle, 'network');
+                            $eduxTransfer = $payload['edux_transfer'] ?? data_get($proofBundle, 'edux_transfer', []);
                         @endphp
 
                         <tr class="transition hover:bg-ui-canvas/60">
@@ -273,6 +291,12 @@
                                                 <x-status-badge status="Validation Passed" tone="success" size="xs" />
                                             @elseif($totalRules > 0)
                                                 <x-status-badge status="Validation Review" tone="warning" size="xs" />
+                                            @endif
+                                            @if($settlementRail)
+                                                <x-status-badge status="ERC-20-compatible rail" tone="proof" size="xs" />
+                                            @endif
+                                            @if($transaction->transaction_type === 'Settlement')
+                                                <x-status-badge :status="$eduxLabel($eduxTransfer)" :tone="$eduxTone($eduxTransfer)" size="xs" />
                                             @endif
                                         </div>
                                     </div>
@@ -339,7 +363,7 @@
                                     <a href="{{ $explorerBaseUrl . $hash }}"
                                        target="_blank"
                                        rel="noopener noreferrer"
-                                       class="inline-flex min-h-9 items-center justify-center rounded-xl bg-ui-proof px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-cyan-700">
+                                       class="btn-proof min-w-[8.75rem] whitespace-nowrap">
                                         View on Morph
                                     </a>
                                 @elseif($transaction->blockchain_status === 'Pending')
@@ -432,6 +456,73 @@
                                                 </div>
                                             </dl>
 
+                                            @if($settlementRail || $payoutChannel)
+                                                <div class="mt-4 rounded-xl border border-teal-100 bg-teal-50 p-3">
+                                                    <p class="text-xs font-semibold uppercase tracking-wide text-teal-700">Settlement Rail</p>
+                                                    <dl class="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+                                                        <div>
+                                                            <dt class="text-xs text-teal-700">Peso Payout</dt>
+                                                            <dd class="font-semibold text-teal-900">&#8369;{{ number_format((float) ($payload['peso_amount'] ?? $approvedAmount), 2) }}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt class="text-xs text-teal-700">Merchant Payout Channel</dt>
+                                                            <dd class="font-semibold text-teal-900">{{ $payoutChannel ?? 'GCash/PHP simulation' }}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt class="text-xs text-teal-700">Settlement Rail</dt>
+                                                            <dd class="font-semibold text-teal-900">{{ $settlementRail ?? 'ERC-20-compatible' }}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt class="text-xs text-teal-700">Network</dt>
+                                                            <dd class="font-semibold text-teal-900">{{ $network ?? 'Morph testnet' }}</dd>
+                                                        </div>
+                                                        <div class="md:col-span-2">
+                                                            <dt class="text-xs text-teal-700">Settlement Reference</dt>
+                                                            <dd class="break-all font-mono text-xs font-semibold text-teal-900">{{ $settlementReference ?? 'Reference unavailable' }}</dd>
+                                                        </div>
+                                                    </dl>
+                                                </div>
+                                            @endif
+
+                                            @if($transaction->transaction_type === 'Settlement')
+                                                <div class="mt-4 rounded-xl border border-cyan-100 bg-cyan-50 p-3">
+                                                    <div class="flex flex-wrap items-center gap-2">
+                                                        <p class="text-xs font-semibold uppercase tracking-wide text-cyan-700">EDUX Transfer Proof</p>
+                                                        <x-status-badge :status="$eduxLabel($eduxTransfer)" :tone="$eduxTone($eduxTransfer)" size="xs" />
+                                                    </div>
+                                                    <dl class="mt-3 grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+                                                        <div>
+                                                            <dt class="text-xs text-cyan-700">Token Amount</dt>
+                                                            <dd class="font-semibold text-cyan-900">{{ $eduxTransfer['edux_amount'] ?? '1' }} {{ $eduxTransfer['edux_token_symbol'] ?? 'EDUX' }}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt class="text-xs text-cyan-700">Block</dt>
+                                                            <dd class="font-semibold text-cyan-900">{{ $eduxTransfer['edux_block_number'] ?? 'Not recorded' }}</dd>
+                                                        </div>
+                                                        <div class="md:col-span-2">
+                                                            <dt class="text-xs text-cyan-700">Recipient Wallet</dt>
+                                                            <dd class="break-all font-mono text-xs font-semibold text-cyan-900">{{ $eduxTransfer['edux_to'] ?? 'Not configured' }}</dd>
+                                                        </div>
+                                                        <div class="md:col-span-2">
+                                                            <dt class="text-xs text-cyan-700">Token Contract</dt>
+                                                            <dd class="break-all font-mono text-xs font-semibold text-cyan-900">{{ $eduxTransfer['edux_token_contract'] ?? 'Not configured' }}</dd>
+                                                        </div>
+                                                        @if($eduxTransfer['edux_transaction_hash'] ?? null)
+                                                            <div class="md:col-span-2">
+                                                                <dt class="text-xs text-cyan-700">EDUX Transaction Hash</dt>
+                                                                <dd class="break-all font-mono text-xs font-semibold text-cyan-900">{{ $eduxTransfer['edux_transaction_hash'] }}</dd>
+                                                            </div>
+                                                        @endif
+                                                        @if($eduxTransfer['edux_error'] ?? null)
+                                                            <div class="md:col-span-2">
+                                                                <dt class="text-xs text-rose-700">Transfer Note</dt>
+                                                                <dd class="break-all text-xs font-semibold text-rose-800">{{ $eduxTransfer['edux_error'] }}</dd>
+                                                            </div>
+                                                        @endif
+                                                    </dl>
+                                                </div>
+                                            @endif
+
                                             @if($proofHash)
                                                 <div class="mt-4 rounded-xl border border-cyan-100 bg-cyan-50 p-3">
                                                     <p class="text-xs font-semibold uppercase tracking-wide text-cyan-700">Verified Proof Hash</p>
@@ -444,7 +535,7 @@
                                             <div class="rounded-2xl border border-ui-border bg-white/90 p-4 shadow-sm shadow-slate-200/60">
                                                 <p class="text-sm font-semibold text-ui-text">Transaction Lifecycle</p>
                                                 <div class="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold">
-                                                    @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', $settlement?->status === 'Settled' ? 'Settlement Released' : 'Release Pending', 'Morph Proof Recorded'] as $step)
+                                                    @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', in_array($settlement?->status, ['Released', 'Settled'], true) ? 'Settlement Released' : ($settlement?->status === 'Partially Released' ? 'Partial Payout Released' : 'Release Pending'), 'Morph Proof Recorded'] as $step)
                                                         <span class="rounded-full px-3 py-1.5 {{ str_contains($step, 'Pending') ? 'bg-amber-50 text-ui-warning ring-1 ring-amber-100' : 'bg-emerald-50 text-ui-success ring-1 ring-emerald-100' }}">
                                                             {{ $step }}
                                                         </span>
@@ -526,6 +617,11 @@
                     $ruleValidationPassed = (bool) ($validationSummary['all_passed'] ?? ($totalRules > 0 && $failedRules === 0));
                     $eventType = $payload['event_type'] ?? data_get($proofBundle, 'event_type', $transaction->transaction_type);
                     $approvedAmount = $payload['claim_amount'] ?? data_get($proofBundle, 'approved_amount') ?? $assistanceRequest?->approved_amount;
+                    $settlementRail = $payload['settlement_rail'] ?? data_get($proofBundle, 'settlement_rail');
+                    $payoutChannel = $payload['payout_channel'] ?? data_get($proofBundle, 'payout_channel');
+                    $settlementReference = $payload['settlement_reference'] ?? data_get($proofBundle, 'settlement_reference');
+                    $network = $payload['network'] ?? data_get($proofBundle, 'network');
+                    $eduxTransfer = $payload['edux_transfer'] ?? data_get($proofBundle, 'edux_transfer', []);
                 @endphp
 
                 <article class="p-4 sm:p-5">
@@ -543,6 +639,12 @@
                                     <x-status-badge :status="$settlementLabel($settlement)" :tone="$settlementTone($settlement)" />
                                     @if($ruleValidationPassed)
                                         <x-status-badge status="Validation Passed" tone="success" />
+                                    @endif
+                                    @if($settlementRail)
+                                        <x-status-badge status="ERC-20-compatible rail" tone="proof" />
+                                    @endif
+                                    @if($transaction->transaction_type === 'Settlement')
+                                        <x-status-badge :status="$eduxLabel($eduxTransfer)" :tone="$eduxTone($eduxTransfer)" />
                                     @endif
                                 </div>
 
@@ -600,6 +702,27 @@
                                 {{ $totalRules > 0 ? $passedRules . ' of ' . $totalRules . ' governance checks passed' : 'Console verification record' }}
                             </dd>
                         </div>
+
+                        @if($settlementRail || $payoutChannel)
+                            <div class="rounded-xl bg-teal-50 p-3 sm:col-span-2">
+                                <dt class="text-xs font-medium uppercase tracking-wide text-teal-700">Settlement Rail</dt>
+                                <dd class="mt-1 font-semibold text-teal-900">&#8369;{{ number_format((float) ($payload['peso_amount'] ?? $approvedAmount), 2) }} via {{ $payoutChannel ?? 'GCash/PHP simulation' }}</dd>
+                                <dd class="mt-1 text-xs text-teal-700">{{ $settlementRail ?? 'ERC-20-compatible' }} · {{ $network ?? 'Morph testnet' }}</dd>
+                                <dd class="mt-1 break-all font-mono text-xs font-semibold text-teal-900">{{ $settlementReference ?? 'Reference unavailable' }}</dd>
+                            </div>
+                        @endif
+
+                        @if($transaction->transaction_type === 'Settlement')
+                            <div class="rounded-xl bg-cyan-50 p-3 sm:col-span-2">
+                                <dt class="text-xs font-medium uppercase tracking-wide text-cyan-700">EDUX Transfer Proof</dt>
+                                <dd class="mt-1 font-semibold text-cyan-900">{{ $eduxLabel($eduxTransfer) }}</dd>
+                                <dd class="mt-1 text-xs text-cyan-700">{{ $eduxTransfer['edux_amount'] ?? '1' }} {{ $eduxTransfer['edux_token_symbol'] ?? 'EDUX' }} to Morph testnet recipient</dd>
+                                <dd class="mt-1 break-all font-mono text-xs font-semibold text-cyan-900">{{ $eduxTransfer['edux_transaction_hash'] ?? ($eduxTransfer['edux_error'] ?? 'No EDUX transfer hash recorded') }}</dd>
+                                @if($eduxTransfer['edux_to'] ?? null)
+                                    <dd class="mt-1 break-all font-mono text-[11px] text-cyan-800">Recipient: {{ $eduxTransfer['edux_to'] }}</dd>
+                                @endif
+                            </div>
+                        @endif
                     </dl>
 
                     <div x-data="{ open: false }" class="proof-review-card mt-4 rounded-2xl border border-ui-border bg-gradient-to-br from-white via-ui-canvas/80 to-cyan-50/40 p-4 shadow-sm shadow-slate-200/70">
@@ -644,7 +767,7 @@
                             <div class="rounded-xl border border-ui-border bg-white/90 p-3 shadow-sm shadow-slate-200/60">
                                 <p class="text-xs font-semibold uppercase tracking-wide text-ui-subtext">Lifecycle</p>
                                 <div class="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                                    @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', $settlement?->status === 'Settled' ? 'Settlement Released' : 'Release Pending', 'Morph Proof Recorded'] as $step)
+                                    @foreach(['Request Submitted', 'Approved', 'Merchant Validated', 'Settlement Generated', in_array($settlement?->status, ['Released', 'Settled'], true) ? 'Settlement Released' : ($settlement?->status === 'Partially Released' ? 'Partial Payout Released' : 'Release Pending'), 'Morph Proof Recorded'] as $step)
                                         <span class="rounded-full px-3 py-1.5 {{ str_contains($step, 'Pending') ? 'bg-amber-50 text-ui-warning ring-1 ring-amber-100' : 'bg-emerald-50 text-ui-success ring-1 ring-emerald-100' }}">{{ $step }}</span>
                                     @endforeach
                                 </div>
@@ -673,12 +796,12 @@
                         </div>
                     </div>
 
-                    <div class="mt-4 flex justify-start">
+                    <div class="mt-4 flex justify-center sm:justify-start">
                         @if($hasRealHash)
                             <a href="{{ $explorerBaseUrl . $hash }}"
                                target="_blank"
                                rel="noopener noreferrer"
-                               class="inline-flex min-h-10 w-fit items-center justify-center rounded-xl bg-ui-proof px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-cyan-700">
+                               class="btn-proof w-full max-w-[10rem] whitespace-nowrap sm:w-auto sm:min-w-[8.75rem]">
                                 View on Morph
                             </a>
                         @elseif($transaction->blockchain_status === 'Pending')

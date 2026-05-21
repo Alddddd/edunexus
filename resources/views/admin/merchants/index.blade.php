@@ -74,7 +74,10 @@
                             </td>
 
                             <td class="px-5 py-4 text-ui-subtext">
-                                {{ $merchant->contact_number ?? 'N/A' }}
+                                <p>{{ $merchant->contact_number ?? 'N/A' }}</p>
+                                <p class="mt-1 text-xs">
+                                    GCash: {{ $merchant->payout_account_name ?: 'Not configured' }}
+                                </p>
                             </td>
 
                             <td class="px-5 py-4 text-right">
@@ -145,6 +148,9 @@
                             </dt>
                             <dd class="mt-1 font-semibold text-ui-text">
                                 {{ $merchant->contact_number ?? 'N/A' }}
+                            </dd>
+                            <dd class="mt-1 text-xs text-ui-subtext">
+                                GCash: {{ $merchant->payout_account_name ?: 'Not configured' }}
                             </dd>
                         </div>
                     </dl>

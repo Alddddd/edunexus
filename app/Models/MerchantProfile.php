@@ -12,6 +12,10 @@ class MerchantProfile extends Model
         'merchant_category',
         'contact_number',
         'address',
+        'payout_account_name',
+        'payout_account_number',
+        'payout_qr',
+        'payout_notes',
         'status',
     ];
 

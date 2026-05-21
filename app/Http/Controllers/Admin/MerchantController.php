@@ -50,6 +50,10 @@ class MerchantController extends Controller
             'merchant_category' => ['required', 'string', 'max:255'],
             'contact_number' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
+            'payout_account_name' => ['nullable', 'string', 'max:255'],
+            'payout_account_number' => ['nullable', 'string', 'max:255'],
+            'payout_qr' => ['nullable', 'string', 'max:255'],
+            'payout_notes' => ['nullable', 'string'],
             'status' => ['required', 'in:Active,Inactive'],
         ]);
 
@@ -79,6 +83,10 @@ class MerchantController extends Controller
             'merchant_category' => ['required', 'string', 'max:255'],
             'contact_number' => ['nullable', 'string', 'max:255'],
             'address' => ['nullable', 'string'],
+            'payout_account_name' => ['nullable', 'string', 'max:255'],
+            'payout_account_number' => ['nullable', 'string', 'max:255'],
+            'payout_qr' => ['nullable', 'string', 'max:255'],
+            'payout_notes' => ['nullable', 'string'],
             'status' => ['required', 'in:Active,Inactive'],
         ]);
 

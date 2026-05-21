@@ -85,6 +85,8 @@ class ClaimValidationController extends Controller
             [
                 'merchant_id' => auth()->id(),
                 'amount' => $assistanceRequest->approved_amount,
+                'total_released' => 0,
+                'remaining_balance' => $assistanceRequest->approved_amount,
                 'status' => 'Pending',
             ]
         );

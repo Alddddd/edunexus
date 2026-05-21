@@ -13,7 +13,7 @@
             title="Merchant Accreditation"
             description="Accredited merchants can validate claim passes only when their category matches the assistance program rule.">
             @if($merchantUsers->isEmpty())
-                <div class="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                <div class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
                     <p class="font-semibold text-amber-800">
                         No available merchant accounts. Create a merchant access account first.
                     </p>
@@ -27,8 +27,7 @@
                         Create Merchant Access Account
                     </a>
                 </div>
-            @endif
-
+            @else
             <form method="POST" action="{{ route('admin.merchants.store') }}" class="space-y-8">
                 @csrf
 
@@ -144,6 +143,71 @@
                 </x-form-section>
 
                 <x-form-section
+                    title="GCash Payout Details"
+                    description="Used by admins when simulating PHP reimbursement releases during settlement review."
+                    columns="2">
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-slate-700">
+                            GCash Name
+                        </label>
+
+                        <input type="text"
+                               name="payout_account_name"
+                               value="{{ old('payout_account_name') }}"
+                               class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+
+                        @error('payout_account_name')
+                            <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-slate-700">
+                            GCash Number
+                        </label>
+
+                        <input type="text"
+                               name="payout_account_number"
+                               value="{{ old('payout_account_number') }}"
+                               class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+
+                        @error('payout_account_number')
+                            <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="mb-2 block text-sm font-medium text-slate-700">
+                            Optional QR Reference
+                        </label>
+
+                        <input type="text"
+                               name="payout_qr"
+                               value="{{ old('payout_qr') }}"
+                               placeholder="QR image URL or internal reference"
+                               class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+
+                        @error('payout_qr')
+                            <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="mb-2 block text-sm font-medium text-slate-700">
+                            Payout Notes
+                        </label>
+
+                        <textarea name="payout_notes"
+                                  rows="3"
+                                  class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500">{{ old('payout_notes') }}</textarea>
+
+                        @error('payout_notes')
+                            <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </x-form-section>
+
+                <x-form-section
                     title="Contact and Status"
                     description="Contact details support settlement operations and admin follow-up."
                     columns="2">
@@ -207,6 +271,7 @@
                     </a>
                 </div>
             </form>
+            @endif
         </x-form-card>
     </div>
 

@@ -58,47 +58,43 @@
         title="Request Lifecycle"
         description="A compact view of where your assistance records are in the cooperative workflow.">
         <div class="mb-6 flex flex-wrap items-center gap-2 text-sm font-semibold">
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full border border-ui-border/80 bg-ui-surface/85 px-3 py-2 text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 ring-1 ring-ui-border/70 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-muted text-xs">1</span>
+            <div class="flex min-w-[7.5rem] flex-1 items-center justify-center rounded-full border border-ui-border/80 bg-ui-surface/85 px-3 py-2 text-center text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 ring-1 ring-ui-border/70 sm:flex-none">
                 <span class="min-w-0 truncate">Request</span>
             </div>
             <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-warning/10 px-3 py-2 text-ui-warning ring-1 ring-ui-warning/15 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-warning/15 text-xs">2</span>
+            <div class="flex min-w-[7.5rem] flex-1 items-center justify-center rounded-full bg-ui-warning/10 px-3 py-2 text-center text-ui-warning ring-1 ring-ui-warning/15 sm:flex-none">
                 <span class="min-w-0 truncate">Review</span>
             </div>
             <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-success/10 px-3 py-2 text-ui-success ring-1 ring-ui-success/15 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-success/15 text-xs">3</span>
+            <div class="flex min-w-[7.5rem] flex-1 items-center justify-center rounded-full bg-ui-success/10 px-3 py-2 text-center text-ui-success ring-1 ring-ui-success/15 sm:flex-none">
                 <span class="min-w-0 truncate">QR Pass</span>
             </div>
             <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-proof/10 px-3 py-2 text-ui-proof ring-1 ring-ui-proof/15 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-proof/15 text-xs">4</span>
+            <div class="flex min-w-[7.5rem] flex-1 items-center justify-center rounded-full bg-ui-proof/10 px-3 py-2 text-center text-ui-proof ring-1 ring-ui-proof/15 sm:flex-none">
                 <span class="min-w-0 truncate">Claim</span>
             </div>
         </div>
 
         <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
-            <div class="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+            <div class="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wider text-amber-700">Pending</p>
                 <p class="mt-2 text-2xl font-bold text-amber-800">{{ number_format($pendingRequests) }}</p>
                 <p class="mt-1 text-xs text-amber-700">Editable until reviewed</p>
             </div>
 
-            <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700">Approved</p>
                 <p class="mt-2 text-2xl font-bold text-emerald-800">{{ number_format($approvedRequests) }}</p>
                 <p class="mt-1 text-xs text-emerald-700">QR/reference generated</p>
             </div>
 
-            <div class="rounded-2xl border border-cyan-100 bg-cyan-50 p-4">
+            <div class="rounded-2xl border border-cyan-200 bg-cyan-50/80 p-4 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wider text-cyan-700">Claimed</p>
                 <p class="mt-2 text-2xl font-bold text-cyan-800">{{ number_format($claimedRequests) }}</p>
                 <p class="mt-1 text-xs text-cyan-700">Merchant validated</p>
             </div>
 
-            <div class="rounded-2xl border border-rose-100 bg-rose-50 p-4">
+            <div class="rounded-2xl border border-rose-200 bg-rose-50/80 p-4 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wider text-rose-700">Rejected</p>
                 <p class="mt-2 text-2xl font-bold text-rose-800">{{ number_format($rejectedRequests) }}</p>
                 <p class="mt-1 text-xs text-rose-700">Closed after review</p>

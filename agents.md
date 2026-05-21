@@ -229,3 +229,8 @@ php artisan route:list
 php artisan view:clear
 php artisan optimize:clear
 npm run build
+
+## Current Task: Project Migration Rules
+- **Objective:** We are merging specific optimized modules/updates from a secondary folder named `project-new` into this codebase.
+- **Safety Boundary:** Never modify or overwrite our existing `.env` files, database schema credentials, or core Laragon routing rules defined above.
+- **Scope:** Do not perform bulk or automated folder migrations. Only process the localized file code blocks or custom components that I explicitly request in chat.

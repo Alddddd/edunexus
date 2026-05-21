@@ -7,9 +7,10 @@
 @php
     $statusTone = function ($status) {
         return match ($status) {
-            'Confirmed', 'Settled' => 'success',
+            'Confirmed', 'Released', 'Settled' => 'success',
             'Failed', 'Rejected' => 'danger',
             'Pending' => 'warning',
+            'Partially Released' => 'proof',
             default => 'neutral',
         };
     };
@@ -17,12 +18,24 @@
     $settlementLabel = function ($status) {
         return match ($status) {
             'Pending' => 'Ready for Release',
-            'Settled' => 'Released',
+            'Released', 'Settled' => 'Released',
+            'Partially Released' => 'Partially Released',
             default => $status,
         };
     };
 
     $truncateHash = fn ($hash) => $hash ? substr($hash, 0, 18) . '...' . substr($hash, -12) : null;
+    $demoSafeNotice = 'Demo-safe payout layer: PHP/GCash disbursement is simulated to avoid requiring paid payout APIs or real-money transfers during judging. Settlement proof is recorded through Morph, with real EDUX ERC-20 testnet transfer details shown when enabled.';
+    $eduxLabel = fn ($status) => match ($status ?? 'skipped') {
+        'success' => 'Real EDUX transfer',
+        'failed' => 'EDUX failed',
+        default => 'EDUX skipped',
+    };
+    $eduxTone = fn ($status) => match ($status ?? 'skipped') {
+        'success' => 'success',
+        'failed' => 'danger',
+        default => 'neutral',
+    };
 @endphp
 
 <div class="w-full min-w-0 max-w-7xl space-y-6">
@@ -120,7 +133,7 @@
                 </span>
             </div>
             <p class="mt-3 text-xs text-ui-subtext">
-                Pending release review queue
+                {{ number_format($metrics['settlement_rail_records']) }} ERC-20-compatible rail records
             </p>
         </section>
     </div>
@@ -133,7 +146,7 @@
                 </p>
 
                 <p class="mt-1 max-w-3xl text-sm leading-6 text-emerald-700">
-                    These reports summarize existing operational records only. They do not alter assistance approvals, merchant claim processing, settlement releases, or Morph proof logging.
+                    These reports summarize existing operational records only. They do not alter assistance approvals, merchant claim processing, settlement releases, or Morph proof logging. {{ $demoSafeNotice }}
                 </p>
             </div>
 
@@ -294,7 +307,10 @@
             <div class="border-b border-ui-border bg-ui-canvas/50 px-5 py-4">
                 <div class="flex flex-wrap gap-2">
                     @forelse($proofSummary['status_counts'] as $status => $count)
-                        <x-status-badge status="{{ $status }}: {{ number_format($count) }}" :tone="$statusTone($status)" size="xs" />
+                        <span class="inline-flex items-center gap-2 rounded-full border border-ui-border/80 bg-ui-surface px-2 py-1 shadow-sm">
+                            <x-status-badge :status="$status" :tone="$statusTone($status)" size="xs" />
+                            <span class="pr-1 text-xs font-semibold text-ui-subtext">{{ number_format($count) }}</span>
+                        </span>
                     @empty
                         <x-status-badge status="No proof records" tone="neutral" size="xs" />
                     @endforelse
@@ -313,6 +329,7 @@
                     <tr>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Proof Record</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Status</th>
+                        <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Settlement Rail</th>
                         <th class="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-ui-subtext">Hash</th>
                     </tr>
                 </thead>
@@ -326,6 +343,26 @@
                             </td>
                             <td class="px-5 py-4">
                                 <x-status-badge :status="$record['status']" :tone="$statusTone($record['status'])" />
+                            </td>
+                            <td class="px-5 py-4">
+                                @if($record['settlement_rail'] || $record['payout_channel'])
+                                    <p class="font-semibold text-ui-text">{{ $record['settlement_rail'] ?? 'ERC-20-compatible' }}</p>
+                                    <p class="mt-1 text-xs text-ui-subtext">{{ $record['payout_channel'] ?? 'GCash/PHP simulation' }} · {{ $record['network'] ?? 'Morph testnet' }}</p>
+                                    <p class="mt-1 break-all font-mono text-xs text-teal-700">{{ $record['settlement_reference'] ?? 'Reference unavailable' }}</p>
+                                    <div class="mt-2">
+                                        <x-status-badge :status="$eduxLabel($record['edux_transfer_status'])" :tone="$eduxTone($record['edux_transfer_status'])" size="xs" />
+                                    </div>
+                                    @if($record['edux_transaction_hash'])
+                                        <p class="mt-2 break-all font-mono text-xs text-cyan-700" title="{{ $record['edux_transaction_hash'] }}">
+                                            {{ $truncateHash($record['edux_transaction_hash']) }}
+                                        </p>
+                                        <p class="mt-1 break-all text-xs text-ui-subtext">
+                                            {{ $record['edux_amount'] ?? '1' }} {{ $record['edux_token_symbol'] ?? 'EDUX' }} to {{ $record['edux_to'] ?? 'recipient wallet' }}
+                                        </p>
+                                    @endif
+                                @else
+                                    <span class="text-sm text-ui-subtext">Claim proof</span>
+                                @endif
                             </td>
                             <td class="px-5 py-4">
                                 @if($record['proof_hash'])
@@ -343,7 +380,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="3" class="px-5 py-12 text-center">
+                            <td colspan="4" class="px-5 py-12 text-center">
                                 <p class="font-semibold text-ui-text">No Morph proof records yet</p>
                                 <p class="mt-2 text-sm text-ui-subtext">Proof verification records will appear after merchant claim processing records proof.</p>
                             </td>

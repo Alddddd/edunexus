@@ -125,6 +125,71 @@
                 </x-form-section>
 
                 <x-form-section
+                    title="GCash Payout Details"
+                    description="Used by admins when simulating PHP reimbursement releases during settlement review."
+                    columns="2">
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-slate-700">
+                            GCash Name
+                        </label>
+
+                        <input type="text"
+                               name="payout_account_name"
+                               value="{{ old('payout_account_name', $merchant->payout_account_name) }}"
+                               class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+
+                        @error('payout_account_name')
+                            <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-slate-700">
+                            GCash Number
+                        </label>
+
+                        <input type="text"
+                               name="payout_account_number"
+                               value="{{ old('payout_account_number', $merchant->payout_account_number) }}"
+                               class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+
+                        @error('payout_account_number')
+                            <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="mb-2 block text-sm font-medium text-slate-700">
+                            Optional QR Reference
+                        </label>
+
+                        <input type="text"
+                               name="payout_qr"
+                               value="{{ old('payout_qr', $merchant->payout_qr) }}"
+                               placeholder="QR image URL or internal reference"
+                               class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500">
+
+                        @error('payout_qr')
+                            <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="mb-2 block text-sm font-medium text-slate-700">
+                            Payout Notes
+                        </label>
+
+                        <textarea name="payout_notes"
+                                  rows="3"
+                                  class="w-full rounded-xl border-slate-300 focus:border-teal-500 focus:ring-teal-500">{{ old('payout_notes', $merchant->payout_notes) }}</textarea>
+
+                        @error('payout_notes')
+                            <p class="mt-2 text-sm text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </x-form-section>
+
+                <x-form-section
                     title="Contact and Accreditation"
                     description="Use these details for settlement coordination and merchant eligibility."
                     columns="2">

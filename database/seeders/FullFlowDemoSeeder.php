@@ -34,6 +34,10 @@ class FullFlowDemoSeeder extends Seeder
                 'merchant_category' => self::MERCHANT_CATEGORY,
                 'contact_number' => '0917-555-0198',
                 'address' => 'CM Recto Avenue, Lipa City, Batangas',
+                'payout_account_name' => 'Lipa School Supplies Center',
+                'payout_account_number' => '09175550198',
+                'payout_qr' => 'demo-gcash-qr-lipa-school-supplies',
+                'payout_notes' => 'Demo-safe payout account for simulated GCash reimbursement releases.',
                 'status' => 'Active',
             ]
         );
@@ -79,7 +83,7 @@ class FullFlowDemoSeeder extends Seeder
             $merchantUser,
             $merchantProfile,
             5000,
-            'Settled',
+            'Released',
             now()->subDays(3),
             now()->subDay()
         );
@@ -108,7 +112,7 @@ class FullFlowDemoSeeder extends Seeder
             'Demo admin released settlement for claim ' . self::RELEASED_REFERENCE . '.',
             Settlement::class,
             Settlement::where('assistance_request_id', $releasedClaim->id)->value('id'),
-            'Settled',
+            'Released',
             $admin->id
         );
         $this->activityLog(
@@ -248,8 +252,11 @@ class FullFlowDemoSeeder extends Seeder
             [
                 'merchant_id' => $merchantUser->id,
                 'amount' => $claim->approved_amount,
+                'total_released' => $settlementStatus === 'Released' ? $claim->approved_amount : 0,
+                'remaining_balance' => $settlementStatus === 'Released' ? 0 : $claim->approved_amount,
                 'status' => $settlementStatus,
                 'settled_at' => $settledAt,
+                'last_released_at' => $settledAt,
             ]
         );
 

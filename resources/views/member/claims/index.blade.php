@@ -10,19 +10,8 @@
     $activeClaimPasses = $claimStats['active'];
     $claimedRequests = $claimStats['claimed'];
 
-    $statusClasses = function ($claim) {
-        if ($claim->is_claimed) {
-            return 'bg-cyan-100 text-cyan-700';
-        }
-
-        return match ($claim->status) {
-            'Approved' => 'bg-emerald-100 text-emerald-700',
-            'Rejected' => 'bg-rose-100 text-rose-700',
-            default => 'bg-amber-100 text-amber-700',
-        };
-    };
-
     $statusLabel = fn ($claim) => $claim->is_claimed ? 'Claimed' : $claim->status;
+    $statusTone = fn ($claim) => $claim->is_claimed ? 'claimed' : $claim->status;
 @endphp
 
 <div class="w-full min-w-0 max-w-7xl space-y-6 text-ui-anchor">
@@ -180,9 +169,7 @@
                             </td>
 
                             <td class="px-6 py-5 align-top">
-                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $statusClasses($claim) }}">
-                                    {{ $statusLabel($claim) }}
-                                </span>
+                                <x-status-badge :status="$statusLabel($claim)" :tone="$statusTone($claim)" />
                             </td>
 
                             <td class="px-6 py-5 align-top">
@@ -274,9 +261,7 @@
                                 </p>
                             </div>
 
-                            <span class="inline-flex shrink-0 rounded-full px-3 py-1 text-xs font-semibold {{ $statusClasses($claim) }}">
-                                {{ $statusLabel($claim) }}
-                            </span>
+                            <x-status-badge class="shrink-0" :status="$statusLabel($claim)" :tone="$statusTone($claim)" />
                         </div>
 
                         <div class="grid grid-cols-1 gap-3 rounded-2xl bg-slate-50 p-3 text-sm">

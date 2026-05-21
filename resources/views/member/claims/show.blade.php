@@ -6,32 +6,27 @@
 
 @php
     $claimPassStatus = 'Pending Review';
-    $claimPassClasses = 'bg-amber-100 text-amber-700';
     $claimGuidanceTitle = 'Awaiting Approval';
     $claimGuidanceCopy = 'Your assistance request is still under review. A QR/reference pass will appear after approval.';
     $claimGuidanceClasses = 'border-amber-200 bg-amber-50 text-amber-800';
 
     if ($claim->status === 'Rejected') {
         $claimPassStatus = 'Rejected';
-        $claimPassClasses = 'bg-rose-100 text-rose-700';
         $claimGuidanceTitle = 'Request Rejected';
         $claimGuidanceCopy = 'This assistance request was not approved. You may submit another request for an available program.';
         $claimGuidanceClasses = 'border-rose-200 bg-rose-50 text-rose-800';
     } elseif ($claim->is_claimed) {
         $claimPassStatus = 'Claimed';
-        $claimPassClasses = 'bg-cyan-100 text-cyan-700';
         $claimGuidanceTitle = 'Claim Processed';
         $claimGuidanceCopy = 'This claim pass has already been validated and processed by a merchant.';
         $claimGuidanceClasses = 'border-cyan-200 bg-cyan-50 text-cyan-800';
     } elseif ($claim->status === 'Approved' && $claim->expiration_date && now()->greaterThan($claim->expiration_date)) {
         $claimPassStatus = 'Expired';
-        $claimPassClasses = 'bg-slate-100 text-slate-600';
         $claimGuidanceTitle = 'Claim Pass Expired';
         $claimGuidanceCopy = 'This approved claim pass is past its validity date and may no longer be accepted.';
         $claimGuidanceClasses = 'border-slate-200 bg-slate-50 text-slate-700';
     } elseif ($claim->status === 'Approved') {
         $claimPassStatus = 'Valid Claim Pass';
-        $claimPassClasses = 'bg-emerald-100 text-emerald-700';
         $claimGuidanceTitle = 'Claim Ready';
         $claimGuidanceCopy = 'Present this QR code or reference code to an accredited merchant to redeem your approved assistance.';
         $claimGuidanceClasses = 'border-emerald-200 bg-emerald-50 text-emerald-800';
@@ -72,9 +67,7 @@
                         </p>
                     </div>
 
-                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $claimPassClasses }}">
-                        {{ $claimPassStatus }}
-                    </span>
+                    <x-status-badge :status="$claimPassStatus" :tone="$claimPassStatus" size="xs" />
                 </div>
             </div>
 
@@ -275,9 +268,7 @@
                         </p>
 
                         <div class="mt-2 flex flex-wrap items-center gap-2">
-                            <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $claimPassClasses }}">
-                                {{ $claimPassStatus }}
-                            </span>
+                            <x-status-badge :status="$claimPassStatus" :tone="$claimPassStatus" size="xs" />
 
                             <span class="text-xs text-slate-500 sm:text-sm">
                                 {{ $claim->is_claimed ? 'Already claimed at merchant' : ($claim->status === 'Approved' ? 'Ready for merchant validation' : $claim->status) }}

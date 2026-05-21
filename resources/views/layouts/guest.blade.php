@@ -14,15 +14,25 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-100">
-            <div>
-                <a href="/">
-                    <x-application-logo class="w-20 h-20 fill-current text-gray-500" />
+    <body class="font-sans text-ui-text antialiased">
+        <div class="flex min-h-screen flex-col items-center justify-center bg-ui-canvas px-4 py-8">
+            <div class="mb-7 text-center">
+                <a href="/" class="inline-flex items-center gap-3">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-ui-action text-white shadow-lg shadow-ui-anchor/15 ring-1 ring-ui-action/20">
+                        <x-application-logo class="h-7 w-7 fill-current" />
+                    </span>
+
+                    <span class="text-xl font-bold tracking-tight text-ui-anchor">
+                        EduNexUs
+                    </span>
                 </a>
+
+                <p class="mt-2 text-sm text-ui-subtext">
+                    Cooperative assistance operations platform
+                </p>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
+            <div class="w-full max-w-md overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface px-6 py-6 shadow-[0_18px_44px_rgba(15,47,44,0.09)] ring-1 ring-white/80 sm:px-8 sm:py-7">
                 {{ $slot }}
             </div>
         </div>

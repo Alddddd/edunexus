@@ -65,18 +65,15 @@
         </div>
 
         <div class="mt-6 flex flex-wrap items-center gap-2 text-sm font-semibold">
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full border border-ui-border/80 bg-ui-surface/85 px-3 py-2 text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 ring-1 ring-ui-border/70 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-muted text-xs">1</span>
+            <div class="flex min-w-[8rem] flex-1 items-center justify-center rounded-full border border-ui-border/80 bg-ui-surface/85 px-3 py-2 text-center text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 ring-1 ring-ui-border/70 sm:flex-none">
                 <span class="min-w-0 truncate">Claim</span>
             </div>
             <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-proof/10 px-3 py-2 text-ui-proof ring-1 ring-ui-proof/15 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-proof/15 text-xs">2</span>
+            <div class="flex min-w-[8rem] flex-1 items-center justify-center rounded-full bg-ui-proof/10 px-3 py-2 text-center text-ui-proof ring-1 ring-ui-proof/15 sm:flex-none">
                 <span class="min-w-0 truncate">Proof Record</span>
             </div>
             <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-success/10 px-3 py-2 text-ui-success ring-1 ring-ui-success/15 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-success/15 text-xs">3</span>
+            <div class="flex min-w-[8rem] flex-1 items-center justify-center rounded-full bg-ui-success/10 px-3 py-2 text-center text-ui-success ring-1 ring-ui-success/15 sm:flex-none">
                 <span class="min-w-0 truncate">Confirmed</span>
             </div>
         </div>

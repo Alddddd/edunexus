@@ -11,14 +11,6 @@
         ->replace('_', ' ')
         ->title();
 
-    $statusClasses = function ($status) {
-        return match ($status) {
-            'Approved', 'Confirmed', 'Settled' => 'bg-emerald-100 text-emerald-700',
-            'Rejected', 'Failed' => 'bg-rose-100 text-rose-700',
-            default => 'bg-slate-100 text-slate-600',
-        };
-    };
-
     $eventClasses = function ($eventType) {
         return match ($eventType) {
             'request_approved' => 'bg-teal-100 text-teal-700',
@@ -49,16 +41,16 @@
         eyebrow="Audit Visibility"
         description="Operational audit trail for approvals, claims, blockchain validation, and settlement activity.">
         <x-slot:actions>
-            <div class="rounded-2xl border border-teal-100 bg-teal-50 px-5 py-4">
-                <p class="text-xs font-semibold uppercase tracking-wider text-teal-700">
+            <div class="metric-current-view rounded-2xl border px-5 py-4">
+                <p class="text-xs font-semibold uppercase tracking-wider text-ui-action">
                     Current View
                 </p>
 
-                <p class="mt-1 text-2xl font-bold text-teal-800">
+                <p class="mt-1 text-2xl font-bold text-ui-anchor">
                     {{ number_format($activities->total()) }}
                 </p>
 
-                <p class="text-xs text-teal-700">
+                <p class="text-xs text-ui-subtext">
                     {{ $hasFilters ? 'Filtered audit records' : 'All audit records' }}
                 </p>
             </div>
@@ -299,9 +291,7 @@
 
                             <td class="px-6 py-5 align-top">
 
-                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $statusClasses($log->status) }}">
-                                    {{ $log->status ?? 'Recorded' }}
-                                </span>
+                                <x-status-badge :status="$log->status ?? 'Recorded'" :tone="$log->status ?? 'neutral'" />
 
                             </td>
 

@@ -28,8 +28,8 @@ class DashboardController extends Controller
             'claimedRequests' => AssistanceRequest::where('is_claimed', true)->count(),
             'confirmedBlockchainLogs' => BlockchainTransaction::where('blockchain_status', 'Confirmed')->count(),
 
-            'pendingSettlements' => Settlement::where('status', 'Pending')->count(),
-            'settledAmount' => Settlement::where('status', 'Settled')->sum('amount'),
+            'pendingSettlements' => Settlement::whereIn('status', ['Pending', 'Partially Released'])->count(),
+            'settledAmount' => Settlement::sum('total_released'),
             'pendingBlockchainProofs' => BlockchainTransaction::where('blockchain_status', 'Pending')->count(),
             'topProgramName' => $topProgram?->program?->program_name ?? 'No activity yet',
             'totalRequests' => $totalRequests,
@@ -38,7 +38,7 @@ class DashboardController extends Controller
             'approvalRate' => $totalRequests > 0
                 ? round(($approvedRequests / $totalRequests) * 100, 1)
                 : 0,
-            'pendingSettlementAmount' => Settlement::where('status', 'Pending')->sum('amount'),
+            'pendingSettlementAmount' => Settlement::whereIn('status', ['Pending', 'Partially Released'])->sum('remaining_balance'),
             'totalSettlements' => Settlement::count(),
             'latestBlockchainTransaction' => BlockchainTransaction::latest()->first(),
 
@@ -46,7 +46,7 @@ class DashboardController extends Controller
                     'assistanceRequest.member',
                     'merchant.merchantProfile',
                 ])
-                ->where('status', 'Pending')
+                ->whereIn('status', ['Pending', 'Partially Released'])
                 ->latest()
                 ->take(5)
                 ->get(),

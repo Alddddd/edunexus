@@ -5,14 +5,6 @@
 @section('content')
 
 @php
-    $statusClasses = function ($status) {
-        return match ($status) {
-            'Approved', 'Confirmed', 'Settled' => 'bg-ui-success/10 text-ui-success ring-1 ring-ui-success/15',
-            'Rejected', 'Failed' => 'bg-ui-danger/10 text-ui-danger ring-1 ring-ui-danger/15',
-            default => 'bg-ui-warning/10 text-ui-warning ring-1 ring-ui-warning/15',
-        };
-    };
-
     $latestHash = $latestBlockchainTransaction?->transaction_hash;
     $shortLatestHash = $latestHash && str_starts_with($latestHash, '0x')
         ? substr($latestHash, 0, 10) . '...' . substr($latestHash, -8)
@@ -48,64 +40,76 @@
     </x-page-header>
 
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div class="rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-success bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(15,47,44,0.10)]">
-            <p class="text-sm text-ui-subtext">
-                Total Approved Assistance
-            </p>
+        @foreach([
+            [
+                'label' => 'Total Approved Assistance',
+                'value' => '₱' . number_format($totalApprovedAssistance, 2),
+                'sub' => 'Approved assistance value',
+                'tone' => 'success',
+                'icon' => 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+            ],
+            [
+                'label' => 'Pending Approvals',
+                'value' => number_format($pendingRequests),
+                'sub' => 'Awaiting admin review',
+                'tone' => 'warning',
+                'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
+            ],
+            [
+                'label' => 'Pending Settlement Value',
+                'value' => '₱' . number_format($pendingSettlementAmount, 2),
+                'sub' => 'Outstanding merchant reimbursement',
+                'tone' => 'danger',
+                'icon' => 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+            ],
+            [
+                'label' => 'Morph Confirmations',
+                'value' => number_format($confirmedBlockchainLogs),
+                'sub' => 'Confirmed proof records',
+                'tone' => 'proof',
+                'icon' => 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1',
+            ],
+        ] as $card)
+            @php
+                $toneClass = match ($card['tone']) {
+                    'success' => 'bg-ui-success/10 text-ui-success ring-ui-success/15',
+                    'warning' => 'bg-ui-warning/10 text-ui-warning ring-ui-warning/15',
+                    'danger' => 'bg-ui-danger/10 text-ui-danger ring-ui-danger/15',
+                    default => 'bg-ui-proof/10 text-ui-proof ring-ui-proof/15',
+                };
+            @endphp
 
-            <p class="mt-3 text-3xl font-bold text-ui-anchor">
-                ₱{{ number_format($totalApprovedAssistance, 2) }}
-            </p>
+            <div class="group relative overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface/95 p-5 shadow-[0_14px_34px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(15,47,44,0.10)]">
+                <div class="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-ui-action/5 blur-2xl"></div>
 
-            <p class="mt-2 text-sm text-ui-subtext/85">
-                Approved assistance value
-            </p>
-        </div>
+                <div class="relative">
+                    <div class="mb-4 flex items-start justify-between gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $toneClass }} ring-1">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $card['icon'] }}" />
+                            </svg>
+                        </div>
 
-        <div class="rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-warning bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(15,47,44,0.10)]">
-            <p class="text-sm text-ui-subtext">
-                Pending Approvals
-            </p>
+                        <span class="mt-1 h-2 w-2 rounded-full {{ $card['tone'] === 'danger' ? 'bg-ui-danger' : ($card['tone'] === 'warning' ? 'bg-ui-warning' : ($card['tone'] === 'proof' ? 'bg-ui-proof' : 'bg-ui-success')) }}"></span>
+                    </div>
 
-            <p class="mt-3 text-3xl font-bold text-ui-anchor">
-                {{ number_format($pendingRequests) }}
-            </p>
+                    <p class="text-xs font-semibold uppercase tracking-wider text-ui-subtext/70">
+                        {{ $card['label'] }}
+                    </p>
 
-            <p class="mt-2 text-sm text-ui-subtext/85">
-                Awaiting admin review
-            </p>
-        </div>
+                    <p class="mt-2 text-2xl font-bold tracking-tight text-ui-anchor">
+                        {{ $card['value'] }}
+                    </p>
 
-        <div class="rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-warning bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(15,47,44,0.10)]">
-            <p class="text-sm text-ui-subtext">
-                Pending Settlement Value
-            </p>
-
-            <p class="mt-3 text-3xl font-bold text-ui-anchor">
-                ₱{{ number_format($pendingSettlementAmount, 2) }}
-            </p>
-
-            <p class="mt-2 text-sm text-ui-subtext/85">
-                Outstanding merchant reimbursement
-            </p>
-        </div>
-
-        <div class="rounded-2xl border border-t-4 border-ui-border/80 border-t-ui-proof bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_44px_rgba(15,47,44,0.10)]">
-            <p class="text-sm text-ui-subtext">
-                Morph Confirmations
-            </p>
-
-            <p class="mt-3 text-3xl font-bold text-ui-anchor">
-                {{ number_format($confirmedBlockchainLogs) }}
-            </p>
-
-            <p class="mt-2 text-sm text-ui-subtext/85">
-                Confirmed proof records
-            </p>
-        </div>
+                    <p class="mt-1 text-sm text-ui-subtext/80">
+                        {{ $card['sub'] }}
+                    </p>
+                </div>
+            </div>
+        @endforeach
     </div>
 
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-2xl border border-ui-border/80 bg-ui-surface/95 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
             <div class="flex items-center justify-between">
                 <div>
@@ -153,6 +157,26 @@
                 <span class="h-3 w-3 rounded-full bg-ui-action"></span>
             </div>
         </div>
+
+        <div class="rounded-2xl border border-ui-success/20 bg-gradient-to-br from-emerald-50 to-teal-50/70 p-6 shadow-[0_16px_38px_rgba(15,47,44,0.06)] ring-1 ring-ui-success/10">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <p class="text-sm text-ui-subtext">
+                        Approval Rate
+                    </p>
+
+                    <p class="mt-1 text-2xl font-bold text-ui-success">
+                        {{ number_format($approvalRate, 1) }}%
+                    </p>
+                </div>
+
+                <span class="mt-1 h-3 w-3 rounded-full bg-ui-success"></span>
+            </div>
+
+            <div class="mt-4 h-1.5 overflow-hidden rounded-full bg-ui-success/15">
+                <div class="h-full rounded-full bg-ui-success" style="width: {{ min($approvalRate, 100) }}%"></div>
+            </div>
+        </div>
     </div>
 
     <div class="rounded-2xl border border-ui-action/15 bg-gradient-to-br from-ui-action/10 via-ui-surface/90 to-ui-proof/10 p-6 shadow-[0_20px_44px_rgba(11,93,86,0.10)] ring-1 ring-ui-anchor/5">
@@ -177,45 +201,24 @@
         </div>
 
         <div class="mt-6 flex flex-wrap items-center gap-2 text-sm font-semibold">
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full border border-ui-border/80 bg-ui-surface/85 px-3 py-2 text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 ring-1 ring-ui-border/70 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-muted text-xs text-ui-anchor/75">1</span>
-                <span class="min-w-0 truncate">Request</span>
-            </div>
+            @foreach([
+                ['label' => 'Request', 'class' => 'border border-ui-border/80 bg-ui-surface/85 text-ui-anchor/85 ring-ui-border/70'],
+                ['label' => 'Review', 'class' => 'bg-ui-warning/10 text-ui-warning ring-ui-warning/15'],
+                ['label' => 'Approved', 'class' => 'bg-ui-success/10 text-ui-success ring-ui-success/15'],
+                ['label' => 'QR Issued', 'class' => 'bg-teal-50 text-teal-700 ring-teal-200'],
+                ['label' => 'Claimed', 'class' => 'bg-ui-proof/10 text-ui-proof ring-ui-proof/15'],
+                ['label' => 'Released', 'class' => 'bg-ui-action/10 text-ui-action ring-ui-action/15'],
+            ] as $index => $stage)
+                <div class="flex min-w-[7.5rem] flex-1 items-center justify-center rounded-full px-3 py-2 text-center shadow-sm shadow-ui-anchor/5 ring-1 sm:flex-none {{ $stage['class'] }}">
+                    <span class="min-w-0 truncate">
+                        {{ $stage['label'] }}
+                    </span>
+                </div>
 
-            <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-warning/10 px-3 py-2 text-ui-warning ring-1 ring-ui-warning/15 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-warning/15 text-xs">2</span>
-                <span class="min-w-0 truncate">Approval</span>
-            </div>
-
-            <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-success/10 px-3 py-2 text-ui-success ring-1 ring-ui-success/15 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-success/15 text-xs">3</span>
-                <span class="min-w-0 truncate">QR Generated</span>
-            </div>
-
-            <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-
-            <div class="flex min-w-[10rem] flex-1 items-center gap-2 rounded-full bg-ui-proof/10 px-3 py-2 text-ui-proof ring-1 ring-ui-proof/15 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-proof/15 text-xs">4</span>
-                <span class="min-w-0 truncate">Merchant Validation</span>
-            </div>
-
-            <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-action/10 px-3 py-2 text-ui-action ring-1 ring-ui-action/15 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-action/15 text-xs">5</span>
-                <span class="min-w-0 truncate">Morph Proof</span>
-            </div>
-
-            <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
-
-            <div class="flex min-w-[8rem] flex-1 items-center gap-2 rounded-full bg-ui-surface/85 px-3 py-2 text-ui-anchor/85 shadow-sm shadow-ui-anchor/5 ring-1 ring-ui-border/70 sm:flex-none">
-                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-ui-muted text-xs text-ui-anchor/75">6</span>
-                <span class="min-w-0 truncate">Settlement</span>
-            </div>
+                @if($index < 5)
+                    <x-icon name="chevron-right" size="hidden h-4 w-4 text-ui-action/45 sm:block" />
+                @endif
+            @endforeach
         </div>
     </div>
 
@@ -346,9 +349,7 @@
                     </div>
 
                     <div class="flex items-center justify-between gap-3">
-                        <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClasses($latestBlockchainTransaction->blockchain_status) }}">
-                            {{ $latestBlockchainTransaction->blockchain_status }}
-                        </span>
+                        <x-status-badge :status="$latestBlockchainTransaction->blockchain_status" :tone="$latestBlockchainTransaction->blockchain_status" size="xs" />
 
                         <p class="text-xs text-ui-subtext/70">
                             {{ $latestBlockchainTransaction->recorded_at?->diffForHumans() ?? $latestBlockchainTransaction->created_at->diffForHumans() }}
@@ -375,47 +376,58 @@
     </div>
 
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <div class="overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface/95 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
-            <div class="border-b border-ui-border/70 bg-ui-surface/55 px-6 py-5">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 class="text-lg font-semibold text-ui-anchor">
+        <div class="overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface/95 shadow-[0_14px_34px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
+            <div class="flex items-center justify-between gap-4 border-b border-ui-border/70 bg-gradient-to-r from-[#f8fdfb] to-ui-muted/30 px-5 py-4">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ui-warning/10 text-ui-warning ring-1 ring-ui-warning/15">
+                        <x-icon name="list-checks" size="h-4 w-4" />
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="text-sm font-bold text-ui-anchor">
                             Pending Approvals
                         </h2>
 
-                        <p class="mt-1 text-sm text-ui-subtext">
+                        <p class="text-xs text-ui-subtext/70">
                             Assistance requests waiting for review.
                         </p>
                     </div>
-
-                    <a href="{{ route('admin.assistance-requests.index') }}"
-                       class="text-sm font-semibold text-ui-action hover:text-primary-dark">
-                        Review
-                    </a>
                 </div>
+
+                <a href="{{ route('admin.assistance-requests.index') }}"
+                   class="shrink-0 rounded-lg border border-ui-action/20 bg-ui-action/10 px-3 py-1.5 text-xs font-bold text-ui-action transition hover:bg-ui-action hover:text-white">
+                    Review
+                </a>
             </div>
 
-            <div class="divide-y divide-ui-border/70">
+            <div class="grid grid-cols-[1fr_auto] border-b border-ui-border/50 bg-ui-canvas/60 px-5 py-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-ui-subtext/55">Member / Program</span>
+                <span class="text-right text-[10px] font-bold uppercase tracking-wider text-ui-subtext/55">Amount</span>
+            </div>
+
+            <div class="divide-y divide-ui-border/60">
                 @forelse($latestPendingRequests as $request)
-                    <div class="px-6 py-4">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <p class="font-semibold text-ui-anchor">
+                    <div class="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-3.5 transition hover:bg-ui-canvas/50">
+                        <div class="flex min-w-0 items-center gap-3">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ui-warning/10 text-xs font-bold text-ui-warning ring-1 ring-ui-warning/15">
+                                {{ strtoupper(substr($request->member->name ?? 'U', 0, 1)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-ui-anchor">
                                     {{ $request->member->name ?? 'Unknown member' }}
                                 </p>
 
-                                <p class="mt-1 text-sm text-ui-subtext">
+                                <p class="truncate text-xs text-ui-subtext/70">
                                     {{ $request->program->program_name ?? 'Assistance program' }}
                                 </p>
                             </div>
-
-                            <p class="shrink-0 font-semibold text-ui-anchor">
-                                ₱{{ number_format($request->requested_amount, 2) }}
-                            </p>
                         </div>
+
+                        <p class="shrink-0 text-sm font-bold text-ui-anchor">
+                            ₱{{ number_format($request->requested_amount, 2) }}
+                        </p>
                     </div>
                 @empty
-                    <div class="px-6 py-10 text-center">
+                    <div class="px-5 py-10 text-center">
                         <p class="font-semibold text-ui-text/85">
                             No pending approvals
                         </p>
@@ -428,51 +440,62 @@
             </div>
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface/95 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
-            <div class="border-b border-ui-border/70 bg-ui-surface/55 px-6 py-5">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 class="text-lg font-semibold text-ui-anchor">
+        <div class="overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface/95 shadow-[0_14px_34px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5">
+            <div class="flex items-center justify-between gap-4 border-b border-ui-border/70 bg-gradient-to-r from-[#f8fdfb] to-ui-muted/30 px-5 py-4">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ui-action/10 text-ui-action ring-1 ring-ui-action/15">
+                        <x-icon name="credit-card" size="h-4 w-4" />
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="text-sm font-bold text-ui-anchor">
                             Pending Settlements
                         </h2>
 
-                        <p class="mt-1 text-sm text-ui-subtext">
+                        <p class="text-xs text-ui-subtext/70">
                             Merchant reimbursements awaiting completion.
                         </p>
                     </div>
-
-                    <a href="{{ route('admin.settlements.index') }}"
-                       class="text-sm font-semibold text-ui-action hover:text-primary-dark">
-                        Open
-                    </a>
                 </div>
+
+                <a href="{{ route('admin.settlements.index') }}"
+                   class="shrink-0 rounded-lg border border-ui-action/20 bg-ui-action/10 px-3 py-1.5 text-xs font-bold text-ui-action transition hover:bg-ui-action hover:text-white">
+                    Open
+                </a>
             </div>
 
-            <div class="divide-y divide-ui-border/70">
+            <div class="grid grid-cols-[1fr_auto] border-b border-ui-border/50 bg-ui-canvas/60 px-5 py-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-ui-subtext/55">Merchant / Reference</span>
+                <span class="text-right text-[10px] font-bold uppercase tracking-wider text-ui-subtext/55">Amount</span>
+            </div>
+
+            <div class="divide-y divide-ui-border/60">
                 @forelse($latestPendingSettlements as $settlement)
                     @php
                         $merchantProfile = $settlement->merchant?->merchantProfile;
                     @endphp
 
-                    <div class="px-6 py-4">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <p class="font-semibold text-ui-anchor">
+                    <div class="grid grid-cols-[1fr_auto] items-center gap-4 px-5 py-3.5 transition hover:bg-ui-canvas/50">
+                        <div class="flex min-w-0 items-center gap-3">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ui-action/10 text-xs font-bold text-ui-action ring-1 ring-ui-action/15">
+                                {{ strtoupper(substr($merchantProfile->business_name ?? $settlement->merchant->name ?? 'M', 0, 1)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-ui-anchor">
                                     {{ $merchantProfile->business_name ?? $settlement->merchant->name ?? 'Merchant account' }}
                                 </p>
 
-                                <p class="mt-1 text-sm text-ui-subtext">
+                                <p class="truncate font-mono text-xs text-ui-subtext/70">
                                     {{ $settlement->assistanceRequest->reference_code ?? 'No reference' }}
                                 </p>
                             </div>
-
-                            <p class="shrink-0 font-semibold text-ui-anchor">
-                                ₱{{ number_format($settlement->amount, 2) }}
-                            </p>
                         </div>
+
+                        <p class="shrink-0 text-sm font-bold text-ui-anchor">
+                            ₱{{ number_format($settlement->amount, 2) }}
+                        </p>
                     </div>
                 @empty
-                    <div class="px-6 py-10 text-center">
+                    <div class="px-5 py-10 text-center">
                         <p class="font-semibold text-ui-text/85">
                             No pending settlements
                         </p>
@@ -487,67 +510,68 @@
     </div>
 
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-5">
-        <div class="overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface/95 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 xl:col-span-3">
-            <div class="border-b border-ui-border/70 bg-ui-surface/55 px-6 py-5">
-                <div class="flex items-start justify-between gap-4">
-                    <div>
-                        <h2 class="text-lg font-semibold text-ui-anchor">
+        <div class="overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface/95 shadow-[0_14px_34px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 xl:col-span-3">
+            <div class="flex items-center justify-between gap-4 border-b border-ui-border/70 bg-gradient-to-r from-[#f8fdfb] to-ui-muted/30 px-5 py-4">
+                <div class="flex min-w-0 items-center gap-3">
+                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ui-action/10 text-ui-action ring-1 ring-ui-action/15">
+                        <x-icon name="activity" size="h-4 w-4" />
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="text-sm font-bold text-ui-anchor">
                             Live Operations Feed
                         </h2>
 
-                        <p class="mt-1 text-sm text-ui-subtext">
-                            Recent approvals, claims, settlements, and verification activity across EduNexUs.
+                        <p class="text-xs text-ui-subtext/70">
+                            Recent approvals, claims, settlements, and verification activity.
                         </p>
                     </div>
-
-                    <a href="{{ route('admin.activity-logs.index') }}"
-                       class="text-sm font-semibold text-ui-action hover:text-primary-dark">
-                        View all
-                    </a>
                 </div>
+
+                <a href="{{ route('admin.activity-logs.index') }}"
+                   class="shrink-0 rounded-lg border border-ui-action/20 bg-ui-action/10 px-3 py-1.5 text-xs font-bold text-ui-action transition hover:bg-ui-action hover:text-white">
+                    View all
+                </a>
             </div>
 
-            <div class="divide-y divide-ui-border/70">
+            <div class="grid grid-cols-[auto_1fr_auto] gap-3 border-b border-ui-border/50 bg-ui-canvas/60 px-5 py-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-ui-subtext/55">Type</span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-ui-subtext/55">Activity</span>
+                <span class="text-right text-[10px] font-bold uppercase tracking-wider text-ui-subtext/55">Status / Time</span>
+            </div>
+
+            <div class="divide-y divide-ui-border/60">
                 @forelse($recentActivities as $activity)
-                    <div class="px-6 py-4 transition hover:bg-ui-surface/75">
-                        <div class="flex items-start gap-4">
-                            <div class="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $statusClasses($activity->status) }}">
+                    <div class="grid grid-cols-[auto_1fr_auto] items-start gap-3 px-5 py-3.5 transition hover:bg-ui-canvas/50">
+                        <div class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg {{ in_array($activity->status, ['Rejected', 'Failed'], true) ? 'bg-ui-danger/10 text-ui-danger ring-1 ring-ui-danger/15' : (in_array($activity->status, ['Approved', 'Confirmed', 'Released', 'Settled'], true) ? 'bg-ui-success/10 text-ui-success ring-1 ring-ui-success/15' : 'bg-ui-warning/10 text-ui-warning ring-1 ring-ui-warning/15') }}">
                                 <x-icon :name="$activity->status === 'Rejected' || $activity->status === 'Failed' ? 'x-circle' : 'check-circle'" size="h-5 w-5" />
-                            </div>
+                        </div>
 
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                                    <div>
-                                        <p class="font-semibold text-ui-anchor">
-                                            {{ $activity->title }}
-                                        </p>
+                        <div class="min-w-0">
+                            <p class="text-sm font-semibold leading-tight text-ui-anchor">
+                                {{ $activity->title }}
+                            </p>
 
-                                        <p class="mt-1 text-sm text-ui-subtext">
-                                            {{ $activity->description ?? 'No additional details.' }}
-                                        </p>
+                            <p class="mt-0.5 text-xs leading-relaxed text-ui-subtext/60">
+                                {{ \Illuminate\Support\Str::limit($activity->description ?? 'No additional details.', 90) }}
+                            </p>
 
-                                        <p class="mt-2 text-xs text-ui-subtext/70">
-                                            By {{ $activity->user->name ?? 'System' }}
-                                        </p>
-                                    </div>
+                            <p class="mt-1 text-[10px] text-ui-subtext/45">
+                                By {{ $activity->user->name ?? 'System' }}
+                            </p>
+                        </div>
 
-                                    <div class="shrink-0 md:text-right">
-                                        @if($activity->status)
-                                            <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {{ $statusClasses($activity->status) }}">
-                                                {{ $activity->status }}
-                                            </span>
-                                        @endif
+                        <div class="shrink-0 text-right">
+                            @if($activity->status)
+                                <x-status-badge :status="$activity->status" :tone="$activity->status" size="xs" />
+                            @endif
 
-                                        <p class="mt-2 text-xs text-ui-subtext/70">
-                                            {{ $activity->created_at->diffForHumans() }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                            <p class="mt-1 text-[10px] text-ui-subtext/45">
+                                {{ $activity->created_at->diffForHumans() }}
+                            </p>
                         </div>
                     </div>
                 @empty
-                    <div class="px-6 py-10 text-center">
+                    <div class="px-5 py-10 text-center">
                         <p class="text-ui-subtext/70">
                             No operational activity recorded yet.
                         </p>
@@ -556,51 +580,62 @@
             </div>
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface/95 shadow-[0_16px_38px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 xl:col-span-2">
-            <div class="border-b border-ui-border/70 bg-ui-surface/55 px-6 py-5">
-                <h2 class="text-lg font-semibold text-ui-anchor">
-                    Recent Assistance Activity
-                </h2>
+        <div class="overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface/95 shadow-[0_14px_34px_rgba(15,47,44,0.07)] ring-1 ring-ui-anchor/5 xl:col-span-2">
+            <div class="flex items-center gap-3 border-b border-ui-border/70 bg-gradient-to-r from-[#f8fdfb] to-ui-muted/30 px-5 py-4">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ui-proof/10 text-ui-proof ring-1 ring-ui-proof/15">
+                    <x-icon name="file-text" size="h-4 w-4" />
+                </div>
+                <div class="min-w-0">
+                    <h2 class="text-sm font-bold text-ui-anchor">
+                        Recent Assistance Activity
+                    </h2>
 
-                <p class="mt-1 text-sm text-ui-subtext">
-                    Latest requests, approvals, claims, and assistance values.
-                </p>
+                    <p class="text-xs text-ui-subtext/70">
+                        Latest requests, approvals, claims, and assistance values.
+                    </p>
+                </div>
             </div>
 
-            <div class="divide-y divide-ui-border/70">
+            <div class="grid grid-cols-[1fr_auto] border-b border-ui-border/50 bg-ui-canvas/60 px-5 py-2">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-ui-subtext/55">Member / Program</span>
+                <span class="text-right text-[10px] font-bold uppercase tracking-wider text-ui-subtext/55">Status / Amount</span>
+            </div>
+
+            <div class="divide-y divide-ui-border/60">
                 @forelse($recentRequests as $request)
-                    <div class="px-6 py-4 transition hover:bg-ui-surface/75">
-                        <div class="flex items-start justify-between gap-4">
-                            <div>
-                                <p class="font-semibold text-ui-anchor">
+                    <div class="grid grid-cols-[1fr_auto] items-center gap-3 px-5 py-3.5 transition hover:bg-ui-canvas/50">
+                        <div class="flex min-w-0 items-center gap-3">
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-ui-action/10 text-xs font-bold text-ui-action ring-1 ring-ui-action/15">
+                                {{ strtoupper(substr($request->member->name ?? 'U', 0, 1)) }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-ui-anchor">
                                     {{ $request->member->name ?? 'Unknown member' }}
                                 </p>
 
-                                <p class="mt-1 text-sm text-ui-subtext">
+                                <p class="truncate text-xs text-ui-subtext/70">
                                     {{ $request->program->program_name ?? 'Assistance program' }}
                                 </p>
 
-                                <p class="mt-2 font-mono text-xs text-ui-subtext/70">
+                                <p class="font-mono text-[10px] text-ui-subtext/45">
                                     {{ $request->reference_code ?? 'Pending reference' }}
                                 </p>
                             </div>
+                        </div>
 
-                            <div class="shrink-0 text-right">
-                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold
-                                    {{ $request->is_claimed
-                                        ? 'bg-ui-proof/10 text-ui-proof ring-1 ring-ui-proof/15'
-                                        : $statusClasses($request->status) }}">
-                                    {{ $request->is_claimed ? 'Claimed' : $request->status }}
-                                </span>
+                        <div class="shrink-0 text-right">
+                            <x-status-badge
+                                :status="$request->is_claimed ? 'Claimed' : $request->status"
+                                :tone="$request->is_claimed ? 'claimed' : $request->status"
+                                size="xs" />
 
-                                <p class="mt-2 text-sm font-semibold text-ui-anchor">
-                                    ₱{{ number_format($request->approved_amount ?? $request->requested_amount, 2) }}
-                                </p>
-                            </div>
+                            <p class="mt-1 text-sm font-bold text-ui-anchor">
+                                ₱{{ number_format($request->approved_amount ?? $request->requested_amount, 2) }}
+                            </p>
                         </div>
                     </div>
                 @empty
-                    <div class="px-6 py-10 text-center">
+                    <div class="px-5 py-10 text-center">
                         <p class="text-ui-subtext/70">
                             No assistance activity yet.
                         </p>

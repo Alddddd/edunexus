@@ -12,6 +12,7 @@ use App\Http\Controllers\Auditor\DashboardController as AuditorDashboardControll
 use App\Http\Controllers\Member\AssistanceRequestController as MemberAssistanceRequestController;
 use App\Http\Controllers\Member\ClaimController;
 use App\Http\Controllers\Merchant\ClaimValidationController;
+use App\Http\Controllers\Merchant\PayoutSettingsController;
 use App\Http\Controllers\ProfileController;
 use App\Models\AssistanceRequest;
 use App\Models\BlockchainTransaction;
@@ -21,7 +22,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\ActivityLogController;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return view('welcome');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -145,7 +146,7 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
             $merchantId = auth()->id();
             $merchantProfile = auth()->user()->merchantProfile;
 
-            $merchantSettlements = Settlement::with(['assistanceRequest.member', 'assistanceRequest.program'])
+            $merchantSettlements = Settlement::with(['assistanceRequest.member', 'assistanceRequest.program', 'payouts'])
                 ->where('merchant_id', $merchantId)
                 ->latest()
                 ->get();
@@ -178,10 +179,10 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
             return view('merchant.dashboard', [
                 'merchantProfile' => $merchantProfile,
                 'processedClaims' => $merchantSettlements->count(),
-                'pendingSettlements' => $merchantSettlements->where('status', 'Pending')->count(),
-                'settledSettlements' => $merchantSettlements->where('status', 'Settled')->count(),
-                'pendingSettlementValue' => $merchantSettlements->where('status', 'Pending')->sum('amount'),
-                'settledSettlementValue' => $merchantSettlements->where('status', 'Settled')->sum('amount'),
+                'pendingSettlements' => $merchantSettlements->whereIn('status', ['Pending', 'Partially Released'])->count(),
+                'settledSettlements' => $merchantSettlements->whereIn('status', ['Released', 'Settled'])->count(),
+                'pendingSettlementValue' => $merchantSettlements->whereIn('status', ['Pending', 'Partially Released'])->sum('remaining_balance'),
+                'settledSettlementValue' => $merchantSettlements->sum('total_released'),
                 'totalSettlementValue' => $merchantSettlements->sum('amount'),
                 'recentSettlements' => $merchantSettlements->take(5),
                 'pendingValidationCount' => $pendingValidations->count(),
@@ -189,6 +190,33 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
                 'morphProofConfirmations' => $morphProofConfirmations,
             ]);
         })->name('merchant.dashboard');
+
+        Route::get('/merchant/settlements', function () {
+            $merchantId = auth()->id();
+
+            $settlements = Settlement::with([
+                    'assistanceRequest.member',
+                    'assistanceRequest.program',
+                    'payouts' => fn ($query) => $query->latest('released_at')->latest('id'),
+                ])
+                ->where('merchant_id', $merchantId)
+                ->latest()
+                ->paginate(8)
+                ->withQueryString();
+
+            $requestIds = $settlements->pluck('assistance_request_id')->filter();
+
+            $proofRecords = BlockchainTransaction::query()
+                ->where('transaction_type', 'Settlement')
+                ->whereIn('reference_id', $requestIds)
+                ->latest('recorded_at')
+                ->latest('id')
+                ->get()
+                ->unique('reference_id')
+                ->keyBy('reference_id');
+
+            return view('merchant.settlements.index', compact('settlements', 'proofRecords'));
+        })->name('merchant.settlements.index');
 
         Route::get('/merchant/claims/validate', [ClaimValidationController::class, 'index'])
             ->name('merchant.claims.index');
@@ -198,6 +226,12 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
 
         Route::post('/merchant/claims/{assistanceRequest}/process', [ClaimValidationController::class, 'process'])
             ->name('merchant.claims.process');
+
+        Route::get('/merchant/payout-settings', [PayoutSettingsController::class, 'edit'])
+            ->name('merchant.payout-settings.edit');
+
+        Route::put('/merchant/payout-settings', [PayoutSettingsController::class, 'update'])
+            ->name('merchant.payout-settings.update');
     });
 
     Route::middleware('role:auditor')->group(function () {
