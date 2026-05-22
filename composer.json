@@ -6,8 +6,10 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "ext-gd": "*",
         "php": "^8.3",
+        "ext-gd": "*",
+        "ext-gmp": "*",
+        "kornrunner/ethereum-offline-raw-tx": "^0.9.0",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
         "simplesoftwareio/simple-qrcode": "^4.2"
