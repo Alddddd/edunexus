@@ -66,10 +66,15 @@ class MerchantController extends Controller
 
     public function edit(MerchantProfile $merchant)
     {
+        $merchant->loadMissing(['user', 'category']);
+
         $merchantCategories = MerchantCategory::query()
             ->where(function ($query) use ($merchant) {
-                $query->where('status', 'Active')
-                    ->orWhereKey($merchant->merchant_category_id);
+                $query->where('status', 'Active');
+
+                if ($merchant->merchant_category_id) {
+                    $query->orWhereKey($merchant->merchant_category_id);
+                }
             })
             ->orderBy('name')
             ->get();

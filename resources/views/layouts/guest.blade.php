@@ -15,8 +15,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-ui-text antialiased">
-        <div class="flex min-h-screen flex-col items-center justify-center bg-ui-canvas px-4 py-8">
-            <div class="mb-7 text-center">
+        <div class="flex min-h-screen flex-col items-center justify-center bg-ui-canvas px-4 py-6 sm:py-8">
+            <div class="mb-6 text-center sm:mb-7">
                 <a href="/" class="inline-flex items-center gap-3">
                     <span class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-lg shadow-ui-anchor/10 ring-1 ring-ui-border/80">
                         <x-application-logo class="h-full w-full scale-[1.22]" />
@@ -32,7 +32,7 @@
                 </p>
             </div>
 
-            <div class="w-full max-w-5xl overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface px-6 py-6 shadow-[0_18px_44px_rgba(15,47,44,0.09)] ring-1 ring-white/80 sm:px-8 sm:py-7">
+            <div class="w-full max-w-6xl overflow-hidden rounded-2xl border border-ui-border/80 bg-ui-surface px-5 py-5 shadow-[0_18px_44px_rgba(15,47,44,0.09)] ring-1 ring-white/80 sm:px-8 sm:py-7 2xl:max-w-[72rem]">
                 {{ $slot }}
             </div>
         </div>

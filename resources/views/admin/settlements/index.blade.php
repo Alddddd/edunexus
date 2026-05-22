@@ -170,7 +170,14 @@
                     $isReleased = in_array($settlement->status, ['Released', 'Settled'], true);
                     $remainingBalance = $settlement->computed_remaining_balance;
                     $totalReleased = $settlement->computed_total_released;
+                    $claim = $settlement->assistanceRequest;
+                    $claimValidationCompleted = $claim
+                        && $claim->is_claimed
+                        && $claim->claimed_at
+                        && (int) $claim->claimed_by === (int) $settlement->merchant_id
+                        && in_array($claim->claim_status, ['Claimed', 'Processed'], true);
                     $payoutReady = filled($merchantProfile?->payout_account_name) && filled($merchantProfile?->payout_account_number);
+                    $canReleasePayout = ! $isReleased && $claimValidationCompleted && $remainingBalance > 0 && $payoutReady;
                     $latestPayout = $settlement->payouts->first();
                     $latestPayoutMetadata = $latestPayout?->metadata ?? [];
                     $payoutQrPreview = $payoutQrUrl($merchantProfile?->payout_qr);
@@ -247,12 +254,17 @@
                                 @endif
                             </div>
 
-                            @if(! $isReleased)
+                            @if($canReleasePayout)
                                 <button type="button"
                                         @click="payoutOpen = true"
                                         class="inline-flex min-h-10 w-full items-center justify-center rounded-xl bg-ui-action px-4 py-2 text-sm font-semibold text-white transition hover:bg-ui-anchor lg:w-auto">
                                     Release Payout
                                 </button>
+                            @elseif(! $isReleased)
+                                <span class="inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm font-semibold text-amber-800 lg:w-auto"
+                                      title="{{ ! $claimValidationCompleted ? 'Waiting for merchant claim validation to complete.' : (! $payoutReady ? 'Merchant payout details are required.' : 'Settlement is not eligible for release.') }}">
+                                    Release locked
+                                </span>
                             @else
                                 <span class="inline-flex min-h-10 items-center rounded-xl bg-ui-canvas px-4 py-2 text-sm font-semibold text-ui-subtext">
                                     Released {{ $settlement->settled_at?->format('M d, Y') }}
@@ -466,7 +478,11 @@
                             </div>
 
                             <div class="border-t border-ui-border bg-ui-canvas/70 px-5 py-4">
-                                @if(! $payoutReady)
+                                @if(! $claimValidationCompleted)
+                                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+                                        <p class="text-sm font-semibold text-amber-800">Merchant claim validation must complete before payout release.</p>
+                                    </div>
+                                @elseif(! $payoutReady)
                                     <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
                                         <p class="text-sm font-semibold text-amber-800">Merchant payout details are required before releasing settlement.</p>
                                     </div>

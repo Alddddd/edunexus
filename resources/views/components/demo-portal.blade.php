@@ -3,8 +3,6 @@
 ])
 
 @php
-    $demoMode = (bool) config('app.demo_mode');
-
     $demoRoles = [
         [
             'role' => 'admin',
@@ -63,26 +61,24 @@
 
                         <p @class([
                             'text-ui-subtext',
-                            'mt-4 text-base leading-7' => ! $compact,
-                            'mt-2 text-sm leading-6' => $compact,
+                            'mt-4 max-w-prose text-base leading-7' => ! $compact,
+                            'mt-2 min-h-[3rem] text-sm leading-6 sm:min-h-0' => $compact,
                         ])>
-                            Explore EduNexUs through seeded role accounts. Demo payouts are simulated for safety, while settlement proof uses demo-safe testnet infrastructure.
+                            Use seeded accounts to review approvals, claim validation, settlements, and audit proof records in one clean demo flow.
                         </p>
                     </div>
 
-                    @unless($demoMode)
-                        <div class="rounded-2xl border border-ui-proof/15 bg-cyan-50/75 px-4 py-3.5 text-sm leading-6 text-ui-subtext shadow-sm ring-1 ring-white/70">
-                            <div class="flex items-start gap-3">
-                                <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-ui-proof/10 text-ui-proof">
-                                    <x-icon name="info" size="h-4 w-4" />
-                                </span>
+                    <div class="rounded-2xl border border-ui-proof/15 bg-cyan-50/75 px-4 py-3.5 text-sm leading-6 text-ui-subtext shadow-sm ring-1 ring-white/70">
+                        <div class="flex items-start gap-3">
+                            <span class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-ui-proof/10 text-ui-proof">
+                                <x-icon name="info" size="h-4 w-4" />
+                            </span>
 
-                                <p>
-                                    One-click demo access is available for hackathon judging and evaluation.
-                                </p>
-                            </div>
+                            <p>
+                                One-click demo access is enabled for hackathon judging and evaluation.
+                            </p>
                         </div>
-                    @endunless
+                    </div>
                 </div>
 
                 <div @class([
@@ -91,33 +87,33 @@
                     'sm:grid-cols-2' => $compact,
                 ])>
                     @foreach($demoRoles as $demoRole)
-                        <article class="flex h-full flex-col rounded-2xl border border-ui-border bg-white/[0.94] p-5 shadow-[0_14px_34px_rgba(15,47,44,0.065)] ring-1 ring-white/80 backdrop-blur transition hover:-translate-y-0.5 hover:border-ui-action/20 hover:shadow-[0_18px_42px_rgba(15,47,44,0.09)] sm:p-6" data-reveal>
-                            <div class="flex items-start gap-4">
-                                <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-ui-action/10 text-ui-action ring-1 ring-ui-action/15">
-                                    <x-icon :name="$demoRole['icon']" size="h-5 w-5" />
-                                </span>
+                        <article class="relative flex h-full flex-col rounded-2xl border border-ui-border bg-white/[0.94] shadow-[0_14px_34px_rgba(15,47,44,0.065)] ring-1 ring-white/80 backdrop-blur transition hover:-translate-y-0.5 hover:border-ui-action/25 hover:shadow-[0_18px_42px_rgba(15,47,44,0.09)] active:translate-y-0 active:scale-[0.99]" data-reveal>
+                            <form method="POST" action="{{ route('demo-login', $demoRole['role']) }}" class="flex h-full">
+                                @csrf
 
-                                <div class="min-w-0">
-                                    <h3 class="text-base font-black leading-6 text-ui-anchor">
-                                        {{ $demoRole['title'] }}
-                                    </h3>
+                                <button type="submit" class="group flex h-full w-full flex-col rounded-2xl p-5 text-left focus:outline-none focus:ring-4 focus:ring-ui-action/20 sm:p-6">
+                                <div class="flex items-start gap-4">
+                                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-ui-action/10 text-ui-action ring-1 ring-ui-action/15 transition group-hover:bg-ui-action group-hover:text-white">
+                                        <x-icon :name="$demoRole['icon']" size="h-5 w-5" />
+                                    </span>
 
-                                    <p class="mt-2.5 text-sm leading-6 text-ui-subtext">
-                                        {{ $demoRole['description'] }}
-                                    </p>
+                                    <div class="min-w-0">
+                                        <h3 class="text-base font-black leading-6 text-ui-anchor">
+                                            {{ $demoRole['title'] }}
+                                        </h3>
+
+                                        <p class="mt-2.5 text-sm leading-6 text-ui-subtext">
+                                            {{ $demoRole['description'] }}
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            @if($demoMode)
-                                <form method="POST" action="{{ route('demo-login', $demoRole['role']) }}" class="mt-auto pt-5">
-                                    @csrf
-
-                                    <button type="submit" class="inline-flex min-h-[2.875rem] w-full items-center justify-center gap-2 rounded-xl bg-ui-action px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-ui-anchor/10 transition hover:bg-primary-dark focus:outline-none focus:ring-4 focus:ring-ui-action/20">
-                                        Enter {{ $demoRole['title'] }}
-                                        <x-icon name="chevron-right" size="h-4 w-4" />
-                                    </button>
-                                </form>
-                            @endif
+                                <span class="mt-auto inline-flex min-h-[2.875rem] w-full items-center justify-center gap-2 rounded-xl bg-ui-action px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-ui-anchor/10 transition group-hover:bg-primary-dark">
+                                    Enter {{ $demoRole['title'] }}
+                                    <x-icon name="chevron-right" size="h-4 w-4" />
+                                </span>
+                                </button>
+                            </form>
                         </article>
                     @endforeach
                 </div>

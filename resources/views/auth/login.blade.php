@@ -1,5 +1,5 @@
 <x-guest-layout>
-    <div class="grid gap-8 lg:grid-cols-[minmax(20rem,0.78fr)_minmax(0,1.22fr)] lg:items-start">
+    <div class="mx-auto grid w-full max-w-[68rem] gap-7 lg:grid-cols-[minmax(20rem,0.82fr)_minmax(0,1.18fr)] lg:items-start xl:gap-8">
         <div>
             <div class="mb-6">
                 <p class="text-xs font-semibold uppercase tracking-[0.18em] text-ui-action">
@@ -40,10 +40,24 @@
                         @endif
                     </div>
 
-                    <x-text-input id="password" class="block w-full rounded-xl border-ui-border bg-ui-surface px-4 py-3 text-ui-text shadow-sm focus:border-ui-action focus:ring-ui-action/20"
-                                    type="password"
-                                    name="password"
-                                    required autocomplete="current-password" />
+                    <div class="relative" x-data="{ showPassword: false }">
+                        <x-text-input id="password" class="block w-full rounded-xl border-ui-border bg-ui-surface py-3 pl-4 pr-14 text-ui-text shadow-sm focus:border-ui-action focus:ring-ui-action/20"
+                                      x-bind:type="showPassword ? 'text' : 'password'"
+                                      name="password"
+                                      required autocomplete="current-password" />
+
+                        <button type="button"
+                                @click="showPassword = !showPassword"
+                                class="absolute inset-y-1.5 right-1.5 inline-flex w-11 items-center justify-center rounded-lg border border-ui-border/70 bg-ui-canvas/80 text-ui-action shadow-sm transition hover:bg-ui-muted hover:text-ui-anchor active:scale-95"
+                                :aria-label="showPassword ? 'Hide password' : 'Show password'">
+                            <span x-show="!showPassword" x-cloak>
+                                <x-icon name="key" size="h-4 w-4" />
+                            </span>
+                            <span x-show="showPassword" x-cloak>
+                                <x-icon name="lock" size="h-4 w-4" />
+                            </span>
+                        </button>
+                    </div>
 
                     <x-input-error :messages="$errors->get('password')" class="mt-2" />
                 </div>

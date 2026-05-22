@@ -26,11 +26,11 @@
                 </p>
 
                 <p class="mt-1 font-semibold text-ui-text">
-                    {{ $merchant->user->name }}
+                    {{ $merchant->user?->name ?? 'Unlinked merchant account' }}
                 </p>
 
                 <p class="mt-1 text-sm text-ui-subtext">
-                    {{ $merchant->user->email }}
+                    {{ $merchant->user?->email ?? 'No login account currently linked' }}
                 </p>
             </div>
 

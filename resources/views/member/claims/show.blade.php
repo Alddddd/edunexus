@@ -137,7 +137,7 @@
                 </p>
 
                 @if($claim->qr_code)
-                    <div class="mt-5 inline-block max-w-fit rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div class="qr-pass-frame mx-auto mt-5 inline-flex max-w-full justify-center rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
                         {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(220)->generate($claim->qr_code) !!}
                     </div>
 
@@ -219,7 +219,7 @@
             </div>
 
             <div class="mt-4 min-h-0 flex-1 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center sm:mt-5 sm:p-5">
-                <div class="inline-block max-w-full rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                <div class="qr-pass-frame inline-flex max-w-full justify-center rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
                     <div class="sm:hidden">
                         {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(220)->generate($claim->qr_code) !!}
                     </div>
@@ -309,6 +309,20 @@
         box-shadow: none !important;
     }
 }
+</style>
+
+<style>
+    .qr-pass-frame svg {
+        display: block;
+        height: auto;
+        max-width: min(100%, 220px);
+    }
+
+    @media (max-width: 420px) {
+        .qr-pass-frame svg {
+            max-width: min(100%, 190px);
+        }
+    }
 </style>
 
 @if($claim->qr_code)

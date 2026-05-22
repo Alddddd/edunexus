@@ -53,10 +53,15 @@ class AssistanceProgramController extends Controller
 
     public function edit(AssistanceProgram $assistanceProgram)
     {
+        $assistanceProgram->loadMissing('category');
+
         $merchantCategories = MerchantCategory::query()
             ->where(function ($query) use ($assistanceProgram) {
-                $query->where('status', 'Active')
-                    ->orWhereKey($assistanceProgram->merchant_category_id);
+                $query->where('status', 'Active');
+
+                if ($assistanceProgram->merchant_category_id) {
+                    $query->orWhereKey($assistanceProgram->merchant_category_id);
+                }
             })
             ->orderBy('name')
             ->get();

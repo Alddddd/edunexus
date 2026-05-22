@@ -117,6 +117,12 @@ class SettlementController extends Controller
         return back()->with('success', 'Settlement has already been fully released.');
     }
 
+    if (! $this->isReleaseEligible($settlement)) {
+        throw ValidationException::withMessages([
+            'settlement' => 'Release payout is available only after a merchant-validated claim exists and the settlement still has an eligible balance.',
+        ]);
+    }
+
     $merchantProfile = $settlement->merchant?->merchantProfile;
 
     if (! $merchantProfile || blank($merchantProfile->payout_account_name) || blank($merchantProfile->payout_account_number)) {
@@ -347,6 +353,19 @@ private function lastFour(?string $value): ?string
     $normalized = preg_replace('/\D+/', '', (string) $value);
 
     return $normalized ? substr($normalized, -4) : null;
+}
+
+private function isReleaseEligible(Settlement $settlement): bool
+{
+    $claim = $settlement->assistanceRequest;
+
+    return $claim
+        && $claim->is_claimed
+        && $claim->claimed_at
+        && (int) $claim->claimed_by === (int) $settlement->merchant_id
+        && in_array($claim->claim_status, ['Claimed', 'Processed'], true)
+        && ! in_array($settlement->status, ['Released', 'Settled'], true)
+        && $settlement->computed_remaining_balance > 0;
 }
 
     

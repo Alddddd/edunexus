@@ -354,7 +354,7 @@
     </aside>
 
     <!-- Sidebar -->
-    <aside data-dashboard-sidebar class="hidden lg:flex lg:flex-col lg:w-72 bg-ui-action border-r border-white/10 shadow-[14px_0_38px_rgba(6,78,59,0.22)] backdrop-blur-xl">
+    <aside data-dashboard-sidebar class="sticky top-0 z-40 hidden h-screen shrink-0 lg:flex lg:w-72 lg:flex-col bg-ui-action border-r border-white/10 shadow-[14px_0_38px_rgba(6,78,59,0.22)] backdrop-blur-xl">
 
         <!-- Logo -->
         <div class="h-[68px] flex items-center px-6 border-b border-ui-border/70">
@@ -619,7 +619,7 @@
     <div class="flex min-w-0 flex-1 flex-col bg-ui-canvas">
 
         <!-- Top Navbar -->
-        <header data-dashboard-topbar class="h-[68px] min-w-0 bg-ui-shell border-b border-ui-anchor/10 shadow-[0_10px_28px_rgba(15,47,44,0.06)] backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+        <header data-dashboard-topbar class="sticky top-0 z-50 h-[68px] min-w-0 bg-ui-shell/90 border-b border-ui-anchor/10 shadow-[0_10px_28px_rgba(15,47,44,0.06)] backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
             <div class="flex min-w-0 items-center gap-3">
                 <button type="button"
                         @click="mobileSidebarOpen = true"
@@ -672,7 +672,7 @@
                          x-show="open"
                          @click.away="open = false"
                          x-transition
-                         class="fixed left-4 right-4 top-[4.75rem] z-50 max-h-[calc(100vh-6rem)] overflow-hidden rounded-2xl border border-ui-border bg-ui-surface/95 shadow-xl shadow-ui-anchor/10 backdrop-blur-xl sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-[min(24rem,calc(100vw-2rem))]">
+                         class="fixed left-4 right-4 top-[4.75rem] z-[110] max-h-[calc(100vh-6rem)] overflow-hidden rounded-2xl border border-ui-border bg-ui-surface/95 shadow-2xl shadow-ui-anchor/15 backdrop-blur-2xl ring-1 ring-white/80 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-3 sm:w-[min(24rem,calc(100vw-2rem))]">
 
                         <div class="border-b border-ui-border/70 px-4 py-4 sm:px-5">
                             <div class="flex items-start justify-between gap-3">
@@ -807,7 +807,7 @@
                          x-transition:leave="transition ease-in duration-120"
                          x-transition:leave-start="opacity-100 translate-y-0 scale-100"
                          x-transition:leave-end="opacity-0 -translate-y-1 scale-[0.98]"
-                         class="absolute right-0 mt-3 w-72 max-w-[calc(100vw-2rem)] origin-top-right overflow-hidden rounded-2xl border border-ui-border bg-ui-surface/95 shadow-xl shadow-ui-anchor/10 backdrop-blur-xl z-50">
+                         class="absolute right-0 z-[110] mt-3 w-72 max-w-[calc(100vw-2rem)] origin-top-right overflow-hidden rounded-2xl border border-ui-border bg-ui-surface/95 shadow-2xl shadow-ui-anchor/15 backdrop-blur-2xl ring-1 ring-white/80">
 
                         <div class="px-5 py-4 border-b border-ui-border/70">
                             <p class="truncate font-semibold text-ui-text" title="{{ auth()->user()->name }}">

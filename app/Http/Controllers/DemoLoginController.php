@@ -18,7 +18,6 @@ class DemoLoginController extends Controller
 
     public function __invoke(Request $request, string $role): RedirectResponse
     {
-        abort_unless(config('app.demo_mode'), 403);
         abort_unless(array_key_exists($role, self::DEMO_USERS), 404);
 
         $demoUser = self::DEMO_USERS[$role];

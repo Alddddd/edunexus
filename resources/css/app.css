@@ -162,6 +162,21 @@
         overflow-wrap: anywhere;
     }
 
+    .helper-copy,
+    main p.leading-6:not(.text-xs):not(.text-\[11px\]) {
+        text-wrap: pretty;
+    }
+
+    @media (min-width: 640px) {
+        .helper-copy,
+        main p.leading-6.text-ui-subtext,
+        main p.leading-6[class*="text-teal-"],
+        main p.leading-6[class*="text-cyan-"],
+        main p.leading-6[class*="text-amber-"] {
+            text-align: justify;
+        }
+    }
+
     main input[type="number"] {
         appearance: textfield;
     }

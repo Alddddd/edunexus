@@ -4,6 +4,18 @@
 
 @section('content')
 
+@php
+    $truncateHash = function (?string $hash): string {
+        if (blank($hash)) {
+            return 'Pending';
+        }
+
+        return strlen($hash) > 18
+            ? substr($hash, 0, 8) . '...' . substr($hash, -4)
+            : $hash;
+    };
+@endphp
+
 <div class="w-full min-w-0 max-w-7xl space-y-5 text-ui-anchor">
     <section class="rounded-2xl border border-ui-border/80 bg-gradient-to-br from-ui-surface via-ui-surface/90 to-ui-proof/10 p-5 shadow-[0_22px_52px_rgba(15,47,44,0.10)] ring-1 ring-ui-anchor/5">
         <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
@@ -80,6 +92,20 @@
     <x-table-card
         title="Recent Blockchain Verification Records"
         description="Latest proof logs created from claim processing activity.">
+        <x-slot:actions>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('auditor.verification-records.export.csv') }}"
+                   class="inline-flex min-h-10 items-center justify-center rounded-xl border border-ui-border bg-white px-4 py-2 text-sm font-semibold text-ui-action shadow-sm transition hover:bg-ui-canvas">
+                    Export CSV
+                </a>
+
+                <a href="{{ route('auditor.verification-records.export.pdf') }}"
+                   class="inline-flex min-h-10 items-center justify-center rounded-xl bg-ui-action px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor">
+                    Export PDF
+                </a>
+            </div>
+        </x-slot:actions>
+
         <table class="min-w-[46rem] divide-y divide-ui-border text-sm lg:min-w-full">
             <thead class="bg-ui-canvas/70">
                 <tr>
@@ -102,8 +128,27 @@
                             {{ $transaction->reference_code ?? 'N/A' }}
                         </td>
 
-                        <td class="max-w-[16rem] break-all px-5 py-3.5 font-mono text-xs text-ui-subtext xl:max-w-[18rem]">
-                            {{ $transaction->transaction_hash ?? 'Pending' }}
+                        <td class="max-w-[16rem] px-5 py-3.5 xl:max-w-[18rem]">
+                            @php
+                                $payload = json_decode($transaction->payload ?: '[]', true) ?: [];
+                                $proofHash = $payload['proof_hash'] ?? $transaction->transaction_hash;
+                            @endphp
+
+                            <div class="flex items-center gap-2">
+                                <span class="truncate font-mono text-xs text-ui-subtext" title="{{ $proofHash ?? 'Pending' }}">
+                                    {{ $truncateHash($proofHash) }}
+                                </span>
+
+                                @if($proofHash)
+                                    <button type="button"
+                                            data-copy-hash="{{ $proofHash }}"
+                                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-ui-border bg-white text-ui-action transition hover:bg-ui-canvas"
+                                            title="Copy full proof hash"
+                                            aria-label="Copy full proof hash">
+                                        <x-icon name="copy" size="h-3.5 w-3.5" />
+                                    </button>
+                                @endif
+                            </div>
                         </td>
 
                         <td class="px-5 py-3.5">
@@ -128,5 +173,55 @@
         </table>
     </x-table-card>
 </div>
+
+<div id="copy-toast"
+     class="pointer-events-none fixed bottom-5 left-1/2 z-[140] hidden -translate-x-1/2 rounded-2xl border border-ui-border bg-ui-surface/95 px-4 py-3 text-sm font-semibold text-ui-text opacity-0 shadow-2xl shadow-ui-anchor/15 backdrop-blur-xl transition">
+    Proof hash copied.
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const toast = document.getElementById('copy-toast');
+    let toastTimer;
+
+    const showToast = () => {
+        if (!toast) {
+            return;
+        }
+
+        window.clearTimeout(toastTimer);
+        toast.classList.remove('hidden', 'opacity-0');
+        toast.classList.add('opacity-100');
+        toastTimer = window.setTimeout(() => {
+            toast.classList.add('opacity-0');
+            window.setTimeout(() => toast.classList.add('hidden'), 180);
+        }, 1800);
+    };
+
+    document.querySelectorAll('[data-copy-hash]').forEach((button) => {
+        button.addEventListener('click', async () => {
+            const hash = button.dataset.copyHash;
+
+            if (!hash) {
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(hash);
+            } catch (error) {
+                const textArea = document.createElement('textarea');
+                textArea.value = hash;
+                textArea.className = 'sr-only';
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                textArea.remove();
+            }
+
+            showToast();
+        });
+    });
+});
+</script>
 
 @endsection

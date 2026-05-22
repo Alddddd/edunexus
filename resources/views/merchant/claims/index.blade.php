@@ -40,15 +40,15 @@
 
             <div class="mb-8">
                 <div id="reader"
-                     class="hidden w-full overflow-hidden rounded-2xl border border-ui-border"></div>
+                     class="hidden min-h-[18rem] w-full overflow-hidden rounded-2xl border border-ui-border bg-ui-canvas/70 sm:min-h-[22rem]"></div>
 
                 <div id="scanner-fallback"
                      class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-                    <p class="font-semibold text-amber-800">
+                    <p id="scanner-fallback-title" class="font-semibold text-amber-800">
                         Camera scanner unavailable in this local browser session
                     </p>
 
-                    <p class="mt-1 text-sm text-amber-700">
+                    <p id="scanner-fallback-message" class="mt-1 text-sm leading-6 text-amber-700">
                         Enter the reference code manually. QR camera scanning will work when served over HTTPS.
                     </p>
                 </div>
@@ -136,34 +136,90 @@
 document.addEventListener('DOMContentLoaded', function () {
     const reader = document.getElementById('reader');
     const fallback = document.getElementById('scanner-fallback');
+    const fallbackTitle = document.getElementById('scanner-fallback-title');
+    const fallbackMessage = document.getElementById('scanner-fallback-message');
     const referenceInput = document.getElementById('reference_code');
 
     if (!window.Html5Qrcode) {
+        if (fallbackMessage) {
+            fallbackMessage.textContent = 'The QR scanner library did not load. You can still enter the claim reference manually.';
+        }
+        return;
+    }
+
+    const showFallback = (title, message) => {
+        reader?.classList.add('hidden');
+        fallback?.classList.remove('hidden');
+
+        if (fallbackTitle) {
+            fallbackTitle.textContent = title;
+        }
+
+        if (fallbackMessage) {
+            fallbackMessage.textContent = message;
+        }
+    };
+
+    const isSecureCameraContext = window.isSecureContext || ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+    if (!isSecureCameraContext) {
+        showFallback(
+            'Secure connection required for camera scanning',
+            'Mobile browsers require HTTPS before camera permission can initialize. Enter the reference code manually on this session.'
+        );
         return;
     }
 
     const html5QrCode = new Html5Qrcode("reader");
+    let scannerStarted = false;
 
-    html5QrCode.start(
-        {
-            facingMode: "environment"
-        },
-        {
-            fps: 10,
-            qrbox: 250
-        },
-        (decodedText) => {
-            referenceInput.value = decodedText;
-            html5QrCode.stop();
+    const qrboxSize = Math.min(260, Math.max(180, Math.floor((reader?.clientWidth || 320) * 0.72)));
+
+    const startScanner = (cameraConfig) => {
+        return html5QrCode.start(
+            cameraConfig,
+            {
+                fps: 8,
+                qrbox: { width: qrboxSize, height: qrboxSize },
+                aspectRatio: 1,
+                disableFlip: false
+            },
+            (decodedText) => {
+                referenceInput.value = decodedText;
+                referenceInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+                if (scannerStarted) {
+                    html5QrCode.stop().catch(() => {});
+                    scannerStarted = false;
+                }
+            }
+        ).then(() => {
+            scannerStarted = true;
+            reader.classList.remove('hidden');
+            fallback.classList.add('hidden');
+        });
+    };
+
+    window.Html5Qrcode.getCameras()
+        .then((devices) => {
+            const backCamera = devices.find((device) => /back|rear|environment/i.test(device.label || ''));
+            const cameraConfig = backCamera ? { deviceId: { exact: backCamera.id } } : { facingMode: { ideal: 'environment' } };
+
+            return startScanner(cameraConfig);
+        })
+        .catch((err) => {
+            console.log('QR Scanner unavailable:', err);
+
+            showFallback(
+                'Camera scanner unavailable',
+                'Camera permission was not completed or this browser blocked the scanner. Enter the reference code manually to continue validation.'
+            );
+        });
+
+    window.addEventListener('pagehide', () => {
+        if (scannerStarted) {
+            html5QrCode.stop().catch(() => {});
         }
-    ).then(() => {
-        reader.classList.remove('hidden');
-        fallback.classList.add('hidden');
-    }).catch((err) => {
-        console.log('QR Scanner unavailable:', err);
-
-        reader.classList.add('hidden');
-        fallback.classList.remove('hidden');
     });
 });
 </script>

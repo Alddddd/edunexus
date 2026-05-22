@@ -253,6 +253,12 @@ Route::post('/notifications/mark-all-read', [NotificationController::class, 'mar
     Route::middleware('role:auditor')->group(function () {
         Route::get('/auditor/dashboard', [AuditorDashboardController::class, 'index'])
             ->name('auditor.dashboard');
+
+        Route::get('/auditor/verification-records/export.csv', [AuditorDashboardController::class, 'exportCsv'])
+            ->name('auditor.verification-records.export.csv');
+
+        Route::get('/auditor/verification-records/export.pdf', [AuditorDashboardController::class, 'exportPdf'])
+            ->name('auditor.verification-records.export.pdf');
     });
 });
 
