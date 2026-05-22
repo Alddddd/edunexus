@@ -39,7 +39,7 @@
             : null;
     };
     $explorerBaseUrl = 'https://explorer-hoodi.morph.network/tx/';
-    $canOpenExplorer = fn (?string $hash) => filled($hash) && str_starts_with((string) $hash, '0x');
+    $canOpenExplorer = fn (?string $hash) => filled($hash) && preg_match('/^0x[a-fA-F0-9]{64}$/', (string) $hash);
 
     $demoSafeNotice = 'Demo-safe payout layer: PHP/GCash disbursement is simulated to avoid requiring paid payout APIs or real-money transfers during judging. When enabled, a real EDUX ERC-20 testnet transfer is recorded as settlement proof on Morph.';
     $eduxLabel = fn (?array $metadata) => match ($metadata['edux_transfer_status'] ?? 'skipped') {

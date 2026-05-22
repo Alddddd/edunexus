@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\Process\Process;
 
 class MorphBlockchainService
@@ -120,9 +121,60 @@ class MorphBlockchainService
 
     private function recordProof(string $referenceCode, float $amount, int $merchantId): array
     {
+        $scriptPath = base_path('scripts/record-claim-proof.js');
+        $rpcConfigured = filled(env('MORPH_RPC_URL'));
+        $privateKeyConfigured = filled(env('MORPH_PRIVATE_KEY'));
+        $contractAddress = env('MORPH_CONTRACT_ADDRESS');
+        $contractConfigured = filled($contractAddress);
+
+        Log::info('Morph proof recording starting.', [
+            'rpc_configured' => $rpcConfigured,
+            'private_key_configured' => $privateKeyConfigured,
+            'contract_configured' => $contractConfigured,
+            'script_path' => $scriptPath,
+        ]);
+
+        if (! $rpcConfigured || ! $privateKeyConfigured || ! $contractConfigured) {
+            Log::warning('Morph proof recording configuration missing.', [
+                'rpc_configured' => $rpcConfigured,
+                'private_key_configured' => $privateKeyConfigured,
+                'contract_configured' => $contractConfigured,
+            ]);
+
+            return [
+                'success' => false,
+                'transaction_hash' => null,
+                'error' => 'Missing Morph blockchain configuration.',
+            ];
+        }
+
+        if (! $this->isValidAddress($contractAddress)) {
+            Log::warning('Morph proof recording contract address is invalid.', [
+                'contract_configured' => true,
+            ]);
+
+            return [
+                'success' => false,
+                'transaction_hash' => null,
+                'error' => 'MORPH_CONTRACT_ADDRESS is not a valid EVM address.',
+            ];
+        }
+
+        if (! is_file($scriptPath)) {
+            Log::warning('Morph proof recording script was not found.', [
+                'script_path' => $scriptPath,
+            ]);
+
+            return [
+                'success' => false,
+                'transaction_hash' => null,
+                'error' => 'Morph proof script was not found.',
+            ];
+        }
+
         $process = new Process([
             'node',
-            base_path('scripts/record-claim-proof.js'),
+            $scriptPath,
             $referenceCode,
             (string) $amount,
             (string) $merchantId,
@@ -132,23 +184,77 @@ class MorphBlockchainService
         $process->setTimeout(60);
         $process->run();
 
+        $stdout = trim($process->getOutput());
+        $stderr = trim($process->getErrorOutput());
+        $output = $this->decodeNodeJson($stdout);
+        $transactionHash = $this->transactionHashFromOutput($output);
+
+        Log::info('Morph proof recording finished.', [
+            'script_path' => $scriptPath,
+            'process_successful' => $process->isSuccessful(),
+            'stdout_summary' => $this->summarizeOutput($stdout),
+            'stderr_summary' => $this->summarizeOutput($stderr),
+            'tx_hash_detected' => $this->isValidTransactionHash($transactionHash),
+            'exit_code' => $process->getExitCode(),
+        ]);
+
         if (! $process->isSuccessful()) {
             return [
                 'success' => false,
-                'transaction_hash' => null,
-                'error' => $process->getErrorOutput() ?: $process->getOutput(),
+                'transaction_hash' => $this->isValidTransactionHash($transactionHash) ? $transactionHash : null,
+                'error' => $output['error'] ?? ($stderr ?: $stdout),
             ];
         }
-
-        $output = json_decode($process->getOutput(), true);
-
-        $transactionHash = $output['transaction_hash'] ?? null;
 
         return [
             'success' => (bool) ($output['success'] ?? false) && $this->isValidTransactionHash($transactionHash),
             'transaction_hash' => $transactionHash,
-            'error' => $output['error'] ?? null,
+            'error' => $output['error'] ?? ($transactionHash ? null : 'Morph transaction hash was not returned.'),
         ];
+    }
+
+    private function decodeNodeJson(string $stdout): array
+    {
+        $decoded = json_decode($stdout, true);
+
+        if (is_array($decoded)) {
+            return $decoded;
+        }
+
+        foreach (array_reverse(preg_split('/\R/', $stdout) ?: []) as $line) {
+            $decoded = json_decode(trim($line), true);
+
+            if (is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return [];
+    }
+
+    private function transactionHashFromOutput(array $output): ?string
+    {
+        foreach (['transaction_hash', 'transactionHash', 'hash'] as $key) {
+            if (isset($output[$key]) && $this->isValidTransactionHash($output[$key])) {
+                return $output[$key];
+            }
+        }
+
+        return null;
+    }
+
+    private function summarizeOutput(string $output): ?string
+    {
+        if ($output === '') {
+            return null;
+        }
+
+        return substr(preg_replace('/\s+/', ' ', $output) ?: $output, 0, 500);
+    }
+
+    private function isValidAddress(?string $address): bool
+    {
+        return is_string($address) && preg_match('/^0x[a-fA-F0-9]{40}$/', $address) === 1;
     }
 
     private function isValidTransactionHash(?string $hash): bool
