@@ -11,3 +11,6 @@ cmds = [
 cmds = [
   "npm run build"
 ]
+
+[variables]
+NODE_ENV = "production"
