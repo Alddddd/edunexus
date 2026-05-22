@@ -33,18 +33,18 @@
 
 <section id="demo-portal" {{ $attributes->merge(['class' => $compact ? 'rounded-2xl border border-ui-border bg-ui-canvas/70 p-4 sm:p-5' : 'section-anchor landing-section bg-gradient-to-br from-white via-[#f8fbf9] to-[#e4eee9]']) }}>
     <div @class([
-        'mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20' => ! $compact,
+        'mx-auto w-full max-w-6xl px-4 py-14 sm:px-6 sm:py-16 lg:px-8 lg:py-20' => ! $compact,
     ])>
         <div @class([
             'rounded-[1.75rem] border border-ui-border/80 bg-white/[0.82] p-4 shadow-[0_24px_60px_rgba(15,47,44,0.08)] ring-1 ring-white/80 backdrop-blur sm:p-6 lg:p-7' => ! $compact,
             'space-y-5' => $compact,
         ])>
             <div @class([
-                'grid gap-6 xl:grid-cols-[minmax(18rem,0.62fr)_minmax(0,1.38fr)] xl:items-start' => ! $compact,
+                'grid gap-6 lg:grid-cols-[0.9fr_1.6fr] lg:items-stretch lg:gap-7' => ! $compact,
                 'space-y-4' => $compact,
             ])>
                 <div @class([
-                    'flex h-full flex-col justify-between gap-5 rounded-2xl border border-ui-border/70 bg-gradient-to-br from-white to-ui-canvas/70 p-5 shadow-sm sm:p-6' => ! $compact,
+                    'flex h-full flex-col justify-between gap-6 rounded-2xl border border-ui-border/70 bg-gradient-to-br from-white to-ui-canvas/70 p-5 shadow-sm sm:p-6' => ! $compact,
                 ]) data-reveal>
                     <div>
                         <p class="text-xs font-bold uppercase tracking-[.18em] text-ui-action">
@@ -53,7 +53,7 @@
 
                         <h2 @class([
                             'font-black tracking-tight text-ui-anchor',
-                            'mt-3 text-3xl leading-tight sm:text-4xl xl:text-5xl' => ! $compact,
+                            'mt-3 text-3xl leading-tight sm:text-4xl lg:text-[2.45rem]' => ! $compact,
                             'mt-2 text-xl leading-snug' => $compact,
                         ])>
                             Role-based demo access.
@@ -82,36 +82,35 @@
                 </div>
 
                 <div @class([
-                    'grid items-stretch gap-4',
-                    'sm:grid-cols-2 2xl:grid-cols-4' => ! $compact,
-                    'sm:grid-cols-2' => $compact,
+                    'grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2',
+                    'lg:gap-5' => ! $compact,
                 ])>
                     @foreach($demoRoles as $demoRole)
-                        <article class="relative flex h-full flex-col rounded-2xl border border-ui-border bg-white/[0.94] shadow-[0_14px_34px_rgba(15,47,44,0.065)] ring-1 ring-white/80 backdrop-blur transition hover:-translate-y-0.5 hover:border-ui-action/25 hover:shadow-[0_18px_42px_rgba(15,47,44,0.09)] active:translate-y-0 active:scale-[0.99]" data-reveal>
+                        <article class="relative flex h-full min-h-[14.5rem] flex-col rounded-2xl border border-ui-border bg-white/[0.94] shadow-[0_14px_34px_rgba(15,47,44,0.065)] ring-1 ring-white/80 backdrop-blur transition hover:-translate-y-0.5 hover:border-ui-action/25 hover:shadow-[0_18px_42px_rgba(15,47,44,0.09)] active:translate-y-0 active:scale-[0.99] sm:min-h-[15rem]" data-reveal>
                             <form method="POST" action="{{ route('demo-login', $demoRole['role']) }}" class="flex h-full">
                                 @csrf
 
                                 <button type="submit" class="group flex h-full w-full flex-col rounded-2xl p-5 text-left focus:outline-none focus:ring-4 focus:ring-ui-action/20 sm:p-6">
-                                <div class="flex items-start gap-4">
-                                    <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-ui-action/10 text-ui-action ring-1 ring-ui-action/15 transition group-hover:bg-ui-action group-hover:text-white">
-                                        <x-icon :name="$demoRole['icon']" size="h-5 w-5" />
-                                    </span>
+                                    <div class="flex items-start gap-4">
+                                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-ui-action/10 text-ui-action ring-1 ring-ui-action/15 transition group-hover:bg-ui-action group-hover:text-white">
+                                            <x-icon :name="$demoRole['icon']" size="h-5 w-5" />
+                                        </span>
 
-                                    <div class="min-w-0">
-                                        <h3 class="text-base font-black leading-6 text-ui-anchor">
-                                            {{ $demoRole['title'] }}
-                                        </h3>
+                                        <div class="min-w-0">
+                                            <h3 class="text-base font-black leading-6 text-ui-anchor">
+                                                {{ $demoRole['title'] }}
+                                            </h3>
 
-                                        <p class="mt-2.5 text-sm leading-6 text-ui-subtext">
-                                            {{ $demoRole['description'] }}
-                                        </p>
+                                            <p class="mt-2.5 text-sm leading-6 text-ui-subtext">
+                                                {{ $demoRole['description'] }}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <span class="mt-auto inline-flex min-h-[2.875rem] w-full items-center justify-center gap-2 rounded-xl bg-ui-action px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-ui-anchor/10 transition group-hover:bg-primary-dark">
-                                    Enter {{ $demoRole['title'] }}
-                                    <x-icon name="chevron-right" size="h-4 w-4" />
-                                </span>
+                                    <span class="mt-auto inline-flex min-h-[2.875rem] w-full items-center justify-center gap-2 rounded-xl bg-ui-action px-4 py-2.5 text-sm font-bold text-white shadow-sm shadow-ui-anchor/10 transition group-hover:bg-primary-dark">
+                                        Enter {{ $demoRole['title'] }}
+                                        <x-icon name="chevron-right" size="h-4 w-4" />
+                                    </span>
                                 </button>
                             </form>
                         </article>
