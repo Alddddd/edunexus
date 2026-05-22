@@ -127,6 +127,13 @@ class BlockchainTransactionController extends Controller
 
     public function confirm(BlockchainTransaction $blockchainTransaction)
     {
+        if ($blockchainTransaction->blockchain_status === 'Failed' || ! $this->isValidTransactionHash($blockchainTransaction->transaction_hash)) {
+            return back()->with(
+                'warning',
+                'Only proof records with a valid Morph transaction hash can be marked confirmed.'
+            );
+        }
+
         $blockchainTransaction->update([
             'blockchain_status' => 'Confirmed',
         ]);
@@ -135,5 +142,10 @@ class BlockchainTransactionController extends Controller
             'success',
             'Blockchain transaction confirmed successfully.'
         );
+    }
+
+    private function isValidTransactionHash(?string $hash): bool
+    {
+        return is_string($hash) && preg_match('/^0x[a-fA-F0-9]{64}$/', $hash) === 1;
     }
 }

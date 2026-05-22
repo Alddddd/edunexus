@@ -12,6 +12,7 @@ use App\Services\ProofBundleService;
 use App\Notifications\SettlementCompletedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class SettlementController extends Controller
@@ -235,6 +236,14 @@ class SettlementController extends Controller
 
     $proofBundle = $proofBundleService->settlementReleasedBundle($settlement, $settlementReference, $payout);
     $proofHash = $proofBundleService->hash($proofBundle);
+
+    Log::info('Calling Morph settlement proof service', [
+        'settlement_id' => $settlement->id,
+        'settlement_reference' => $settlementReference,
+        'merchant_id' => $settlement->merchant_id,
+        'payout_id' => $payout->id,
+    ]);
+
     try {
         $blockchainResult = $blockchainService->recordSettlementProof(
             $settlementReference,
@@ -242,6 +251,14 @@ class SettlementController extends Controller
             (int) $settlement->merchant_id
         );
     } catch (\Throwable $exception) {
+        Log::error('Morph settlement proof service failed before returning a result', [
+            'settlement_id' => $settlement->id,
+            'settlement_reference' => $settlementReference,
+            'merchant_id' => $settlement->merchant_id,
+            'payout_id' => $payout->id,
+            'exception' => $exception->getMessage(),
+        ]);
+
         $blockchainResult = [
             'success' => false,
             'transaction_hash' => null,

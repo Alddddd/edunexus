@@ -11,6 +11,7 @@ use App\Services\MorphBlockchainService;
 use App\Services\ActivityLogService;
 use App\Services\ProofBundleService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Notifications\ClaimProcessedNotification;
 
 class ClaimValidationController extends Controller
@@ -91,11 +92,32 @@ class ClaimValidationController extends Controller
             ]
         );
 
-        $blockchainResult = $blockchainService->recordClaimProof(
-            $assistanceRequest->reference_code,
-            (float) $assistanceRequest->approved_amount,
-            auth()->id()
-        );
+        Log::info('Calling Morph claim proof service', [
+            'assistance_request_id' => $assistanceRequest->id,
+            'reference_code' => $assistanceRequest->reference_code,
+            'merchant_id' => auth()->id(),
+        ]);
+
+        try {
+            $blockchainResult = $blockchainService->recordClaimProof(
+                $assistanceRequest->reference_code,
+                (float) $assistanceRequest->approved_amount,
+                auth()->id()
+            );
+        } catch (\Throwable $exception) {
+            Log::error('Morph claim proof service failed before returning a result', [
+                'assistance_request_id' => $assistanceRequest->id,
+                'reference_code' => $assistanceRequest->reference_code,
+                'merchant_id' => auth()->id(),
+                'exception' => $exception->getMessage(),
+            ]);
+
+            $blockchainResult = [
+                'success' => false,
+                'transaction_hash' => null,
+                'error' => $exception->getMessage(),
+            ];
+        }
 
         $ruleSummary = $ruleService->summary($rules);
         $proofBundle = $proofBundleService->claimProcessedBundle(
