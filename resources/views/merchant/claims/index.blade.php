@@ -74,6 +74,7 @@
             </div>
 
             <form method="POST"
+                  id="claim-validation-form"
                   action="{{ route('merchant.claims.verify') }}"
                   class="space-y-6"
                   onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('button[type=submit]').innerText = 'Verifying claim...';">
@@ -158,10 +159,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const fallbackTitle = document.getElementById('scanner-fallback-title');
     const fallbackMessage = document.getElementById('scanner-fallback-message');
     const referenceInput = document.getElementById('reference_code');
+    const validationForm = document.getElementById('claim-validation-form');
     let scannerSlot = null;
     let reader = null;
     let html5QrCode = null;
     let scannerStarted = false;
+    let scanSubmitting = false;
 
     const showFallback = (title, message) => {
         scannerSlot?.classList.add('hidden', 'scale-[0.98]', 'opacity-0');
@@ -231,17 +234,58 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     const extractReferenceCode = (decodedText) => {
-        try {
-            const payload = JSON.parse(decodedText);
+        const rawValue = (decodedText || '').trim();
 
-            if (payload && payload.reference_code) {
-                return payload.reference_code;
+        try {
+            const payload = JSON.parse(rawValue);
+
+            if (payload && typeof payload === 'object') {
+                return String(payload.reference_code || payload.reference || payload.claim_reference || '').trim();
             }
         } catch (error) {
             // Plain reference codes remain valid.
         }
 
-        return decodedText;
+        return rawValue;
+    };
+
+    const submitScannedReference = async (decodedText) => {
+        if (scanSubmitting) {
+            return;
+        }
+
+        const referenceCode = extractReferenceCode(decodedText);
+
+        if (!referenceCode) {
+            showFallback(
+                'QR payload could not be read',
+                'This QR code does not contain a valid claim reference. Try scanning again or enter the reference manually.'
+            );
+            return;
+        }
+
+        scanSubmitting = true;
+        referenceInput.value = referenceCode;
+        referenceInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+        try {
+            if (scannerStarted && html5QrCode) {
+                await html5QrCode.stop();
+                scannerStarted = false;
+            }
+        } catch (error) {
+            console.log('QR scanner stop warning:', error);
+        }
+
+        scannerSlot?.classList.add('hidden', 'scale-[0.98]', 'opacity-0');
+        openScannerButton.disabled = true;
+        openScannerButton.textContent = 'Verifying claim...';
+
+        if (validationForm?.requestSubmit) {
+            validationForm.requestSubmit();
+        } else {
+            validationForm?.submit();
+        }
     };
 
     const startScanner = (cameraConfig) => {
@@ -253,13 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cameraConfig,
             scannerConfig(),
             (decodedText) => {
-                referenceInput.value = extractReferenceCode(decodedText);
-                referenceInput.dispatchEvent(new Event('input', { bubbles: true }));
-
-                if (scannerStarted) {
-                    html5QrCode.stop().catch(() => {});
-                    scannerStarted = false;
-                }
+                submitScannedReference(decodedText);
             }
         ).then(() => {
             scannerStarted = true;
