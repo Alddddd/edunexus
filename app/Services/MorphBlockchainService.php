@@ -8,7 +8,6 @@ use kornrunner\Ethereum\Transaction;
 use kornrunner\Keccak;
 use kornrunner\Serializer\HexPrivateKeySerializer;
 use Mdanter\Ecc\EccFactory;
-use Symfony\Component\Process\Process;
 
 class MorphBlockchainService
 {
@@ -59,58 +58,123 @@ class MorphBlockchainService
             ];
         }
 
-        $process = new Process([
-            'node',
-            base_path('scripts/transfer-settlement-token.js'),
+        $rpcUrl = env('MORPH_RPC_URL');
+        $privateKey = $this->normalizePrivateKey(env('MORPH_PRIVATE_KEY'));
+        $tokenAddress = env('EDUX_TOKEN_ADDRESS');
+        $recipientWallet = env('EDUX_SETTLEMENT_RECIPIENT_WALLET');
+        $tokenAmount = env('EDUX_DEMO_TRANSFER_AMOUNT', '1');
+        $tokenSymbol = env('EDUX_TOKEN_SYMBOL', 'EDUX');
+
+        Log::info('EDUX transfer starting', [
+            'rpc_configured' => filled($rpcUrl),
+            'private_key_configured' => filled($privateKey),
+            'token_configured' => filled($tokenAddress),
+            'recipient_configured' => filled($recipientWallet),
+            'runtime' => 'php-json-rpc',
         ]);
 
-        $process->setWorkingDirectory(base_path());
-        $process->setTimeout(120);
-        $process->run();
+        if (! $this->isValidPrivateKey($privateKey)) {
+            Log::error('EDUX transfer failed before transaction result.', [
+                'tx_hash_detected' => false,
+                'receipt_status' => 'failed',
+                'error_summary' => 'MORPH_PRIVATE_KEY is not a valid EVM private key.',
+            ]);
 
-        $output = json_decode(trim($process->getOutput()), true) ?: [];
-        $transactionHash = $output['transaction_hash'] ?? null;
-
-        if (! $process->isSuccessful()) {
             return [
                 'success' => false,
                 'edux_transfer_enabled' => true,
                 'edux_transfer_status' => 'failed',
-                'edux_transaction_hash' => $transactionHash,
-                'transaction_hash' => $transactionHash,
+                'edux_transaction_hash' => null,
+                'transaction_hash' => null,
                 'receipt_status' => 'failed',
-                'from_address' => $output['from_address'] ?? null,
-                'to_address' => $output['to_address'] ?? env('EDUX_SETTLEMENT_RECIPIENT_WALLET'),
-                'token_symbol' => $output['token_symbol'] ?? 'EDUX',
-                'token_amount' => $output['token_amount'] ?? env('EDUX_DEMO_TRANSFER_AMOUNT', '1'),
-                'token_contract' => $output['token_contract'] ?? env('EDUX_TOKEN_ADDRESS'),
-                'block_number' => $output['block_number'] ?? null,
-                'edux_error' => $output['error'] ?? ($process->getErrorOutput() ?: $process->getOutput()),
+                'from_address' => null,
+                'to_address' => $recipientWallet,
+                'token_symbol' => $tokenSymbol,
+                'token_amount' => $tokenAmount,
+                'token_contract' => $tokenAddress,
+                'block_number' => null,
+                'edux_error' => 'MORPH_PRIVATE_KEY is not a valid EVM private key.',
             ];
         }
 
-        $eduxSuccess = (bool) ($output['success'] ?? false) && $this->isValidTransactionHash($output['transaction_hash'] ?? null);
+        if (! $this->isValidAddress($tokenAddress) || ! $this->isValidAddress($recipientWallet)) {
+            $error = ! $this->isValidAddress($tokenAddress)
+                ? 'EDUX_TOKEN_ADDRESS is not a valid EVM address.'
+                : 'EDUX_SETTLEMENT_RECIPIENT_WALLET is not a valid EVM address.';
+
+            Log::error('EDUX transfer failed before transaction result.', [
+                'tx_hash_detected' => false,
+                'receipt_status' => 'failed',
+                'error_summary' => $error,
+            ]);
+
+            return [
+                'success' => false,
+                'edux_transfer_enabled' => true,
+                'edux_transfer_status' => 'failed',
+                'edux_transaction_hash' => null,
+                'transaction_hash' => null,
+                'receipt_status' => 'failed',
+                'from_address' => null,
+                'to_address' => $recipientWallet,
+                'token_symbol' => $tokenSymbol,
+                'token_amount' => $tokenAmount,
+                'token_contract' => $tokenAddress,
+                'block_number' => null,
+                'edux_error' => $error,
+            ];
+        }
+
+        try {
+            $result = $this->sendEduxTransferTransaction(
+                (string) $rpcUrl,
+                (string) $privateKey,
+                (string) $tokenAddress,
+                (string) $recipientWallet,
+                (string) $tokenAmount,
+                (int) env('EDUX_TOKEN_DECIMALS', 18)
+            );
+        } catch (\Throwable $exception) {
+            $result = [
+                'success' => false,
+                'transaction_hash' => null,
+                'receipt_status' => 'failed',
+                'from_address' => null,
+                'block_number' => null,
+                'error' => $exception->getMessage(),
+            ];
+        }
+
+        $transactionHash = $result['transaction_hash'] ?? null;
+        $eduxSuccess = (bool) ($result['success'] ?? false) && $this->isValidTransactionHash($transactionHash);
+
+        Log::info('EDUX transfer finished', [
+            'tx_hash_detected' => $this->isValidTransactionHash($transactionHash),
+            'receipt_status' => $result['receipt_status'] ?? null,
+            'block_number' => $result['block_number'] ?? null,
+            'error_summary' => $this->summarizeOutput((string) ($result['error'] ?? '')),
+        ]);
 
         return [
             'success' => $eduxSuccess,
             'edux_transfer_enabled' => true,
             'edux_transfer_status' => $eduxSuccess ? 'success' : 'failed',
-            'edux_transaction_hash' => $output['transaction_hash'] ?? null,
-            'edux_from' => $output['from_address'] ?? null,
-            'edux_to' => $output['to_address'] ?? null,
-            'edux_amount' => $output['token_amount'] ?? env('EDUX_DEMO_TRANSFER_AMOUNT', '1'),
-            'edux_token_symbol' => $output['token_symbol'] ?? 'EDUX',
-            'edux_token_contract' => $output['token_contract'] ?? env('EDUX_TOKEN_ADDRESS'),
-            'edux_block_number' => $output['block_number'] ?? null,
-            'transaction_hash' => $output['transaction_hash'] ?? null,
-            'receipt_status' => $output['receipt_status'] ?? null,
-            'from_address' => $output['from_address'] ?? null,
-            'to_address' => $output['to_address'] ?? null,
-            'token_symbol' => $output['token_symbol'] ?? 'EDUX',
-            'token_amount' => $output['token_amount'] ?? env('EDUX_DEMO_TRANSFER_AMOUNT', '1'),
-            'token_contract' => $output['token_contract'] ?? env('EDUX_TOKEN_ADDRESS'),
-            'block_number' => $output['block_number'] ?? null,
-            'edux_error' => $output['error'] ?? null,
+            'edux_transaction_hash' => $this->isValidTransactionHash($transactionHash) ? $transactionHash : null,
+            'edux_from' => $result['from_address'] ?? null,
+            'edux_to' => $recipientWallet,
+            'edux_amount' => $tokenAmount,
+            'edux_token_symbol' => $tokenSymbol,
+            'edux_token_contract' => $tokenAddress,
+            'edux_block_number' => $result['block_number'] ?? null,
+            'transaction_hash' => $this->isValidTransactionHash($transactionHash) ? $transactionHash : null,
+            'receipt_status' => $result['receipt_status'] ?? null,
+            'from_address' => $result['from_address'] ?? null,
+            'to_address' => $recipientWallet,
+            'token_symbol' => $tokenSymbol,
+            'token_amount' => $tokenAmount,
+            'token_contract' => $tokenAddress,
+            'block_number' => $result['block_number'] ?? null,
+            'edux_error' => $result['error'] ?? null,
         ];
     }
 
@@ -230,14 +294,47 @@ class MorphBlockchainService
         $nonce = $this->rpcHex($rpcUrl, 'eth_getTransactionCount', [$fromAddress, 'pending']);
         $chainIdHex = $this->rpcHex($rpcUrl, 'eth_chainId');
         $gasPrice = $this->rpcHex($rpcUrl, 'eth_gasPrice');
-        $gasLimit = $this->gasLimit($rpcUrl, $fromAddress, $contractAddress, $data);
+        $gasLimit = $this->gasLimit($rpcUrl, $fromAddress, $contractAddress, $data, 250000);
+
+        return $this->sendSignedTransaction($rpcUrl, $privateKey, $contractAddress, $data, $nonce, $chainIdHex, $gasPrice, $gasLimit, $fromAddress);
+    }
+
+    private function sendEduxTransferTransaction(
+        string $rpcUrl,
+        string $privateKey,
+        string $tokenAddress,
+        string $recipientWallet,
+        string $tokenAmount,
+        int $tokenDecimals
+    ): array {
+        $fromAddress = $this->addressFromPrivateKey($privateKey);
+        $data = '0x' . $this->encodeErc20TransferData($recipientWallet, $tokenAmount, $tokenDecimals);
+        $nonce = $this->rpcHex($rpcUrl, 'eth_getTransactionCount', [$fromAddress, 'pending']);
+        $chainIdHex = $this->rpcHex($rpcUrl, 'eth_chainId');
+        $gasPrice = $this->rpcHex($rpcUrl, 'eth_gasPrice');
+        $gasLimit = $this->gasLimit($rpcUrl, $fromAddress, $tokenAddress, $data, 65000);
+
+        return $this->sendSignedTransaction($rpcUrl, $privateKey, $tokenAddress, $data, $nonce, $chainIdHex, $gasPrice, $gasLimit, $fromAddress);
+    }
+
+    private function sendSignedTransaction(
+        string $rpcUrl,
+        string $privateKey,
+        string $toAddress,
+        string $data,
+        string $nonce,
+        string $chainIdHex,
+        string $gasPrice,
+        string $gasLimit,
+        string $fromAddress
+    ): array {
         $chainId = $this->hexToInt($chainIdHex);
 
         $transaction = new Transaction(
             $this->stripHex($nonce),
             $this->stripHex($gasPrice),
             $this->stripHex($gasLimit),
-            $this->stripHex($contractAddress),
+            $this->stripHex($toAddress),
             '',
             $this->stripHex($data)
         );
@@ -263,6 +360,7 @@ class MorphBlockchainService
             'success' => $success,
             'transaction_hash' => $transactionHash,
             'receipt_status' => $success ? 'success' : ($receipt ? 'failed' : 'pending'),
+            'from_address' => $fromAddress,
             'block_number' => isset($receipt['blockNumber']) ? $this->hexToInt($receipt['blockNumber']) : null,
             'error' => $success ? null : ($receipt ? 'Morph transaction receipt status was not successful.' : 'Morph transaction receipt was not available before timeout.'),
         ];
@@ -307,7 +405,7 @@ class MorphBlockchainService
         return $result;
     }
 
-    private function gasLimit(string $rpcUrl, string $fromAddress, string $contractAddress, string $data): string
+    private function gasLimit(string $rpcUrl, string $fromAddress, string $contractAddress, string $data, int $minimumGas): string
     {
         try {
             $estimated = $this->rpcHex($rpcUrl, 'eth_estimateGas', [[
@@ -317,13 +415,13 @@ class MorphBlockchainService
                 'data' => $data,
             ]]);
 
-            return '0x' . dechex(max((int) ceil($this->hexToInt($estimated) * 1.2), 250000));
+            return '0x' . dechex(max((int) ceil($this->hexToInt($estimated) * 1.2), $minimumGas));
         } catch (\Throwable $exception) {
-            Log::warning('Morph gas estimation failed; using fixed proof gas limit.', [
+            Log::warning('Morph gas estimation failed; using fixed gas limit.', [
                 'error_summary' => $this->summarizeOutput($exception->getMessage()),
             ]);
 
-            return '0x493e0';
+            return '0x' . dechex($minimumGas);
         }
     }
 
@@ -355,6 +453,19 @@ class MorphBlockchainService
             . $this->uint256Hex($merchantId)
             . $this->uint256Hex($referenceBytes)
             . str_pad($referenceHex, (int) ceil(max($referenceBytes, 1) / 32) * 64, '0', STR_PAD_RIGHT);
+    }
+
+    private function encodeErc20TransferData(string $recipientWallet, string $tokenAmount, int $tokenDecimals): string
+    {
+        if (! $this->isValidAddress($recipientWallet)) {
+            throw new \InvalidArgumentException('EDUX settlement recipient wallet is not a valid EVM address.');
+        }
+
+        $selector = substr(Keccak::hash('transfer(address,uint256)', 256), 0, 8);
+
+        return $selector
+            . str_pad($this->stripHex($recipientWallet), 64, '0', STR_PAD_LEFT)
+            . $this->uint256GmpHex($this->decimalTokenAmountToBaseUnits($tokenAmount, $tokenDecimals));
     }
 
     private function addressFromPrivateKey(string $privateKey): string
@@ -402,6 +513,44 @@ class MorphBlockchainService
         }
 
         return str_pad(dechex($value), 64, '0', STR_PAD_LEFT);
+    }
+
+    private function uint256GmpHex(\GMP $value): string
+    {
+        if (gmp_cmp($value, 0) < 0) {
+            throw new \InvalidArgumentException('Unsigned integer ABI values cannot be negative.');
+        }
+
+        $maxUint256 = gmp_sub(gmp_pow(2, 256), 1);
+
+        if (gmp_cmp($value, $maxUint256) > 0) {
+            throw new \InvalidArgumentException('Unsigned integer ABI value exceeds uint256.');
+        }
+
+        return str_pad(gmp_strval($value, 16), 64, '0', STR_PAD_LEFT);
+    }
+
+    private function decimalTokenAmountToBaseUnits(string $amount, int $decimals): \GMP
+    {
+        $amount = trim($amount);
+
+        if ($decimals < 0 || $decimals > 77) {
+            throw new \InvalidArgumentException('EDUX_TOKEN_DECIMALS must be between 0 and 77.');
+        }
+
+        if (preg_match('/^\d+(?:\.\d+)?$/', $amount) !== 1) {
+            throw new \InvalidArgumentException('EDUX_DEMO_TRANSFER_AMOUNT must be a non-negative decimal number.');
+        }
+
+        [$whole, $fraction] = array_pad(explode('.', $amount, 2), 2, '');
+
+        if (strlen($fraction) > $decimals) {
+            throw new \InvalidArgumentException('EDUX_DEMO_TRANSFER_AMOUNT has more decimal places than EDUX_TOKEN_DECIMALS.');
+        }
+
+        $baseUnits = ltrim($whole . str_pad($fraction, $decimals, '0'), '0');
+
+        return gmp_init($baseUnits === '' ? '0' : $baseUnits, 10);
     }
 
     private function hexToInt(?string $value): int
