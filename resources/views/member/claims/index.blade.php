@@ -186,7 +186,7 @@
                                 <div class="flex flex-wrap items-center gap-2">
                                     @if($claim->status === 'Pending' && ! $claim->is_claimed)
                                         <a href="{{ route('member.assistance-requests.edit', $claim) }}"
-                                           class="inline-flex h-11 w-28 flex-none items-center justify-center rounded-xl bg-ui-anchor px-4 text-xs font-semibold text-white shadow-sm transition hover:bg-ui-action">
+                                           class="inline-flex h-11 w-28 flex-none items-center justify-center rounded-xl bg-ui-anchor px-4 text-xs font-semibold text-white shadow-sm transition hover:!bg-ui-action hover:text-white">
                                             Edit
                                         </a>
 
@@ -283,7 +283,7 @@
                         <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
                             @if($claim->status === 'Pending' && ! $claim->is_claimed)
                                 <a href="{{ route('member.assistance-requests.edit', $claim) }}"
-                                   class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ui-anchor px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-ui-action">
+                                   class="inline-flex min-h-11 items-center justify-center rounded-xl bg-ui-anchor px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:!bg-ui-action hover:text-white">
                                     Edit
                                 </a>
 

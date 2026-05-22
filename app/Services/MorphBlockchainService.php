@@ -63,14 +63,15 @@ class MorphBlockchainService
         $process->run();
 
         $output = json_decode(trim($process->getOutput()), true) ?: [];
+        $transactionHash = $output['transaction_hash'] ?? null;
 
         if (! $process->isSuccessful()) {
             return [
                 'success' => false,
                 'edux_transfer_enabled' => true,
                 'edux_transfer_status' => 'failed',
-                'edux_transaction_hash' => $output['transaction_hash'] ?? null,
-                'transaction_hash' => $output['transaction_hash'] ?? null,
+                'edux_transaction_hash' => $transactionHash,
+                'transaction_hash' => $transactionHash,
                 'receipt_status' => 'failed',
                 'from_address' => $output['from_address'] ?? null,
                 'to_address' => $output['to_address'] ?? env('EDUX_SETTLEMENT_RECIPIENT_WALLET'),
@@ -82,10 +83,12 @@ class MorphBlockchainService
             ];
         }
 
+        $eduxSuccess = (bool) ($output['success'] ?? false) && $this->isValidTransactionHash($output['transaction_hash'] ?? null);
+
         return [
-            'success' => (bool) ($output['success'] ?? false),
+            'success' => $eduxSuccess,
             'edux_transfer_enabled' => true,
-            'edux_transfer_status' => ($output['receipt_status'] ?? null) === 'success' ? 'success' : 'failed',
+            'edux_transfer_status' => $eduxSuccess ? 'success' : 'failed',
             'edux_transaction_hash' => $output['transaction_hash'] ?? null,
             'edux_from' => $output['from_address'] ?? null,
             'edux_to' => $output['to_address'] ?? null,
@@ -139,10 +142,17 @@ class MorphBlockchainService
 
         $output = json_decode($process->getOutput(), true);
 
+        $transactionHash = $output['transaction_hash'] ?? null;
+
         return [
-            'success' => $output['success'] ?? false,
-            'transaction_hash' => $output['transaction_hash'] ?? null,
+            'success' => (bool) ($output['success'] ?? false) && $this->isValidTransactionHash($transactionHash),
+            'transaction_hash' => $transactionHash,
             'error' => $output['error'] ?? null,
         ];
+    }
+
+    private function isValidTransactionHash(?string $hash): bool
+    {
+        return is_string($hash) && preg_match('/^0x[a-fA-F0-9]{64}$/', $hash) === 1;
     }
 }

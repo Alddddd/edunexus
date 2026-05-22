@@ -22,7 +22,7 @@ class ClaimValidationController extends Controller
 
     public function verify(Request $request, ClaimValidationRuleService $ruleService)
     {
-        $referenceCode = $request->reference_code;
+        $referenceCode = $this->normalizeReferenceCode($request->reference_code);
 
         if (! $referenceCode) {
             return redirect()
@@ -141,13 +141,30 @@ class ClaimValidationController extends Controller
             $blockchainResult['success'] ? 'Confirmed' : 'Failed'
         );
 
-        return redirect()
-            ->route('merchant.claims.index')
-            ->with(
-                'success',
-                $blockchainResult['success']
-                    ? 'Claim processed and recorded on Morph successfully.'
-                    : 'Claim processed, but blockchain recording failed.'
-            );
+        $redirect = redirect()->route('merchant.claims.index');
+
+        if ($blockchainResult['success']) {
+            return $redirect->with('success', 'Claim processed and recorded on Morph successfully.');
+        }
+
+        return $redirect
+            ->with('warning', 'Claim processed and settlement created, but Morph proof recording failed. Review the verification logs for details.');
+    }
+
+    private function normalizeReferenceCode(?string $value): ?string
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        $decoded = json_decode($value, true);
+
+        if (is_array($decoded) && filled($decoded['reference_code'] ?? null)) {
+            return trim((string) $decoded['reference_code']);
+        }
+
+        return $value;
     }
 }

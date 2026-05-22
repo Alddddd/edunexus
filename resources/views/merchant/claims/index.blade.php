@@ -38,12 +38,34 @@
                 <x-status-badge status="Morph Ready" tone="proof" />
             </x-slot:actions>
 
-            <div class="mb-8">
+            <div class="mb-8 space-y-4">
+                <div id="scanner-launch"
+                     class="rounded-2xl border border-ui-action/15 bg-gradient-to-br from-white via-ui-canvas/80 to-teal-50 p-5 text-center shadow-sm shadow-ui-anchor/5">
+                    <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-ui-action/10 text-ui-action ring-1 ring-ui-action/15">
+                        <x-icon name="qr-code" size="h-6 w-6" />
+                    </div>
+
+                    <p class="mt-3 font-semibold text-ui-text">
+                        Camera scanner
+                    </p>
+
+                    <p class="mx-auto mt-1 max-w-md text-sm leading-6 text-ui-subtext">
+                        Camera requires HTTPS and browser permission. Manual reference entry remains available below.
+                    </p>
+
+                    <button type="button"
+                            id="open-scanner"
+                            class="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-ui-action px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-ui-anchor/10 ring-1 ring-ui-action/20 transition hover:bg-ui-anchor sm:w-auto">
+                        <x-icon name="camera" size="h-4 w-4" />
+                        Open Camera Scanner
+                    </button>
+                </div>
+
                 <div id="reader"
-                     class="hidden min-h-[18rem] w-full overflow-hidden rounded-2xl border border-ui-border bg-ui-canvas/70 sm:min-h-[22rem]"></div>
+                     class="hidden min-h-[16rem] w-full overflow-hidden rounded-2xl border border-ui-border bg-ui-canvas/70 sm:min-h-[20rem]"></div>
 
                 <div id="scanner-fallback"
-                     class="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+                     class="hidden rounded-2xl border border-amber-200 bg-amber-50 p-5">
                     <p id="scanner-fallback-title" class="font-semibold text-amber-800">
                         Camera scanner unavailable in this local browser session
                     </p>
@@ -136,11 +158,18 @@
 document.addEventListener('DOMContentLoaded', function () {
     const reader = document.getElementById('reader');
     const fallback = document.getElementById('scanner-fallback');
+    const launcher = document.getElementById('scanner-launch');
+    const openScannerButton = document.getElementById('open-scanner');
     const fallbackTitle = document.getElementById('scanner-fallback-title');
     const fallbackMessage = document.getElementById('scanner-fallback-message');
     const referenceInput = document.getElementById('reference_code');
 
     if (!window.Html5Qrcode) {
+        if (openScannerButton) {
+            openScannerButton.disabled = true;
+            openScannerButton.textContent = 'Camera Scanner Unavailable';
+        }
+        fallback?.classList.remove('hidden');
         if (fallbackMessage) {
             fallbackMessage.textContent = 'The QR scanner library did not load. You can still enter the claim reference manually.';
         }
@@ -163,6 +192,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const isSecureCameraContext = window.isSecureContext || ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
     if (!isSecureCameraContext) {
+        if (openScannerButton) {
+            openScannerButton.disabled = true;
+            openScannerButton.textContent = 'HTTPS Required for Camera';
+        }
+
         showFallback(
             'Secure connection required for camera scanning',
             'Mobile browsers require HTTPS before camera permission can initialize. Enter the reference code manually on this session.'
@@ -173,19 +207,37 @@ document.addEventListener('DOMContentLoaded', function () {
     const html5QrCode = new Html5Qrcode("reader");
     let scannerStarted = false;
 
-    const qrboxSize = Math.min(260, Math.max(180, Math.floor((reader?.clientWidth || 320) * 0.72)));
+    const scannerConfig = () => {
+        const qrboxSize = Math.min(260, Math.max(180, Math.floor((reader?.clientWidth || 320) * 0.72)));
+
+        return {
+            fps: 8,
+            qrbox: { width: qrboxSize, height: qrboxSize },
+            aspectRatio: 1,
+            disableFlip: false
+        };
+    };
+
+    const extractReferenceCode = (decodedText) => {
+        try {
+            const payload = JSON.parse(decodedText);
+
+            if (payload && payload.reference_code) {
+                return payload.reference_code;
+            }
+        } catch (error) {
+            // Plain reference codes remain valid.
+        }
+
+        return decodedText;
+    };
 
     const startScanner = (cameraConfig) => {
         return html5QrCode.start(
             cameraConfig,
-            {
-                fps: 8,
-                qrbox: { width: qrboxSize, height: qrboxSize },
-                aspectRatio: 1,
-                disableFlip: false
-            },
+            scannerConfig(),
             (decodedText) => {
-                referenceInput.value = decodedText;
+                referenceInput.value = extractReferenceCode(decodedText);
                 referenceInput.dispatchEvent(new Event('input', { bubbles: true }));
 
                 if (scannerStarted) {
@@ -195,26 +247,36 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         ).then(() => {
             scannerStarted = true;
+            launcher?.classList.add('hidden');
             reader.classList.remove('hidden');
             fallback.classList.add('hidden');
+            openScannerButton.disabled = false;
+            openScannerButton.innerHTML = '<span>Open Camera Scanner</span>';
         });
     };
 
-    window.Html5Qrcode.getCameras()
-        .then((devices) => {
-            const backCamera = devices.find((device) => /back|rear|environment/i.test(device.label || ''));
-            const cameraConfig = backCamera ? { deviceId: { exact: backCamera.id } } : { facingMode: { ideal: 'environment' } };
+    openScannerButton?.addEventListener('click', () => {
+        openScannerButton.disabled = true;
+        openScannerButton.textContent = 'Opening camera...';
 
-            return startScanner(cameraConfig);
-        })
-        .catch((err) => {
-            console.log('QR Scanner unavailable:', err);
+        window.Html5Qrcode.getCameras()
+            .then((devices) => {
+                const backCamera = devices.find((device) => /back|rear|environment/i.test(device.label || ''));
+                const cameraConfig = backCamera ? { deviceId: { exact: backCamera.id } } : { facingMode: { ideal: 'environment' } };
 
-            showFallback(
-                'Camera scanner unavailable',
-                'Camera permission was not completed or this browser blocked the scanner. Enter the reference code manually to continue validation.'
-            );
-        });
+                return startScanner(cameraConfig);
+            })
+            .catch((err) => {
+                console.log('QR Scanner unavailable:', err);
+                openScannerButton.disabled = false;
+                openScannerButton.textContent = 'Open Camera Scanner';
+
+                showFallback(
+                    'Camera scanner unavailable',
+                    'Camera permission was not completed or this browser blocked the scanner. Enter the reference code manually to continue validation.'
+                );
+            });
+    });
 
     window.addEventListener('pagehide', () => {
         if (scannerStarted) {

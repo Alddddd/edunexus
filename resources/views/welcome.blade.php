@@ -213,12 +213,14 @@
         .audit-live-message {
             display: inline-block;
             max-width: 0;
+            min-height: 1.25rem;
             overflow: hidden;
             white-space: nowrap;
+            vertical-align: bottom;
         }
 
         .audit-console.is-visible .audit-live-message {
-            animation: live-type 3.6s steps(36, end) infinite;
+            animation: live-type 3s steps(22, end) infinite;
         }
 
         [data-reveal] {
@@ -245,7 +247,17 @@
             .audit-console .audit-row,
             .audit-console .audit-status { opacity: 1 !important; }
             .audit-console .audit-hash { max-width: 18ch !important; }
-            .audit-live-message { max-width: none !important; }
+            .audit-live-message { max-width: 22ch !important; }
+        }
+
+        @media (max-width: 640px) {
+            .audit-status {
+                overflow: hidden;
+            }
+
+            .audit-live-message {
+                max-width: 22ch;
+            }
         }
 
         @media (max-width: 1023px) {
@@ -370,8 +382,8 @@
             <div class="rounded-2xl border border-ui-border/80 bg-white/90 px-4 py-3 shadow-lg shadow-ui-anchor/10 backdrop-blur">
                 <div class="flex items-center justify-between gap-4">
                     <a href="/" class="flex min-w-0 items-center gap-3" aria-label="EduNexUs home">
-                        <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-sm ring-1 ring-ui-border/80">
-                            <x-application-logo class="h-full w-full scale-[1.22]" />
+                        <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-0 shadow-sm ring-1 ring-ui-border/80">
+                            <x-application-logo class="h-full w-full scale-[1.42]" />
                         </span>
                         <span class="min-w-0">
                             <span class="block text-base font-black tracking-tight text-ui-anchor">EduNexUs</span>
@@ -524,7 +536,7 @@
                     <div class="hero-dashboard overflow-hidden rounded-[1.75rem] border border-emerald-900/10 bg-[#123b34] text-white">
                         <div class="flex items-center justify-between border-b border-white/10 bg-white/[0.04] px-6 py-4">
                             <div class="flex items-center gap-3">
-                                <span class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white/95 p-0.5 ring-1 ring-white/20"><x-application-logo class="h-full w-full scale-[1.22]" /></span>
+                                <span class="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white/95 p-0 ring-1 ring-white/20"><x-application-logo class="h-full w-full scale-[1.42]" /></span>
                                 <div>
                                     <p class="text-sm font-black">EduNexUs Operations</p>
                                     <p class="text-xs text-emerald-50/55">Assistance lifecycle monitor</p>
@@ -902,7 +914,7 @@
         <div class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1fr_auto] lg:px-8">
             <div>
                 <div class="flex items-center gap-3">
-                    <span class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-sm ring-1 ring-ui-border"><x-application-logo class="h-full w-full scale-[1.22]" /></span>
+                    <span class="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl bg-white p-0 shadow-sm ring-1 ring-ui-border"><x-application-logo class="h-full w-full scale-[1.42]" /></span>
                     <div>
                         <p class="font-black text-ui-anchor">EduNexUs</p>
                         <p class="text-sm text-ui-subtext">Programmable assistance and settlement infrastructure</p>
@@ -945,11 +957,11 @@
             const proofBadge = document.getElementById('s4badge');
             const auditLiveMessage = document.getElementById('audit-live-message');
             const auditMessages = [
-                'Recording proof bundle...',
-                'Verification log linked...',
-                'Settlement lifecycle visible...',
-                'Audit export context prepared...',
-                'Tamper-resistant proof reference available...'
+                'Recording proof...',
+                'Log linked...',
+                'Lifecycle visible...',
+                'Export ready...',
+                'Proof reference set...'
             ];
             const stepColors = ['rgba(4,120,87,.09)', 'rgba(180,83,9,.09)', 'rgba(15,118,110,.09)', 'rgba(8,145,178,.09)'];
             let ticking = false;

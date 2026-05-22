@@ -73,7 +73,7 @@ class MerchantController extends Controller
                 $query->where('status', 'Active');
 
                 if ($merchant->merchant_category_id) {
-                    $query->orWhereKey($merchant->merchant_category_id);
+                    $query->orWhere('id', $merchant->merchant_category_id);
                 }
             })
             ->orderBy('name')

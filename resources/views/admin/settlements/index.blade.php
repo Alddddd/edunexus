@@ -172,6 +172,9 @@
                     $totalReleased = $settlement->computed_total_released;
                     $claim = $settlement->assistanceRequest;
                     $claimValidationCompleted = $claim
+                        && $claim->status === 'Approved'
+                        && filled($claim->reference_code)
+                        && filled($claim->qr_code)
                         && $claim->is_claimed
                         && $claim->claimed_at
                         && (int) $claim->claimed_by === (int) $settlement->merchant_id

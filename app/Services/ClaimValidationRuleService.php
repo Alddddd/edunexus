@@ -9,21 +9,21 @@ class ClaimValidationRuleService
 {
     public function evaluate(AssistanceRequest $assistanceRequest, ?MerchantProfile $merchantProfile): array
     {
-        $assistanceRequest->loadMissing('program');
+        $assistanceRequest->loadMissing('program.category');
+        $merchantProfile?->loadMissing('category');
 
         $program = $assistanceRequest->program;
         $merchantCategoryAllowed = false;
 
-        if ($merchantProfile && $merchantProfile->status === 'Active' && $program) {
-            $merchantCategoryAllowed = $merchantProfile->merchant_category_id && $program->merchant_category_id
-                ? (int) $merchantProfile->merchant_category_id === (int) $program->merchant_category_id
-                : strtolower((string) $merchantProfile->merchant_category) === strtolower((string) $program->merchant_category);
+        if ($merchantProfile && strtolower((string) $merchantProfile->status) === 'active' && $program) {
+            $merchantCategoryAllowed = $this->categoryMatches($merchantProfile, $program);
         }
 
         $amountWithinLimit =
             $assistanceRequest->approved_amount !== null &&
             (float) $assistanceRequest->approved_amount > 0 &&
             (float) $assistanceRequest->approved_amount <= (float) $assistanceRequest->requested_amount &&
+            $program &&
             (float) $assistanceRequest->approved_amount <= (float) $program->maximum_amount;
 
         return [
@@ -99,5 +99,41 @@ class ClaimValidationRuleService
             ])
             ->values()
             ->all();
+    }
+
+    private function categoryMatches(MerchantProfile $merchantProfile, object $program): bool
+    {
+        if (
+            $merchantProfile->merchant_category_id &&
+            $program->merchant_category_id &&
+            (int) $merchantProfile->merchant_category_id === (int) $program->merchant_category_id
+        ) {
+            return true;
+        }
+
+        $merchantCategories = collect([
+            $merchantProfile->merchant_category,
+            $merchantProfile->category?->name,
+            $merchantProfile->category?->slug,
+        ])->map(fn ($value) => $this->normalizeCategory($value))->filter();
+
+        $programCategories = collect([
+            $program->merchant_category,
+            $program->category?->name,
+            $program->category?->slug,
+        ])->map(fn ($value) => $this->normalizeCategory($value))->filter();
+
+        return $merchantCategories
+            ->intersect($programCategories)
+            ->isNotEmpty();
+    }
+
+    private function normalizeCategory(?string $value): string
+    {
+        return str($value ?? '')
+            ->lower()
+            ->replaceMatches('/[^a-z0-9]+/', ' ')
+            ->squish()
+            ->toString();
     }
 }

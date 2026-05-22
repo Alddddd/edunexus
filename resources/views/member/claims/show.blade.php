@@ -126,8 +126,8 @@
             </div>
         </div>
 
-        <div class="min-w-0 space-y-6">
-            <div class="mx-auto w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm xl:mx-0">
+        <div class="flex min-w-0 flex-col items-center space-y-6">
+            <div class="mx-auto w-full max-w-[20rem] rounded-2xl border border-slate-200 bg-white p-5 text-center shadow-sm">
                 <p class="text-sm font-semibold text-slate-700">
                     QR Claim Pass
                 </p>
@@ -137,8 +137,10 @@
                 </p>
 
                 @if($claim->qr_code)
-                    <div class="qr-pass-frame mx-auto mt-5 inline-flex max-w-full justify-center rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-                        {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(220)->generate($claim->qr_code) !!}
+                    <div class="mx-auto mt-5 flex w-full max-w-[17rem] justify-center">
+                        <div class="qr-pass-frame inline-flex max-w-full justify-center rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+                            {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(220)->generate($claim->qr_code) !!}
+                        </div>
                     </div>
 
                     <p class="mt-4 text-xs text-slate-400">
@@ -168,7 +170,7 @@
                 @endif
             </div>
 
-            <div class="mx-auto w-full max-w-sm rounded-2xl border border-teal-100 bg-teal-50 p-5 xl:mx-0">
+            <div class="mx-auto w-full max-w-[20rem] rounded-2xl border border-teal-100 bg-teal-50 p-5">
                 <p class="text-sm font-semibold text-teal-800">
                     Important Reminder
                 </p>

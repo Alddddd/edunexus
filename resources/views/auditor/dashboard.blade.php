@@ -91,20 +91,67 @@
 
     <x-table-card
         title="Recent Blockchain Verification Records"
-        description="Latest proof logs created from claim processing activity.">
+        description="Latest proof logs created from claim processing activity. Showing 5 records per page.">
         <x-slot:actions>
             <div class="flex flex-wrap gap-2">
-                <a href="{{ route('auditor.verification-records.export.csv') }}"
+                <a href="{{ route('auditor.verification-records.export.csv', request()->query()) }}"
                    class="inline-flex min-h-10 items-center justify-center rounded-xl border border-ui-border bg-white px-4 py-2 text-sm font-semibold text-ui-action shadow-sm transition hover:bg-ui-canvas">
                     Export CSV
                 </a>
 
-                <a href="{{ route('auditor.verification-records.export.pdf') }}"
+                <a href="{{ route('auditor.verification-records.export.pdf', request()->query()) }}"
                    class="inline-flex min-h-10 items-center justify-center rounded-xl bg-ui-action px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor">
                     Export PDF
                 </a>
             </div>
         </x-slot:actions>
+
+        <form method="GET" action="{{ route('auditor.dashboard') }}" class="grid gap-3 border-b border-ui-border/70 bg-ui-canvas/50 p-4 md:grid-cols-[1fr_12rem_12rem_auto] md:items-end">
+            <div>
+                <label for="search" class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ui-subtext">Search</label>
+                <input id="search"
+                       name="search"
+                       value="{{ $filters['search'] ?? '' }}"
+                       placeholder="Reference, hash, or payload"
+                       class="w-full rounded-xl border-ui-border bg-white text-sm text-ui-text shadow-sm focus:border-ui-action focus:ring-ui-action">
+            </div>
+
+            <div>
+                <label for="status" class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ui-subtext">Status</label>
+                <select id="status"
+                        name="status"
+                        class="w-full rounded-xl border-ui-border bg-white text-sm text-ui-text shadow-sm focus:border-ui-action focus:ring-ui-action">
+                    <option value="">All statuses</option>
+                    @foreach(['Confirmed', 'Pending', 'Failed'] as $status)
+                        <option value="{{ $status }}" @selected(($filters['status'] ?? '') === $status)>{{ $status }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label for="type" class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-ui-subtext">Type</label>
+                <select id="type"
+                        name="type"
+                        class="w-full rounded-xl border-ui-border bg-white text-sm text-ui-text shadow-sm focus:border-ui-action focus:ring-ui-action">
+                    <option value="">All types</option>
+                    @foreach(['Claim', 'Settlement', 'Diagnostics'] as $type)
+                        <option value="{{ $type }}" @selected(($filters['type'] ?? '') === $type)>{{ $type }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex gap-2">
+                <button type="submit"
+                        class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl bg-ui-action px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-ui-anchor md:flex-none">
+                    Filter
+                </button>
+
+                <a href="{{ route('auditor.dashboard') }}"
+                   class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl border border-ui-border bg-white px-4 py-2 text-sm font-semibold text-ui-subtext shadow-sm transition hover:bg-ui-canvas md:flex-none">
+                    Clear
+                </a>
+            </div>
+        </form>
 
         <table class="min-w-[46rem] divide-y divide-ui-border text-sm lg:min-w-full">
             <thead class="bg-ui-canvas/70">
@@ -154,7 +201,7 @@
                         <td class="px-5 py-3.5">
                             <x-status-badge
                                 :status="$transaction->blockchain_status"
-                                :tone="$transaction->blockchain_status === 'Confirmed' ? 'confirmed' : 'warning'" />
+                                :tone="$transaction->blockchain_status === 'Confirmed' ? 'confirmed' : ($transaction->blockchain_status === 'Failed' ? 'danger' : 'warning')" />
                         </td>
 
                         <td class="px-5 py-3.5 text-ui-subtext">
@@ -171,6 +218,12 @@
                 @endforelse
             </tbody>
         </table>
+
+        @if($recentTransactions->hasPages())
+            <div class="border-t border-ui-border/70 bg-ui-surface px-4 py-4">
+                {{ $recentTransactions->links() }}
+            </div>
+        @endif
     </x-table-card>
 </div>
 

@@ -9,7 +9,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
-<body class="m-0 min-h-screen overflow-x-hidden font-sans antialiased bg-ui-shell text-ui-text">
+<body class="m-0 min-h-screen overflow-x-clip font-sans antialiased bg-ui-shell text-ui-text">
 
 @php
     $successMessage = session('success');
@@ -68,7 +68,7 @@
 
 <div x-data="{ mobileSidebarOpen: false }"
      @keydown.escape.window="mobileSidebarOpen = false"
-     class="flex min-h-screen w-full max-w-full overflow-x-hidden bg-ui-shell">
+     class="min-h-screen w-full max-w-full overflow-x-clip bg-ui-shell">
 
     <!-- Mobile Sidebar Backdrop -->
     <div x-cloak
@@ -96,8 +96,8 @@
 
         <div class="flex h-[72px] items-center justify-between border-b border-ui-border/70 px-5">
             <div class="flex min-w-0 items-center gap-3">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-sm ring-1 ring-white/20">
-                    <x-application-logo class="h-full w-full scale-[1.22]" />
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-0 shadow-sm ring-1 ring-white/20">
+                    <x-application-logo class="h-full w-full scale-[1.42]" />
                 </span>
 
                 <div class="min-w-0">
@@ -354,13 +354,13 @@
     </aside>
 
     <!-- Sidebar -->
-    <aside data-dashboard-sidebar class="sticky top-0 z-40 hidden h-screen shrink-0 lg:flex lg:w-72 lg:flex-col bg-ui-action border-r border-white/10 shadow-[14px_0_38px_rgba(6,78,59,0.22)] backdrop-blur-xl">
+    <aside data-dashboard-sidebar class="fixed inset-y-0 left-0 z-40 hidden h-screen max-h-screen shrink-0 lg:flex lg:w-72 lg:flex-col bg-ui-action border-r border-white/10 shadow-[14px_0_38px_rgba(6,78,59,0.22)] backdrop-blur-xl">
 
         <!-- Logo -->
         <div class="h-[68px] flex items-center px-6 border-b border-ui-border/70">
             <div class="flex min-w-0 items-center gap-3">
-                <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-sm ring-1 ring-white/20">
-                    <x-application-logo class="h-full w-full scale-[1.22]" />
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white p-0 shadow-sm ring-1 ring-white/20">
+                    <x-application-logo class="h-full w-full scale-[1.42]" />
                 </span>
 
                 <div class="min-w-0">
@@ -616,7 +616,7 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="flex min-w-0 flex-1 flex-col bg-ui-canvas">
+    <div class="flex min-h-screen min-w-0 flex-1 flex-col bg-ui-canvas lg:ml-72">
 
         <!-- Top Navbar -->
         <header data-dashboard-topbar class="sticky top-0 z-50 h-[68px] min-w-0 bg-ui-shell/90 border-b border-ui-anchor/10 shadow-[0_10px_28px_rgba(15,47,44,0.06)] backdrop-blur-xl px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
@@ -845,7 +845,7 @@
         </header>
 
         <!-- Page Content -->
-        <main class="w-full min-w-0 flex-1 overflow-x-hidden bg-ui-canvas px-4 pt-4 pb-8 sm:px-6 lg:px-8">
+        <main class="w-full min-w-0 flex-1 overflow-x-clip bg-ui-canvas px-4 pt-4 pb-8 sm:px-6 lg:px-8">
             @yield('content')
         </main>
 

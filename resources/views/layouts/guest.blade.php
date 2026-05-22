@@ -18,8 +18,8 @@
         <div class="flex min-h-screen flex-col items-center justify-center bg-ui-canvas px-4 py-6 sm:py-8">
             <div class="mb-6 text-center sm:mb-7">
                 <a href="/" class="inline-flex items-center gap-3">
-                    <span class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white p-0.5 shadow-lg shadow-ui-anchor/10 ring-1 ring-ui-border/80">
-                        <x-application-logo class="h-full w-full scale-[1.22]" />
+                    <span class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-white p-0 shadow-lg shadow-ui-anchor/10 ring-1 ring-ui-border/80">
+                        <x-application-logo class="h-full w-full scale-[1.42]" />
                     </span>
 
                     <span class="text-xl font-bold tracking-tight text-ui-anchor">

@@ -5,26 +5,33 @@ namespace App\Http\Controllers\Auditor;
 use App\Http\Controllers\Controller;
 use App\Models\AssistanceRequest;
 use App\Models\BlockchainTransaction;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $recentTransactions = $this->verificationQuery($request)
+            ->paginate(5)
+            ->withQueryString();
+
         return view('auditor.dashboard', [
             'totalClaims' => AssistanceRequest::where('is_claimed', true)->count(),
             'confirmedProofs' => BlockchainTransaction::where('blockchain_status', 'Confirmed')->count(),
             'pendingProofs' => BlockchainTransaction::where('blockchain_status', 'Pending')->count(),
-            'recentTransactions' => BlockchainTransaction::latest('recorded_at')->latest('id')->take(12)->get(),
+            'recentTransactions' => $recentTransactions,
+            'filters' => $request->only(['search', 'status', 'type']),
         ]);
     }
 
-    public function exportCsv()
+    public function exportCsv(Request $request)
     {
         $filename = 'edunexus-auditor-verification-records-' . now()->format('Y-m-d') . '.csv';
+        $transactions = $this->currentPageRecords($request);
 
-        return Response::streamDownload(function () {
+        return Response::streamDownload(function () use ($transactions) {
             $handle = fopen('php://output', 'w');
 
             fputcsv($handle, [
@@ -36,26 +43,17 @@ class DashboardController extends Controller
                 'morph_verification_status',
             ]);
 
-            BlockchainTransaction::query()
-                ->latest('recorded_at')
-                ->latest('id')
-                ->chunk(200, function (EloquentCollection $transactions) use ($handle) {
-                    foreach ($transactions as $transaction) {
-                        fputcsv($handle, $this->exportRow($transaction));
-                    }
-                });
+            foreach ($transactions as $transaction) {
+                fputcsv($handle, $this->exportRow($transaction));
+            }
 
             fclose($handle);
         }, $filename, ['Content-Type' => 'text/csv']);
     }
 
-    public function exportPdf()
+    public function exportPdf(Request $request)
     {
-        $rows = BlockchainTransaction::query()
-            ->latest('recorded_at')
-            ->latest('id')
-            ->take(100)
-            ->get()
+        $rows = $this->currentPageRecords($request)
             ->map(fn (BlockchainTransaction $transaction) => $this->exportRow($transaction))
             ->all();
 
@@ -68,6 +66,40 @@ class DashboardController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="edunexus-auditor-verification-records-' . now()->format('Y-m-d') . '.pdf"',
         ]);
+    }
+
+    private function currentPageRecords(Request $request)
+    {
+        return $this->verificationQuery($request)
+            ->forPage(max((int) $request->query('page', 1), 1), 5)
+            ->get();
+    }
+
+    private function verificationQuery(Request $request): Builder
+    {
+        $query = BlockchainTransaction::query()
+            ->latest('recorded_at')
+            ->latest('id');
+
+        if (filled($request->query('status'))) {
+            $query->where('blockchain_status', $request->query('status'));
+        }
+
+        if (filled($request->query('type'))) {
+            $query->where('transaction_type', $request->query('type'));
+        }
+
+        if (filled($request->query('search'))) {
+            $search = trim((string) $request->query('search'));
+
+            $query->where(function (Builder $query) use ($search) {
+                $query->where('reference_code', 'like', '%' . $search . '%')
+                    ->orWhere('transaction_hash', 'like', '%' . $search . '%')
+                    ->orWhere('payload', 'like', '%' . $search . '%');
+            });
+        }
+
+        return $query;
     }
 
     private function exportRow(BlockchainTransaction $transaction): array

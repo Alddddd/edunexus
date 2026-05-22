@@ -163,9 +163,9 @@
                 </div>
             @else
                 <div class="grid grid-cols-1 gap-4 pt-6 md:grid-cols-2">
-                    <div class="rounded-xl bg-ui-canvas/70 p-4">
+                    <div class="rounded-xl bg-ui-canvas/70 p-4 md:max-w-sm">
                         <p class="text-sm text-ui-subtext">Reference Code</p>
-                        <p class="mt-2 break-all rounded-xl border border-ui-border bg-white px-4 py-3 font-mono text-sm font-semibold text-ui-text">
+                        <p class="mt-2 inline-block max-w-full break-all rounded-xl border border-ui-border bg-white px-4 py-3 font-mono text-sm font-semibold text-ui-text">
                             {{ $request->reference_code ?? 'Not generated' }}
                         </p>
                     </div>
@@ -200,11 +200,13 @@
                     title="QR Claim Code"
                     description="Member can present this code to a partner merchant for validation.">
                     @if($request->qr_code)
-                        <div class="mx-auto inline-block max-w-fit rounded-2xl border border-ui-border bg-white p-4 shadow-sm">
-                            {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(190)->generate($request->qr_code) !!}
+                        <div class="mx-auto flex w-full max-w-[16rem] justify-center">
+                            <div class="admin-qr-frame inline-flex max-w-full justify-center rounded-2xl border border-ui-border bg-white p-4 shadow-sm">
+                                {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::size(190)->generate($request->qr_code) !!}
+                            </div>
                         </div>
 
-                        <p class="mt-4 text-xs text-ui-subtext">
+                        <p class="mt-4 text-center text-xs text-ui-subtext">
                             QR payload is linked to the assistance reference.
                         </p>
                     @else
@@ -233,4 +235,12 @@
         </div>
     </div>
 </div>
+
+<style>
+    .admin-qr-frame svg {
+        display: block;
+        height: auto;
+        max-width: min(100%, 190px);
+    }
+</style>
 @endsection

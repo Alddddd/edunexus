@@ -9,6 +9,10 @@
 }
 
 @layer components {
+    .edunexus-logo-mark {
+        filter: drop-shadow(0 1px 2px rgba(15, 47, 44, 0.08));
+    }
+
     [data-dashboard-topbar] {
         background-image: linear-gradient(110deg, #DCE8E1 0%, #EAF3EF 48%, #F7FBF8 100%);
     }

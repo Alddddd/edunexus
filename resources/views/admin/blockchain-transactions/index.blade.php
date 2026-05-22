@@ -243,7 +243,7 @@
                     @forelse($transactions as $transaction)
                         @php
                             $hash = $transaction->transaction_hash;
-                            $hasRealHash = $hash && str_starts_with($hash, '0x');
+                            $hasRealHash = filled($hash) && preg_match('/^0x[a-fA-F0-9]{64}$/', (string) $hash);
                             $shortHash = $hasRealHash
                                 ? substr($hash, 0, 10) . '...' . substr($hash, -8)
                                 : ($hash ?? 'Not available');
@@ -289,7 +289,7 @@
                                 ['label' => $settlement ? 'Settlement Generated' : 'Awaiting Settlement Generation', 'state' => $settlement ? 'done' : 'pending'],
                                 ['label' => $settlementStageLabel, 'state' => $settlementReleased ? 'done' : 'pending'],
                                 ['label' => $eduxStageLabel, 'state' => ($eduxStatus === 'success' || $eduxHash) ? 'done' : ($eduxStatus === 'failed' ? 'failed' : 'pending')],
-                                ['label' => $transaction->blockchain_status === 'Confirmed' ? 'Morph Proof Confirmed' : 'Morph Proof Pending', 'state' => $transaction->blockchain_status === 'Confirmed' ? 'done' : ($transaction->blockchain_status === 'Failed' ? 'failed' : 'pending')],
+                                ['label' => $transaction->blockchain_status === 'Confirmed' ? 'Morph Proof Confirmed' : ($transaction->blockchain_status === 'Failed' ? 'Morph Proof Failed' : 'Morph Proof Pending'), 'state' => $transaction->blockchain_status === 'Confirmed' ? 'done' : ($transaction->blockchain_status === 'Failed' ? 'failed' : 'pending')],
                             ];
                             $primaryReferenceLabel = $transaction->transaction_type === 'Settlement'
                                 ? ($linkedPayout?->settlement_reference ? 'Payout Reference' : 'Settlement Reference')
@@ -320,7 +320,7 @@
                                         </p>
 
                                         <div class="mt-2 flex flex-wrap gap-1.5">
-                                            <x-status-badge :status="$transaction->blockchain_status === 'Confirmed' ? 'Verified' : 'Pending Verification'" :tone="$statusTone($transaction->blockchain_status)" size="xs" />
+                                            <x-status-badge :status="$transaction->blockchain_status === 'Confirmed' ? 'Verified' : ($transaction->blockchain_status === 'Failed' ? 'Proof Failed' : 'Pending Verification')" :tone="$statusTone($transaction->blockchain_status)" size="xs" />
                                             <x-status-badge :status="$integrityLabel($proofHash, $payload)" :tone="$proofHash ? 'success' : 'neutral'" size="xs" />
                                             @if($ruleValidationPassed)
                                                 <x-status-badge status="Validation Passed" tone="success" size="xs" />
@@ -665,7 +665,7 @@
             @forelse($transactions as $transaction)
                 @php
                     $hash = $transaction->transaction_hash;
-                    $hasRealHash = $hash && str_starts_with($hash, '0x');
+                    $hasRealHash = filled($hash) && preg_match('/^0x[a-fA-F0-9]{64}$/', (string) $hash);
                     $shortHash = $hasRealHash
                         ? substr($hash, 0, 10) . '...' . substr($hash, -8)
                         : ($hash ?? 'Not available');
@@ -711,7 +711,7 @@
                         ['label' => $settlement ? 'Settlement Generated' : 'Awaiting Settlement Generation', 'state' => $settlement ? 'done' : 'pending'],
                         ['label' => $settlementStageLabel, 'state' => $settlementReleased ? 'done' : 'pending'],
                         ['label' => $eduxStageLabel, 'state' => ($eduxStatus === 'success' || $eduxHash) ? 'done' : ($eduxStatus === 'failed' ? 'failed' : 'pending')],
-                        ['label' => $transaction->blockchain_status === 'Confirmed' ? 'Morph Proof Confirmed' : 'Morph Proof Pending', 'state' => $transaction->blockchain_status === 'Confirmed' ? 'done' : ($transaction->blockchain_status === 'Failed' ? 'failed' : 'pending')],
+                        ['label' => $transaction->blockchain_status === 'Confirmed' ? 'Morph Proof Confirmed' : ($transaction->blockchain_status === 'Failed' ? 'Morph Proof Failed' : 'Morph Proof Pending'), 'state' => $transaction->blockchain_status === 'Confirmed' ? 'done' : ($transaction->blockchain_status === 'Failed' ? 'failed' : 'pending')],
                     ];
                     $primaryReferenceLabel = $transaction->transaction_type === 'Settlement'
                         ? ($linkedPayout?->settlement_reference ? 'Payout Reference' : 'Settlement Reference')

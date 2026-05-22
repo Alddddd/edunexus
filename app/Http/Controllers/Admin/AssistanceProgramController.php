@@ -60,7 +60,7 @@ class AssistanceProgramController extends Controller
                 $query->where('status', 'Active');
 
                 if ($assistanceProgram->merchant_category_id) {
-                    $query->orWhereKey($assistanceProgram->merchant_category_id);
+                    $query->orWhere('id', $assistanceProgram->merchant_category_id);
                 }
             })
             ->orderBy('name')
